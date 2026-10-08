@@ -1,0 +1,8 @@
+dist
+node_modules
+package-lock.json
+drizzle
+test-results
+playwright-report
+.ai
+*.md

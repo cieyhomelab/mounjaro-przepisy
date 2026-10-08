@@ -1,0 +1,30 @@
+# Used only by scripts/test-integration.sh: a throwaway PostgreSQL and the
+# Vitest runner in one Compose network. No host ports are published.
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: integration
+      POSTGRES_DB: app
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U app -d app']
+      interval: 1s
+      timeout: 3s
+      retries: 60
+
+  tests:
+    build:
+      context: .
+      target: dev
+    environment:
+      APP_ENV: test
+      DATABASE_URL: postgres://app:integration@db:5432/app
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ['npm', 'run', 'test:integration', '--']
+    profiles:
+      - runner

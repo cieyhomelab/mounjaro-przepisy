@@ -592,4 +592,346 @@ Właściciel nie odpowiedział na żadne pytanie „wybierz ty”. Poniższe szc
 
 ## Sekcje techniczne
 
-> Uzupełnia architekt po zatwierdzeniu specyfikacji: architektura, model danych, kontrakty API, plan implementacji.
+Uzupełnione przez architekta. Wybór stosu z uzasadnieniem i alternatywami: [ADR 0001](../../docs/adr/0001-stos-technologiczny.md). Zasady pracy w repozytorium: [AGENTS.md](../../AGENTS.md).
+
+### Architektura
+
+#### Komponenty
+
+```mermaid
+flowchart LR
+  subgraph Urządzenie
+    UI[Ekrany React] --> Domain[Logika domenowa src/shared]
+    UI --> Store[(IndexedDB + Cache Storage)]
+    SW[Service worker] --> Store
+    Sync[Synchronizacja] --> Store
+  end
+  subgraph Serwer [Kontener app]
+    API[Fastify /api] --> Services[Serwisy]
+    Services --> Domain2[Logika domenowa src/shared]
+    Scheduler[Harmonogram przypomnień] --> Services
+    Services --> Fetcher[Bezpieczne pobieranie stron]
+  end
+  Sync -- HTTPS, ciasteczko sesji --> API
+  UI -- zapisy --> API
+  Services --> DB[(PostgreSQL)]
+  API -- OIDC --> Google[Google]
+  Fetcher --> Sites[Serwisy kulinarne]
+  Scheduler -- Web Push --> Push[Usługi push przeglądarek]
+  Push --> SW
+```
+
+| Komponent | Odpowiedzialność | Granica |
+| --- | --- | --- |
+| Klient (`src/client`) | Ekrany, formularze, tryb gotowania, lokalna kopia danych, service worker | Nie zawiera reguł biznesowych poza wywołaniami `src/shared`; z serwerem rozmawia tylko przez `/api` |
+| Logika domenowa (`src/shared`) | Schematy Zod kontraktów; czyste funkcje: filtry, sortowanie, wyszukiwanie w kolekcji, skalowanie porcji, parsowanie linii składnika, wyliczanie wartości odżywczych, normalizacja adresów, generowanie listy zakupów, rotacja miejsc wkłucia, tygodnie i dni w czasie polskim | Bez dostępu do sieci, bazy, zegara i DOM; ten sam kod działa w przeglądarce i na serwerze |
+| API (`src/server/routes`) | Uwierzytelnienie, walidacja wejścia, odpowiedzi | Cienkie trasy; brak logiki domenowej |
+| Serwisy (`src/server/services`) | Transakcje, wersja danych konta, migawka, eksport, usunięcie konta | Jedyny kod piszący do bazy |
+| Integracje (`src/server/integrations`) | Google OIDC, pobieranie i parsowanie stron, wyszukiwarki serwisów, Web Push | Każda za interfejsem, z atrapą wybieraną zmienną środowiskową |
+| Harmonogram | Co 30 sekund sprawdza, czy należy wysłać przypomnienie (etap 4.2) | Działa w procesie serwera; stan w bazie |
+| PostgreSQL | Wszystkie dane konta łącznie ze zdjęciami | Dostępny tylko z sieci Compose |
+
+Serwer jest jednym procesem Node: obsługuje `/api`, serwuje zbudowanego klienta i uruchamia harmonogram. Nieznane ścieżki spoza `/api` dostają `index.html` (routing po stronie klienta).
+
+#### Przepływ danych
+
+1. **Odczyt.** Po zalogowaniu klient wywołuje `GET /api/snapshot` i zapisuje wynik w IndexedDB. Wszystkie ekrany czytają wyłącznie z IndexedDB, więc online i offline działa ten sam kod, a filtrowanie odbywa się w pamięci przeglądarki. Przy starcie aplikacji, powrocie do karty i odzyskaniu połączenia klient ponawia zapytanie z nagłówkiem `If-None-Match` zawierającym znaną wersję danych; serwer odpowiada 304 albo pełną migawką.
+2. **Zapis.** Każda zmiana to żądanie do API (wymaga internetu). Serwer wykonuje ją w transakcji, zwiększa `data_version` konta i zwraca zmieniony obiekt z nową wersją. Klient zapisuje obiekt w IndexedDB; jeśli zwrócona wersja nie jest o jeden większa od lokalnej (zmiana z innego urządzenia), pobiera migawkę. Konflikt rozstrzyga kolejność dotarcia do serwera: późniejszy zapis nadpisuje wcześniejszy (S15).
+3. **Zdjęcia.** Migawka zawiera identyfikatory zdjęć. Po synchronizacji klient pobiera brakujące `GET /api/photos/:id` do Cache Storage i usuwa nieużywane; service worker podaje je stamtąd. Status „Dane offline: aktualne” z datą jest ustawiany po zapisaniu migawki i wszystkich zdjęć; błąd braku miejsca (`QuotaExceededError`) ustawia „Dane offline: niepełne”.
+4. **Zapis offline (tylko S20).** Odhaczenie pozycji listy zakupów zmienia IndexedDB i dopisuje wpis do kolejki w IndexedDB. Kolejka jest wysyłana jednym żądaniem, gdy aplikacja jest otwarta i ma połączenie. Serwer stosuje wpisy w kolejności dotarcia.
+5. **Sesja.** Ciasteczko `HttpOnly`, `Secure`, `SameSite=Lax` z losowym identyfikatorem; w bazie jest tylko jego skrót SHA-256. Sesja wygasa 30 dni po ostatnim żądaniu z danego urządzenia; każde uwierzytelnione żądanie przesuwa termin (zapis do bazy najwyżej raz na godzinę). Klient zapisuje lokalnie czas ostatniego udanego kontaktu z serwerem; przy starcie offline po ponad 30 dniach czyści dane lokalne i pokazuje logowanie. Każda odpowiedź 401 oraz wylogowanie czyszczą IndexedDB, Cache Storage i kolejkę (S14, S16).
+6. **Przypomnienie (etap 4.2).** Harmonogram wylicza w czasie polskim, czy minął termin przypomnienia albo ponowienia, sprawdza wpisy dawek i tabelę wysłanych przypomnień, po czym wysyła Web Push do wszystkich subskrypcji konta. Service worker pokazuje powiadomienie o stałej treści.
+
+#### Decyzje przekrojowe
+
+- **Logowanie i dostęp.** Jedno konto. Adres dozwolony pochodzi ze zmiennej `ALLOWED_EMAIL`; z tokenu Google używamy tylko zweryfikowanego adresu e-mail i niczego więcej nie zapisujemy. Wiersz konta powstaje przy pierwszym udanym logowaniu. Adres ekranu, na który wszedł niezalogowany użytkownik, wędruje przez parametr `returnTo` (akceptowane są tylko ścieżki względne).
+- **Ochrona żądań.** Jeden hook Fastify wymaga sesji dla wszystkich tras `/api` poza `/api/health` i `/api/auth/*`. Żądania zmieniające stan muszą mieć nagłówek `Origin` równy `APP_BASE_URL` i treść JSON (wyjątek: przesłanie zdjęcia). Nagłówki bezpieczeństwa i CSP (`default-src 'self'`, obrazy z `'self'`, `blob:` i `data:`) ustawia `@fastify/helmet`.
+- **Pobieranie cudzych stron.** Jeden moduł: tylko `http` i `https`, blokada adresów prywatnych, pętli zwrotnej i link-local po rozwiązaniu DNS (także po przekierowaniach, najwyżej 5), limit czasu `FETCH_TIMEOUT_MS` (domyślnie 12 s, żeby cała operacja zmieściła się w 15 s), limit rozmiaru 5 MB dla HTML i 15 MB dla obrazu, jawny `User-Agent` z nazwą aplikacji. `FETCH_ALLOW_PRIVATE_NETWORK=true` znosi blokadę adresów prywatnych wyłącznie poza produkcją, na potrzeby stron testowych.
+- **Logi.** Logger zapisuje metodę, wzorzec trasy, kod odpowiedzi, czas trwania i identyfikator żądania. Nie zapisuje adresów z parametrami, treści, e-maila ani danych użytkownika.
+- **Szyfrowanie.** W transporcie: TLS na reverse proxy (usługa `caddy` w profilu Compose `tls` albo proxy serwera). W spoczynku: wolumen bazy na zaszyfrowanym dysku serwera; kopie zapasowe szyfrowane `age`. Procedura wdrożenia sprawdza oba warunki.
+- **Kopie zapasowe.** Usługa `backup` w `compose.yml` co 6 godzin wykonuje `pg_dump`, szyfruje wynik kluczem publicznym `BACKUP_AGE_RECIPIENT` i zapisuje w `BACKUP_DIR`; pliki starsze niż 29 dni usuwa, dzięki czemu dane usuniętego konta znikają z kopii przed upływem 30 dni. Właściciel kopiuje `BACKUP_DIR` poza serwer (pliki są zaszyfrowane, więc nadaje się dowolny magazyn). Odtworzenie opisuje `docs/operations.md` i sprawdza skrypt `scripts/restore-drill.sh`.
+- **Czas.** Serwer czyta czas z abstrakcji zegara; poza produkcją zegar można przesunąć przez `/api/__test/clock`. „Dziś”, granice dnia i tygodnia liczone są w strefie Europe/Warsaw funkcjami z `src/shared`.
+- **Wydajność listy.** Kolekcja jest w pamięci jako tablica; filtry, sortowanie i wyszukiwanie to jedno przejście po najwyżej 1000 elementach. Pole do wyszukiwania (tytuł i nazwy składników bez wielkich liter i znaków diakrytycznych) jest wyliczane raz przy zapisie do IndexedDB. Lista renderuje tylko widoczne wiersze (`@tanstack/react-virtual`). Test E2E z 1000 przepisów i czterokrotnym spowolnieniem procesora pilnuje limitu 1 sekundy.
+- **Wersja klienta.** Migawka zawiera `apiVersion`. Klient z inną wersją niż serwer przeładowuje się, żeby pobrać nowy kod (patrz `BACKWARD_COMPATIBILITY.md`).
+- **Środowisko testowe.** `compose.e2e.yml` uruchamia aplikację z `APP_ENV=e2e`, atrapami logowania i push oraz usługą `fixtures` ze stronami testowymi. Trasy `/api/__test/*` istnieją tylko poza produkcją: `reset` (czyści bazę), `clock` (ustawia czas), `push-outbox` (lista wysłanych powiadomień atrapy), `scheduler/tick` (wymusza przebieg harmonogramu).
+
+### Model danych
+
+PostgreSQL, schemat w `src/server/db/schema.ts`, migracje w `drizzle/`. Identyfikatory to UUID generowane przez serwer. Każda tabela z danymi użytkownika ma `account_id` z `ON DELETE CASCADE`, więc usunięcie konta (S16) to usunięcie jednego wiersza w jednej transakcji. Daty kalendarzowe mają typ `date`, znaczniki czasu `timestamptz`.
+
+#### Etap 1
+
+| Tabela | Pola | Uwagi |
+| --- | --- | --- |
+| `accounts` | `id`, `email` (unikalny), `data_version` (bigint), `created_at` | Jeden wiersz. `email` [DANE OSOBOWE]. Nie przechowujemy nazwy ani zdjęcia z Google |
+| `sessions` | `id` (skrót SHA-256 tokenu), `account_id`, `created_at`, `last_seen_at`, `expires_at` | `expires_at = last_seen_at + 30 dni`. Wygasłe wiersze usuwa harmonogram |
+| `settings` | `account_id` (klucz), `threshold_protein_g` (25), `threshold_fat_g` (15), `threshold_fiber_g` (5), `threshold_kcal` (400), `threshold_small_portion_kcal` (300) | Wartości domyślne z S7. Kolejne etapy dodają kolumny |
+| `recipes` | `id`, `account_id`, `title`, `kind` (`link` \| `manual`), `servings` (numeric 3,1), `ingredients` (jsonb), `steps` (jsonb, lista tekstów), `source_url`, `source_url_key`, `source_site_name`, `source_rating` (numeric, skala 0–5), `source_rating_count`, `source_nutrition` (jsonb), `kcal`, `protein_g`, `fat_g`, `fiber_g` (numeric, puste = brak danych), `kcal_origin`, `protein_origin`, `fat_origin`, `fiber_origin` (`source` \| `estimated` \| `manual` \| `none`), `unrecognized_ingredients` (jsonb), `own_rating` (1–5), `tolerance` (`good` \| `medium` \| `bad`), `tolerance_symptoms` (jsonb), `tolerance_note`, `worse_days` (bool), `created_at`, `updated_at` | `source_url_key` to adres po normalizacji z S2, unikalny w obrębie konta. `source_nutrition` trzyma wartości odczytane ze źródła, żeby „Przywróć wyliczenie” mogło do nich wrócić. Tolerancja i tag [DANE OSOBOWE – zdrowie] |
+| `recipe_photos` | `id`, `account_id`, `recipe_id` (unikalny, może być pusty), `content` (bytea), `content_type`, `width`, `height`, `byte_size`, `created_at` | WebP, dłuższy bok najwyżej 1280 px. Zdjęcie bez przepisu to zdjęcie z podglądu odczytu; nieprzypisane wiersze starsze niż 24 godziny usuwa harmonogram |
+| `cook_events` | `id`, `account_id`, `recipe_id` (`ON DELETE SET NULL`), `cooked_on` (date), `created_at` | Usunięcie przepisu nie zmniejsza historii tygodniowej, która jest miarą sukcesu |
+| `collections` | `id`, `account_id`, `name`, `name_key`, `created_at` | `name_key` to nazwa małymi literami bez nadmiarowych spacji, unikalna w obrębie konta |
+| `recipe_collections` | `recipe_id`, `collection_id` | Klucz złożony; kaskada z obu stron |
+
+Element `ingredients`: `{ quantity: number \| null, unit: string \| null, name: string \| null, originalText: string }`. Składnik bez ilości ma `quantity` i `unit` puste, a `name` wypełnione. Składnik, którego nie udało się rozbić, ma tylko `originalText` (S12: „ilość nieprzeliczona”). Zakres ilości (np. „2–3 łyżki”) jest traktowany jak składnik nierozbity.
+
+Element `tolerance_symptoms`: `nausea`, `heartburn`, `bloating`, `other`; notatka do „inne” w `tolerance_note`.
+
+Reguła wartości odżywczych (S5), osobno dla każdej z czterech wartości: wartość wpisana ręcznie ma pochodzenie `manual`; w przeciwnym razie wartość z `source_nutrition` ma `source`; w przeciwnym razie wyliczenie ze składników ma `estimated`; gdy nie rozpoznano żadnego składnika, wartość jest pusta z pochodzeniem `none`. Przy każdym zapisie przepisu serwer przelicza wartości `estimated` i `none` oraz listę `unrecognized_ingredients`; wartości `manual` i `source` zostawia. Kalorie są zaokrąglane do liczby całkowitej, pozostałe do 1 g.
+
+#### Etap 2
+
+| Tabela | Pola | Uwagi |
+| --- | --- | --- |
+| `trusted_sites` | `id`, `account_id`, `host` (unikalny w obrębie konta), `name`, `active` (bool), `search_config` (jsonb), `created_at` | `search_config`: szablon adresu wyszukiwania i sposób znajdowania odnośników do przepisów. Migracja i tworzenie konta wstawiają cztery serwisy startowe |
+
+#### Etap 3
+
+| Tabela | Pola | Uwagi |
+| --- | --- | --- |
+| `meal_plan_entries` | `id`, `account_id`, `plan_date` (date), `slot` (`breakfast` \| `lunch` \| `dinner` \| `snack`), `recipe_id` (`ON DELETE CASCADE`), `servings`, `created_at` | Usunięcie przepisu usuwa go z planera (S19) |
+| `shopping_checks` | `account_id`, `week_start` (date, poniedziałek), `item_key`, `checked` (bool), `checked_quantity` (numeric, może być puste), `updated_at` | Klucz: konto, tydzień, `item_key` (nazwa po normalizacji i jednostka) |
+| `shopping_custom_items` | `id`, `account_id`, `week_start`, `name`, `checked` (bool), `created_at`, `updated_at` | Własne pozycje użytkownika |
+
+Lista zakupów nie jest przechowywana w całości. Pozycje wynikające z planu wylicza czysta funkcja z planu tygodnia i przepisów (sumowanie po nazwie i jednostce, S20); w bazie są tylko odhaczenia i własne pozycje. Pozycja jest odhaczona, gdy istnieje dla niej wpis `checked = true` z `checked_quantity` równym bieżącej ilości; po zmianie ilości wraca do nieodhaczonych. Ta sama funkcja działa w kliencie (także offline) i na serwerze przy eksporcie.
+
+#### Etap 4
+
+| Tabela | Pola | Uwagi |
+| --- | --- | --- |
+| `dose_entries` | `id`, `account_id`, `dose_date`, `dose_mg` (numeric), `site` (jedna z sześciu wartości), `note`, `created_at` | [DANE OSOBOWE – zdrowie] |
+| `settings` (nowe kolumny) | `reminder_enabled` (false), `reminder_weekday` (1–7), `reminder_time` (time), `protein_goal_g`, `water_goal_ml` (domyślnie puste), `glass_ml` (250) | [DANE OSOBOWE – zdrowie] |
+| `push_subscriptions` | `id`, `account_id`, `endpoint` (unikalny), `p256dh`, `auth`, `created_at`, `last_success_at` | Zgoda na powiadomienia osobno dla urządzenia. Subskrypcję odrzuconą przez usługę push (404 albo 410) serwer usuwa |
+| `reminder_deliveries` | `account_id`, `occurrence_date` (dzień przypomnienia), `kind` (`first` \| `repeat`), `sent_at` | Klucz złożony zapewnia jedno wysłanie także po restarcie |
+| `wellbeing_entries` | `account_id`, `entry_date` (klucz złożony), `weight_kg`, `mood` (1–5), `note`, `updated_at` | Jeden wpis na dzień (S24). [DANE OSOBOWE – zdrowie] |
+| `protein_entries` | `id`, `account_id`, `entry_date`, `grams`, `source_kind` (`recipe` \| `manual`), `recipe_title`, `servings`, `description`, `created_at` | Bez klucza obcego do przepisu: wpis zachowuje nazwę i ilość z chwili dodania (S25). [DANE OSOBOWE – zdrowie] |
+| `water_entries` | `id`, `account_id`, `entry_date`, `ml`, `created_at` | [DANE OSOBOWE – zdrowie] |
+
+#### Dane na urządzeniu
+
+IndexedDB (Dexie), baza `mounjaro-przepisy`: magazyny odpowiadające kolekcjom migawki (`recipes`, `collections`, `cookEvents`, `settings`, a w kolejnych etapach `trustedSites`, `mealPlan`, `shoppingChecks`, `shoppingCustomItems`, `doseEntries`, `wellbeingEntries`, `proteinEntries`, `waterEntries`), magazyn `meta` (wersja danych, czas ostatniego kontaktu z serwerem, status danych offline) i `outbox` (kolejka odhaczeń z S20). Zdjęcia są w Cache Storage. Filtry i sortowanie z S6 żyją w pamięci karty i nie są zapisywane.
+
+#### Obsługa danych osobowych
+
+- Wszystkie tabele poza `sessions` i `reminder_deliveries` zawierają treść chronioną jak dane o zdrowiu; nie ma podziału na dane „zwykłe” i „wrażliwe”.
+- Z konta Google zapisywany jest wyłącznie adres e-mail. Tokeny Google nie są przechowywane.
+- Dane opuszczają serwer tylko w trzech przypadkach: odpowiedź dla zalogowanego użytkownika, zaszyfrowana kopia zapasowa, powiadomienie push o stałej treści bez danych zdrowotnych. Do serwisów kulinarnych trafia adres strony albo fraza wyszukiwania, bez identyfikacji użytkownika.
+- Usunięcie konta kasuje wiersz `accounts` (kaskadowo wszystko), sesje i subskrypcje push. Kopie zapasowe wygasają po 29 dniach.
+- Eksport (S16) to archiwum ZIP: `dane.json` (pole `formatVersion`, wszystkie obiekty z sekcji „Dane”) i katalog `zdjecia/`.
+
+### Kontrakty API
+
+Wszystkie trasy są pod `/api`, przyjmują i zwracają JSON (wyjątki zaznaczone) i wymagają sesji, o ile nie zaznaczono inaczej. Schematy Zod żądań i odpowiedzi są w `src/shared/contracts/`.
+
+**Wspólne zasady**
+
+- Błąd: `{ "error": { "code": string, "fields"?: { [pole]: string } } }`. Kody wspólne: `validation` (400, z `fields`), `unauthenticated` (401), `forbidden_origin` (403), `not_found` (404), `conflict` (409), `payload_too_large` (413), `internal` (500).
+- Odpowiedź każdej operacji zmieniającej dane zawiera `dataVersion` (liczba) oraz zmieniony obiekt.
+- Liczba porcji: liczba od 0,5 do 99 będąca wielokrotnością 0,5. Wartości odżywcze, progi, cele, dawka i waga: liczby dodatnie albo nieujemne, zgodnie z kryteriami scenariuszy. Daty: `YYYY-MM-DD`, nie z przyszłości tam, gdzie wymaga tego scenariusz.
+- Teksty: tytuł do 200 znaków, nazwa kolekcji do 60, notatki do 500, krok do 2000, do 100 składników i 100 kroków na przepis.
+
+#### Etap 1
+
+| Metoda i ścieżka | Żądanie | Odpowiedź | Uwagi i walidacja |
+| --- | --- | --- | --- |
+| `GET /health` | — | `{ status, database }` | Bez sesji. 503, gdy baza nie odpowiada |
+| `GET /auth/google/start?returnTo=` | — | 302 do Google | Bez sesji. `returnTo` musi być ścieżką względną. Stan, `nonce` i weryfikator PKCE w krótkotrwałym ciasteczku |
+| `GET /auth/google/callback?code=&state=` | — | 302 do `returnTo` albo `/logowanie?blad=konto` | Bez sesji. Tworzy sesję tylko dla zweryfikowanego adresu równego `ALLOWED_EMAIL` |
+| `POST /auth/logout` | — | 204 | Usuwa sesję i ciasteczko |
+| `GET /session` | — | `{ email, apiVersion }` albo 401 | Przesuwa termin sesji |
+| `GET /snapshot` | Nagłówek `If-None-Match` | 304 albo `{ apiVersion, dataVersion, generatedAt, settings, recipes[], collections[], cookEvents[] }` | `ETag` równy `dataVersion`. Kolejne etapy dodają kolekcje |
+| `POST /recipes/import-preview` | `{ url }` | `{ status: "complete" \| "partial", draft, missing[] }` | 400 `invalid_url`; 409 `duplicate_source` z `recipeId`; 502 `source_unavailable`. `draft` ma kształt wejścia przepisu oraz `photoId` pobranego zdjęcia. `missing` wymienia pola obowiązkowe, których nie odczytano |
+| `POST /recipes` | Wejście przepisu | 201 `{ recipe, dataVersion }` | Wymagane: `title`, `servings`, co najmniej jeden składnik i jeden krok. 409 `duplicate_source` |
+| `PUT /recipes/:id` | Wejście przepisu | `{ recipe, dataVersion }` | Zastępuje pola edytowalne. Pola źródła (`sourceUrl` przepisu z linku, ocena i liczba opinii ze źródła) są ignorowane |
+| `DELETE /recipes/:id` | — | `{ dataVersion }` | Usuwa zdjęcie i przypisania; ugotowania zostają bez przepisu |
+| `PUT /recipes/:id/photo` | Treść binarna obrazu (JPEG, PNG, WebP), do 10 MB | `{ recipe, dataVersion }` | Serwer pomniejsza i zapisuje jako WebP. 400 `unsupported_image` |
+| `DELETE /recipes/:id/photo` | — | `{ recipe, dataVersion }` | |
+| `GET /photos/:id` | — | `image/webp` | `Cache-Control: private, max-age=31536000, immutable` |
+| `PUT /recipes/:id/rating` | `{ rating: 1–5 \| null }` | `{ recipe, dataVersion }` | `null` usuwa ocenę |
+| `PUT /recipes/:id/tolerance` | `{ level: "good" \| "medium" \| "bad" \| null, symptoms[], note? }` | `{ recipe, dataVersion }` | `note` tylko z objawem `other` |
+| `PUT /recipes/:id/worse-days` | `{ enabled }` | `{ recipe, dataVersion }` | |
+| `PUT /recipes/:id/collections` | `{ collectionIds[] }` | `{ recipe, dataVersion }` | Zastępuje przypisania |
+| `POST /recipes/:id/cook-events` | — | 201 `{ cookEvent, dataVersion }` | Data to dzisiejszy dzień w czasie polskim według zegara serwera |
+| `DELETE /recipes/:id/cook-events/last` | — | `{ dataVersion }` | Usuwa ostatnio dodane ugotowanie tego przepisu; 404, gdy brak |
+| `POST /collections` | `{ name }` | 201 `{ collection, dataVersion }` | 409 `duplicate_name` (bez rozróżniania wielkości liter) |
+| `PUT /collections/:id` | `{ name }` | `{ collection, dataVersion }` | 409 `duplicate_name` |
+| `DELETE /collections/:id` | — | `{ dataVersion }` | Przepisy zostają |
+| `PUT /settings/thresholds` | `{ proteinG, fatG, fiberG, kcal, smallPortionKcal }` | `{ settings, dataVersion }` | Każda wartość jest liczbą większą od zera |
+| `POST /settings/thresholds/reset` | — | `{ settings, dataVersion }` | |
+| `GET /account/export` | — | `application/zip` | `Content-Disposition: attachment` |
+| `DELETE /account` | `{ confirmation: "USUŃ" }` | 204 | 400 `validation` przy innym słowie. Usuwa dane i wszystkie sesje |
+
+Wejście przepisu: `{ title, servings, ingredients: [{ quantity, unit, name, originalText }], steps: string[], sourceUrl?, photoId?, nutritionManual: { kcal?, proteinG?, fatG?, fiberG? } }`. W `nutritionManual` liczba oznacza wartość wpisaną ręcznie, a `null` albo brak pola oznacza powrót do wartości ze źródła lub wyliczonej („Przywróć wyliczenie”). Serwer sam rozbija `originalText` na ilość, jednostkę i nazwę, gdy klient ich nie poda.
+
+Obiekt `recipe` w odpowiedziach i migawce zawiera pola tabeli `recipes` w `camelCase`, w tym `nutrition: { kcal, proteinG, fatG, fiberG }`, gdzie każda wartość to `{ value: number \| null, origin }`, oraz `photoId`, `collectionIds`, `unrecognizedIngredients`.
+
+#### Etap 2
+
+| Metoda i ścieżka | Żądanie | Odpowiedź | Uwagi i walidacja |
+| --- | --- | --- | --- |
+| `GET /search?q=` | — | `{ results: [{ title, url, imageToken, siteName, rating, ratingCount, recipeId }], failedSites: [{ name }] }` | `q` od 2 do 100 znaków. Najwyżej 10 wyników z serwisu; `rating` w skali 0–5 albo `null`; `recipeId` wypełnione, gdy adres jest już w kolekcji. Sortowanie z S17 wykonuje serwer |
+| `GET /search/images/:token` | — | Obraz | Pośredniczy tylko dla obrazów zwróconych w wynikach z ostatnich 15 minut, żeby przeglądarka nie łączyła się z cudzymi serwerami |
+| `POST /search/save` | `{ url }` | 201 `{ recipe, dataVersion }` albo 200 `{ status: "partial", draft, missing[] }` | Zapis bez podglądu, gdy odczyt jest kompletny; w przeciwnym razie dane do formularza ręcznego |
+| `POST /trusted-sites` | `{ url }` | 201 `{ site, dataVersion }` | 409 `duplicate_site`; 422 `not_searchable`; 502 `source_unavailable` |
+| `PATCH /trusted-sites/:id` | `{ active }` | `{ site, dataVersion }` | |
+| `DELETE /trusted-sites/:id` | — | `{ dataVersion }` | Przepisy zapisane z serwisu zostają |
+
+Migawka i eksport zyskują `trustedSites[]`.
+
+#### Etap 3
+
+| Metoda i ścieżka | Żądanie | Odpowiedź | Uwagi i walidacja |
+| --- | --- | --- | --- |
+| `POST /meal-plan` | `{ date, slot, recipeId, servings }` | 201 `{ entry, dataVersion }` | `servings` domyślnie 1 |
+| `DELETE /meal-plan/:id` | — | `{ dataVersion }` | |
+| `POST /shopping/:weekStart/custom-items` | `{ name }` | 201 `{ item, dataVersion }` | `weekStart` musi być poniedziałkiem |
+| `DELETE /shopping/custom-items/:id` | — | `{ dataVersion }` | |
+| `PUT /shopping/:weekStart/checks` | `{ changes: [{ itemKey? , customItemId?, checked, quantity? }] }` | `{ checks[], customItems[], dataVersion }` | Jedno żądanie dla pojedynczego odhaczenia i dla kolejki offline; zmiany stosowane w kolejności listy |
+
+Migawka i eksport zyskują `mealPlan[]`, `shoppingChecks[]`, `shoppingCustomItems[]`; eksport zawiera też wyliczone listy zakupów ze stanem odhaczenia.
+
+#### Etap 4
+
+| Metoda i ścieżka | Żądanie | Odpowiedź | Uwagi i walidacja |
+| --- | --- | --- | --- |
+| `POST /dose-entries` | `{ date, doseMg, site, note? }` | 201 `{ entry, dataVersion }` | `doseMg` większe od zera; `site` jedno z sześciu; data nie z przyszłości |
+| `PUT /dose-entries/:id` | jak wyżej | `{ entry, dataVersion }` | |
+| `DELETE /dose-entries/:id` | — | `{ dataVersion }` | |
+| `PUT /settings/reminder` | `{ enabled, weekday, time }` | `{ settings, dataVersion }` | `weekday` 1–7 (poniedziałek = 1), `time` w formacie `HH:MM` |
+| `GET /push/public-key` | — | `{ publicKey }` | Klucz VAPID |
+| `POST /push/subscriptions` | `{ endpoint, keys: { p256dh, auth } }` | 201 | Idempotentne względem `endpoint` |
+| `DELETE /push/subscriptions` | `{ endpoint }` | 204 | |
+| `PUT /wellbeing/:date` | `{ weightKg?, mood?, note? }` | `{ entry, dataVersion }` | Tworzy albo aktualizuje wpis dnia; wymagane `weightKg` lub `mood` |
+| `DELETE /wellbeing/:date` | — | `{ dataVersion }` | |
+| `PUT /settings/goals` | `{ proteinGoalG, waterGoalMl, glassMl }` | `{ settings, dataVersion }` | Cele mogą być `null`; liczby większe od zera |
+| `POST /protein-entries` | `{ kind: "recipe", recipeId, servings, grams? }` albo `{ kind: "manual", grams, description }` | 201 `{ entry, dataVersion }` | Dla przepisu bez białka `grams` jest wymagane (422 `protein_required`). Data to dziś |
+| `DELETE /protein-entries/:id` | — | `{ dataVersion }` | Tylko wpis z dzisiejszego dnia (409 `past_day`) |
+| `POST /water-entries` | — | 201 `{ entry, dataVersion }` | Ilość równa `glass_ml` |
+| `DELETE /water-entries/:id` | — | `{ dataVersion }` | Tylko wpis z dzisiejszego dnia |
+
+Migawka i eksport zyskują `doseEntries[]`, `wellbeingEntries[]`, `proteinEntries[]`, `waterEntries[]` oraz nowe pola `settings`. Proponowane miejsce wkłucia (S22) i baner przypomnienia (S23) wylicza klient funkcjami z `src/shared`.
+
+#### Trasy testowe (tylko gdy `APP_ENV` jest różne od `production`)
+
+| Metoda i ścieżka | Działanie |
+| --- | --- |
+| `POST /__test/reset` | Usuwa wszystkie dane i przywraca zegar |
+| `PUT /__test/clock` `{ now }` | Ustawia czas serwera (ISO 8601); `null` przywraca zegar systemowy |
+| `GET /__test/push-outbox` | Zwraca powiadomienia wysłane przez atrapę push |
+| `POST /__test/scheduler/tick` | Wykonuje jeden przebieg harmonogramu |
+| `GET /__test/google` | Formularz atrapy logowania Google: wybór adresu e-mail i powrót do `callback` |
+
+### Integracje
+
+| Integracja | Dostawca i sposób | Tryb atrapy | Sekrety |
+| --- | --- | --- | --- |
+| Logowanie Google | Google OpenID Connect, przepływ z kodem autoryzacji i PKCE, biblioteka `openid-client`. Zakres `openid email` | `AUTH_MODE=mock`: `start` przekierowuje do `/api/__test/google`, gdzie test podaje adres e-mail; dalsza ścieżka (sprawdzenie adresu, sesja, `returnTo`) jest ta sama | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ALLOWED_EMAIL`, `APP_BASE_URL` |
+| Odczyt przepisu z linku | Własne pobieranie strony i parsowanie biblioteką `cheerio`. Kolejność źródeł danych: schema.org/Recipe w JSON-LD, mikrodane schema.org, metadane Open Graph (tytuł, zdjęcie). Ocena z `aggregateRating` przeliczana na skalę 0–5 według `bestRating`; wartości odżywcze z `nutrition` | Brak osobnej atrapy: usługa `fixtures` w `compose.e2e.yml` serwuje strony testowe ze specyfikacji („czytelna”, „bez oceny”, „bez liczby porcji”, „bez zdjęcia”, „bez składników”, „nie-przepis”, „z wartościami odżywczymi”, „z częścią wartości”, „niedostępna”), a aplikacja pobiera je prawdziwym kodem przy `FETCH_ALLOW_PRIVATE_NETWORK=true` i skróconym `FETCH_TIMEOUT_MS` | Brak |
+| Wyszukiwanie w zaufanych serwisach | Wyszukiwarka każdego serwisu: serwer pobiera stronę wyników według `search_config`, wyciąga odnośniki do przepisów, a tytuł, zdjęcie, ocenę i liczbę opinii czyta ze stron przepisów (równolegle, z jednym terminem 15 s na całe wyszukiwanie). Cztery serwisy startowe mają konfigurację w kodzie. Dla serwisu dodawanego przez użytkownika konfiguracja jest wykrywana: `SearchAction` w danych schema.org strony głównej, opis OpenSearch, a potem typowe wzorce (`/?s=`, `/szukaj?q=`). Serwis jest „przeszukiwalny”, gdy próbne wyszukiwanie zwróci co najmniej jedną stronę z danymi schema.org/Recipe | Usługa `fixtures` udaje serwisy „przeszukiwalny”, „nieprzeszukiwalny”, „niedostępny” i „z ocenami w skali 0–10” | Brak |
+| Wartości odżywcze składników | Tabela w repozytorium `src/shared/nutrition/ingredients.pl.json`: polska nazwa, synonimy, wartości na 100 g (kcal, białko, tłuszcz, błonnik), masa typowych jednostek (sztuka, łyżka, łyżeczka, szklanka) i gęstość dla płynów. Buduje ją skrypt `scripts/build-nutrition-data.sh` z plików USDA FoodData Central (SR Legacy i Foundation Foods, domena publiczna) i z pliku mapowania polskich nazw na identyfikatory FDC utrzymywanego w repozytorium. Dopasowanie nazwy jest dokładne po normalizacji (małe litery, bez znaków diakrytycznych, synonimy); bez zgadywania przybliżonego. Składnik bez dopasowania albo bez przeliczalnej jednostki trafia na listę nierozpoznanych | Niepotrzebna: dane są lokalne. Zestaw danych testowych i przepis referencyjny z S5 to plik w `tests/` wstrzykiwany zamiast pełnej tabeli w testach jednostkowych | Brak |
+| Powiadomienia push | Web Push (standard W3C) z kluczami VAPID, biblioteka `web-push`. Treść stała: „Przypomnienie: dziś zaplanowany zastrzyk” | `PUSH_MODE=mock`: powiadomienia trafiają do pamięci serwera i są czytane przez `/api/__test/push-outbox`; subskrypcję w testach tworzy się przez API. Wyświetlenie powiadomienia przez service worker sprawdza test w Chromium | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` |
+| Kopie zapasowe | `pg_dump` i szyfrowanie `age` w usłudze `backup` | Nie dotyczy testów E2E; sprawdza `scripts/restore-drill.sh` | `BACKUP_AGE_RECIPIENT` (klucz publiczny; prywatny zostaje u właściciela) |
+
+Pełna lista zmiennych z opisami: `.env.example`. Testy E2E nie wymagają żadnego sekretu.
+
+Działanie z czterema prawdziwymi serwisami z listy startowej jest sprawdzane ręcznie przy odbiorze etapów 1.2 i 2 (zgodnie ze specyfikacją). Dodatkowo testy oznaczone `@live` pobierają po jednej stronie z każdego serwisu; uruchamia się je ręcznie zmienną `E2E_LIVE=1`, nie w CI.
+
+### Plan implementacji
+
+Każdy krok kończy się działającą aplikacją i zielonymi skryptami z `scripts/`. Przy kroku podano, jak go sprawdzić. Kolejność wycinków etapu 1 ustala specyfikacja; kolumna „Zależy od” pokazuje zależności techniczne, czyli co musi być zmergowane wcześniej.
+
+| Etap | Zależy od |
+| --- | --- |
+| 1.1 Logowanie i przepisy ręczne | szkielet (ten PR) |
+| 1.2 Przepis z linku i wartości odżywcze | 1.1 |
+| 1.3 Filtry, ugotowania i oceny | 1.1 (filtry działają na wartościach wpisanych ręcznie; z 1.2 dochodzą wartości ze źródła i szacunkowe) |
+| 1.4 Gotowanie i offline | 1.1; kryterium S14 o filtrach offline wymaga 1.3 |
+| 1.5 Moje dane | 1.1; eksport obejmuje pola istniejące w chwili dostarczenia |
+| 2 Wyszukiwanie w serwisach | 1.2 (odczyt stron), 1.5 (eksport) |
+| 3 Planer i lista zakupów | 1.1, 1.4 (dane offline i znacznik offline), 1.5 (eksport) |
+| 4.1 Dawki i rotacja | 1.1, 1.4, 1.5 |
+| 4.2 Przypomnienie | 4.1, 1.4 (service worker) |
+| 4.3 Waga i samopoczucie | 1.1, 1.4, 1.5 |
+| 4.4 Liczniki białka i wody | 1.1, 1.4, 1.5 |
+
+Etapy 2, 3 i 4 nie zależą od siebie. Wycinki 4.1, 4.3 i 4.4 nie zależą od siebie.
+
+#### Etap 1.1: logowanie i przepisy ręczne
+
+1. **Zaplecze testowe i powłoka aplikacji.** Abstrakcja zegara, trasy `/api/__test/reset` i `/api/__test/clock`, wspólny format błędów, nagłówki bezpieczeństwa, sprawdzanie `Origin`; w kliencie układ strony, obsługa błędów z komunikatem po polsku i ponowieniem. Sprawdzenie: testy integracyjne formatu błędu i tras testowych; test, że trasy testowe nie istnieją przy `APP_ENV=production`.
+2. **Konto, sesja i logowanie atrapą.** Tabele `accounts`, `sessions`, `settings`; `AUTH_MODE=mock`; hook wymagający sesji; ekran logowania, `returnTo`, komunikat „To konto nie ma dostępu”, wylogowanie, wygasanie po 30 dniach. Sprawdzenie: testy E2E kryteriów S1 poza kryterium o drugim urządzeniu; test integracyjny 401 dla każdej chronionej trasy.
+3. **Logowanie Google.** Dostawca `openid-client`, walidacja konfiguracji przy starcie (brak sekretów przy `AUTH_MODE=google` zatrzymuje aplikację z czytelnym błędem). Sprawdzenie: test integracyjny z lokalnym wystawcą OIDC uruchamianym w teście; ręczne logowanie przy odbiorze.
+4. **Migawka i lokalna kopia danych.** `GET /api/snapshot` z `ETag`, magazyn Dexie, synchronizacja przy starcie i powrocie do karty, pusta kolekcja z przyciskami „Z linku” (nieaktywny do 1.2) i „Ręcznie”. Sprawdzenie: test E2E pustej kolekcji (S6); test integracyjny 304.
+5. **Ręczne dodanie przepisu.** Tabela `recipes`, parser linii składnika w `src/shared`, `POST /api/recipes`, formularz z walidacją pól, lista kolekcji (tytuł, grafika zastępcza, białko i kalorie albo „—”), szczegóły przepisu, zachowanie danych formularza po błędzie sieci. Sprawdzenie: testy E2E kryteriów S4 i elementu listy z S6; testy jednostkowe parsera i walidacji.
+6. **Zdjęcie przepisu.** Tabela `recipe_photos`, przesyłanie i pomniejszanie (`sharp`), `GET /api/photos/:id`. Sprawdzenie: test integracyjny (format, rozmiar, 401 bez sesji); test E2E dodania zdjęcia.
+7. **Edycja i usunięcie.** `PUT` i `DELETE /api/recipes/:id`, potwierdzenie usunięcia, reguła późniejszego zapisu. Sprawdzenie: testy E2E kryteriów S15 (bez kryterium o przepisie z linku), w tym dwa konteksty przeglądarki dla kryterium o dwóch urządzeniach z S1 i S15.
+8. **Wdrożenie.** Usługa `caddy` w profilu `tls`, `docs/operations.md` (pierwsze uruchomienie, konfiguracja klienta OAuth w Google, zaszyfrowany dysk, aktualizacja). Sprawdzenie: `docker compose --profile tls config` w CI; lista kontrolna wdrożenia wykonana przy odbiorze.
+
+#### Etap 1.2: przepis z linku i wartości odżywcze
+
+1. **Bezpieczne pobieranie i strony testowe.** Moduł pobierania (limity, blokada adresów prywatnych, przekierowania), usługa `fixtures` w `compose.e2e.yml` z dziewięcioma stronami testowymi. Sprawdzenie: testy integracyjne blokady adresów prywatnych, limitu czasu i rozmiaru.
+2. **Parser przepisu.** JSON-LD, mikrodane, Open Graph; normalizacja oceny; normalizacja adresu z S2 w `src/shared`. Sprawdzenie: testy jednostkowe na plikach HTML stron testowych i na zapisanych kopiach stron czterech serwisów startowych.
+3. **Podgląd i zapis przepisu z linku.** `POST /api/recipes/import-preview`, pobranie zdjęcia, wskaźnik postępu, podgląd z edycją, wykrywanie duplikatu z przejściem do istniejącego przepisu, nazwa serwisu i link w szczegółach. Sprawdzenie: testy E2E kryteriów S2.
+4. **Link nieczytelny.** Formularz ręczny z odczytanymi polami, „Strona nie odpowiada” z ponowieniem, „To nie jest poprawny link”. Sprawdzenie: testy E2E kryteriów S3.
+5. **Tabela składników.** Skrypt budujący dane z FoodData Central, plik mapowania dla co najmniej 300 najczęstszych składników polskiej kuchni, zestaw danych testowych z przepisem referencyjnym. Sprawdzenie: test jednostkowy spójności tabeli (jednostki, wartości nieujemne, brak powtórzonych nazw).
+6. **Wyliczanie i pochodzenie wartości.** Funkcja wyliczająca w `src/shared`, reguła pochodzenia, przeliczanie przy zapisie, wpis ręczny i „Przywróć wyliczenie”, szczegóły z listą nierozpoznanych składników. Sprawdzenie: testy jednostkowe reguły; testy E2E kryteriów S5 i kryterium S15 o przepisie z linku.
+
+#### Etap 1.3: filtry pod Mounjaro, ugotowania i oceny
+
+1. **Filtry, sortowanie i wyszukiwanie w kolekcji.** Czyste funkcje w `src/shared` (progi, „brak danych” nie przechodzi filtra, remisy według daty dodania, wyszukiwanie bez wielkości liter i polskich znaków), interfejs filtrów, stan zachowany do zamknięcia aplikacji, „Brak przepisów dla tych filtrów”. Sprawdzenie: testy jednostkowe każdej reguły; testy E2E pozostałych kryteriów S6.
+2. **Progi w ustawieniach.** Ekran „Progi filtrów”, zapis i przywracanie domyślnych. Sprawdzenie: testy E2E kryteriów S7.
+3. **Ugotowania i własna ocena.** Tabela `cook_events`, przycisk „Ugotowane”, cofnięcie, licznik tygodniowy i historia 8 tygodni liczone w `src/shared`, ocena gwiazdkowa. Sprawdzenie: testy E2E kryteriów S8 z przesuwaniem zegara; testy jednostkowe granic tygodnia.
+4. **Tolerancja i tag „Na gorsze dni”.** Zapis, etykiety na liście, filtry. Sprawdzenie: testy E2E kryteriów S9 i S10.
+5. **Kolekcje własne.** Tabele `collections` i `recipe_collections`, zarządzanie, filtr. Sprawdzenie: testy E2E kryteriów S11.
+6. **Wydajność.** Wirtualizacja listy, pole wyszukiwania wyliczane przy zapisie. Sprawdzenie: test E2E z 1000 przepisów i spowolnionym procesorem (Chromium) dla filtra, sortowania i wpisania znaku.
+
+#### Etap 1.4: gotowanie i offline
+
+1. **Skalowanie porcji.** Funkcja w `src/shared`, kontrolka liczby porcji w szczegółach, „ilość nieprzeliczona”. Sprawdzenie: testy jednostkowe zaokrągleń; testy E2E kryteriów S12.
+2. **Tryb gotowania.** Ekran składników i kroków, nawigacja, Wake Lock API z jednorazową informacją, gdy przeglądarka go nie obsługuje, zakończenie z zachętą do oceny. Sprawdzenie: testy E2E kryteriów S13 (blokada wygaszania sprawdzana przez stan `navigator.wakeLock` w Chromium).
+3. **Instalacja PWA.** Manifest, ikony, service worker (`vite-plugin-pwa`, tryb `injectManifest`) z powłoką aplikacji dostępną offline. Sprawdzenie: test E2E otwarcia aplikacji offline po pierwszej wizycie; ręczna instalacja na Androidzie i iOS przy odbiorze.
+4. **Dane offline.** Pobieranie zdjęć do Cache Storage, status „Dane offline: aktualne / niepełne” w Ustawieniach, znacznik „offline”, informacja o braku obsługi offline w przeglądarce. Sprawdzenie: testy E2E kryteriów S14 o statusie, przeglądaniu offline i danych dodanych na drugim urządzeniu.
+5. **Blokada zmian offline i czyszczenie danych.** Wspólny mechanizm dla wszystkich akcji zmieniających dane („Ta akcja wymaga połączenia z internetem”), nieaktywne „Ugotowane” po gotowaniu offline, czyszczenie przy wylogowaniu, po 401 i po 30 dniach bez kontaktu z serwerem. Sprawdzenie: pozostałe testy E2E kryteriów S14 oraz kryterium S1 o 30 dniach (zegar przeglądarki).
+
+#### Etap 1.5: moje dane
+
+1. **Eksport.** `GET /api/account/export`, archiwum z `dane.json` i zdjęciami. Sprawdzenie: test integracyjny zawartości archiwum; testy E2E dwóch pierwszych kryteriów S16.
+2. **Usunięcie konta.** Potwierdzenie słowem „USUŃ”, usunięcie danych i sesji, czyszczenie danych offline na drugim urządzeniu. Sprawdzenie: testy E2E pozostałych kryteriów S16.
+3. **Kopie zapasowe.** Usługa `backup`, szyfrowanie, usuwanie starych plików, `scripts/restore-drill.sh`, opis w `docs/operations.md`. Sprawdzenie: skrypt odtworzenia uruchamiany w CI na danych testowych.
+
+#### Etap 2: wyszukiwanie w zaufanych serwisach
+
+1. **Zaufane serwisy.** Tabela `trusted_sites` z listą startową, ekran w Ustawieniach (włączanie, usuwanie), rozszerzenie migawki i eksportu. Sprawdzenie: testy E2E kryteriów S18 niewymagających wyszukiwania.
+2. **Silnik wyszukiwania.** Serwisy testowe w usłudze `fixtures`, konfiguracje czterech serwisów startowych, pobieranie równoległe z terminem, przeliczanie ocen, sortowanie. Sprawdzenie: testy integracyjne na serwisach testowych (limit 10, skala 0–10, serwis niedostępny).
+3. **Ekran wyszukiwania.** Lista wyników, obrazy przez pośrednika, oznaczenie „w kolekcji”, informacja o nieprzeszukanym serwisie, „Brak wyników”, komunikat offline. Sprawdzenie: testy E2E kryteriów S17 dotyczących listy.
+4. **Zapis jednym tapnięciem.** `POST /api/search/save`, przejście do formularza ręcznego przy niepełnym odczycie. Sprawdzenie: testy E2E pozostałych kryteriów S17.
+5. **Dodawanie serwisu.** Wykrywanie konfiguracji wyszukiwania, komunikaty dla serwisu nieprzeszukiwalnego i powtórzonego. Sprawdzenie: testy E2E pozostałych kryteriów S18.
+
+#### Etap 3: planer tygodnia i lista zakupów
+
+1. **Planer.** Tabela `meal_plan_entries`, widok tygodnia z czterema porami, dodawanie i usuwanie, nawigacja między tygodniami, otwarcie przepisu z liczbą porcji z planera, ostrzeżenie przy usuwaniu zaplanowanego przepisu, tryb tylko do odczytu offline. Sprawdzenie: testy E2E kryteriów S19.
+2. **Lista zakupów.** Funkcja generująca w `src/shared` (sumowanie, osobne jednostki, pozycje bez ilości, kolejność), ekran listy, własne pozycje, odhaczanie, zachowanie odhaczeń po zmianie planu. Sprawdzenie: testy jednostkowe funkcji; testy E2E kryteriów S20 niewymagających offline.
+3. **Odhaczanie offline.** Kolejka w IndexedDB, wysyłka po odzyskaniu połączenia, reguła późniejszej synchronizacji. Sprawdzenie: testy E2E kryteriów S20 offline, w tym dwa konteksty przeglądarki.
+4. **Eksport.** Plan i listy ze stanem odhaczenia w `dane.json`. Sprawdzenie: test E2E ostatniego kryterium S20.
+
+#### Etap 4.1: dawki i rotacja
+
+1. **Dziennik dawek.** Tabela `dose_entries`, formularz z informacją o wyrobie medycznym, walidacja, lista, edycja i usuwanie, tryb tylko do odczytu offline, rozszerzenie migawki i eksportu. Sprawdzenie: testy E2E kryteriów S21.
+2. **Rotacja miejsc.** Funkcja proponująca miejsce w `src/shared`, tekst propozycji w formularzu. Sprawdzenie: testy jednostkowe reguły; testy E2E kryteriów S22.
+
+#### Etap 4.2: przypomnienie o zastrzyku
+
+1. **Ustawienia i subskrypcja.** Kolumny przypomnienia w `settings`, tabela `push_subscriptions`, prośba o zgodę, wyjaśnienie przy odmowie i na iOS bez instalacji. Sprawdzenie: testy E2E kryteriów S23 o zgodzie i zmianie ustawień.
+2. **Harmonogram.** Funkcja w `src/shared` wyliczająca, co należy wysłać dla danego czasu, ustawień, wpisów dawek i wysłanych przypomnień; przebieg co 30 sekund; tabela `reminder_deliveries`; atrapa push. Sprawdzenie: testy jednostkowe wszystkich przypadków z S23 (w tym zmiana czasu letniego); testy E2E z zegarem testowym i skrzynką atrapy.
+3. **Powiadomienie i baner.** Obsługa `push` i kliknięcia w service workerze (formularz dawki albo dziennik offline), baner „Dziś zaplanowany zastrzyk”. Sprawdzenie: testy E2E pozostałych kryteriów S23 (wyświetlenie powiadomienia w Chromium).
+4. **Prawdziwy Web Push.** Dostawca `web-push`, klucze VAPID, usuwanie nieważnych subskrypcji. Sprawdzenie: test integracyjny z lokalnym serwerem udającym usługę push; ręczny test na telefonie przy odbiorze.
+
+#### Etap 4.3: waga i samopoczucie
+
+1. **Dziennik.** Tabela `wellbeing_entries`, formularz z uzupełnianiem istniejącego wpisu dnia, lista, edycja i usuwanie, rozszerzenie migawki i eksportu. Sprawdzenie: testy E2E kryteriów S24 poza wykresem.
+2. **Wykres wagi.** Własny komponent SVG bez dodatkowej biblioteki, tekst zastępczy przy mniej niż dwóch pomiarach. Sprawdzenie: test jednostkowy wyliczania punktów; test E2E kryterium o wykresie.
+
+#### Etap 4.4: liczniki białka i wody
+
+1. **Cele i szklanka.** Kolumny w `settings`, ekran ustawień z walidacją. Sprawdzenie: testy E2E kryteriów S25 o celach.
+2. **Licznik białka.** Tabela `protein_entries`, „Zjedzone” w szczegółach przepisu, wpis ręczny, prośba o białko przy „brak danych”, usuwanie dzisiejszych wpisów. Sprawdzenie: testy E2E kryteriów S25 o białku, w tym niezmienność wpisu po edycji i usunięciu przepisu.
+3. **Licznik wody i dni.** Tabela `water_entries`, przycisk dodania, podsumowanie względem celu, zerowanie o północy czasu polskiego, „Poprzedni dzień” tylko do odczytu, rozszerzenie eksportu. Sprawdzenie: testy E2E pozostałych kryteriów S25 z zegarem testowym.

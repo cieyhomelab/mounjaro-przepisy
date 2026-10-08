@@ -112,7 +112,8 @@ describe('snapshot and manual recipes', () => {
         },
         { quantity: null, unit: null, name: 'sól do smaku', originalText: 'sól do smaku' },
       ]);
-      expect(recipe.nutrition.proteinG).toEqual({ value: null, origin: 'none' });
+      // 200 g of chicken breast is in the ingredient table, so the value is estimated (S5).
+      expect(recipe.nutrition.proteinG).toEqual({ value: 23, origin: 'estimated' });
       const stored = snapshotSchema.parse((await snapshot(jar)).json());
       expect(stored.recipes.map((item) => item.id)).toEqual([recipe.id]);
       expect(stored.dataVersion).toBe(1);
@@ -123,7 +124,10 @@ describe('snapshot and manual recipes', () => {
 
       const response = await post(
         jar,
-        recipeBody({ nutritionManual: { kcal: 412.4, proteinG: 28, fatG: null } }),
+        recipeBody({
+          ingredients: [{ originalText: 'sos tajemniczy' }],
+          nutritionManual: { kcal: 412.4, proteinG: 28, fatG: null },
+        }),
       );
 
       const { recipe } = recipeResponseSchema.parse(response.json());

@@ -116,6 +116,8 @@ export function createPageFetcher(options: PageFetcherOptions): PageFetcher {
         {
           method: 'GET',
           lookup: guardedLookup,
+          // A fresh connection per request: every one goes through the address check above.
+          agent: false,
           signal,
           headers: {
             'user-agent': USER_AGENT,

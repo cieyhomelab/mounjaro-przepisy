@@ -141,6 +141,32 @@ test.describe('S15: edycja przepisu', () => {
   });
 });
 
+test.describe('S15: edycja przepisu z linku', () => {
+  test('S15: link do źródła oraz ocena i liczba opinii ze źródła zostają po edycji przepisu z linku', async ({
+    page,
+  }) => {
+    await logInToCollection(page);
+    await page.getByRole('button', { name: 'Z linku' }).click();
+    await page
+      .getByLabel('Adres strony z przepisem')
+      .fill('http://fixtures.test:8080/przepisy/czytelna');
+    await page.getByRole('button', { name: 'Odczytaj przepis' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Podgląd przepisu' })).toBeVisible();
+    await page.getByRole('button', { name: 'Zapisz' }).click();
+    await expect(page.getByText('Ocena ze źródła: 4,6 (128 opinii)')).toBeVisible();
+
+    await page.getByRole('link', { name: 'Edytuj' }).click();
+    await page.getByLabel('Tytuł').fill('Kurczak po mojemu');
+    await page.getByLabel('Liczba porcji').fill('2');
+    await page.getByRole('button', { name: 'Zapisz' }).click();
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Kurczak po mojemu' })).toBeVisible();
+    await expect(page.getByText('Ocena ze źródła: 4,6 (128 opinii)')).toBeVisible();
+    const source = page.getByRole('link', { name: 'Smaczne Testy' });
+    await expect(source).toHaveAttribute('href', 'http://fixtures.test:8080/przepisy/czytelna');
+  });
+});
+
 test.describe('S15: usunięcie przepisu', () => {
   test('S15: „Usuń” z potwierdzeniem usuwa przepis z kolekcji', async ({ page }) => {
     await logInToCollection(page);

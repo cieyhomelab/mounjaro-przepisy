@@ -11,6 +11,11 @@ services:
       APP_ENV: production
       PORT: '3000'
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      AUTH_MODE: ${AUTH_MODE:-google}
+      APP_BASE_URL: ${APP_BASE_URL:-}
+      ALLOWED_EMAIL: ${ALLOWED_EMAIL:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       DATABASE_URL: postgres://app:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@db:5432/app
     depends_on:
       db:

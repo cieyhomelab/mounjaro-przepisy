@@ -21,6 +21,9 @@ services:
       target: dev
     environment:
       APP_ENV: test
+      AUTH_MODE: mock
+      APP_BASE_URL: http://localhost:3000
+      ALLOWED_EMAIL: owner@example.test
       DATABASE_URL: postgres://app:integration@db:5432/app
     depends_on:
       db:

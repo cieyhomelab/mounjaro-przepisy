@@ -81,6 +81,7 @@ function LineList({
   values,
   multiline,
   error,
+  disabled,
   onChange,
 }: {
   idPrefix: string;
@@ -90,6 +91,7 @@ function LineList({
   values: string[];
   multiline: boolean;
   error?: string | undefined;
+  disabled: boolean;
   onChange: (values: string[]) => void;
 }) {
   const errorId = `${idPrefix}-error`;
@@ -102,6 +104,7 @@ function LineList({
           id,
           value,
           'aria-invalid': Boolean(error),
+          disabled,
           className: inputClass,
           onChange: (event: { target: { value: string } }) =>
             onChange(values.map((item, i) => (i === index ? event.target.value : item))),
@@ -119,7 +122,7 @@ function LineList({
               type="button"
               className={`${secondaryButton} mt-7`}
               onClick={() => onChange(values.filter((_, i) => i !== index))}
-              disabled={values.length === 1}
+              disabled={disabled || values.length === 1}
             >
               Usuń {itemLabel.toLowerCase()} {index + 1}
             </button>
@@ -134,6 +137,7 @@ function LineList({
       <button
         type="button"
         className={`${secondaryButton} self-start`}
+        disabled={disabled}
         onClick={() => onChange([...values, ''])}
       >
         {addLabel}
@@ -222,6 +226,7 @@ export function RecipeFormScreen() {
               type="text"
               className={inputClass}
               value={values.title}
+              disabled={recipeKept}
               aria-invalid={invalid}
               aria-describedby={describedBy}
               onChange={(event) => set('title', event.target.value)}
@@ -236,6 +241,7 @@ export function RecipeFormScreen() {
               inputMode="decimal"
               className={inputClass}
               value={values.servings}
+              disabled={recipeKept}
               aria-invalid={invalid}
               aria-describedby={describedBy}
               onChange={(event) => set('servings', event.target.value)}
@@ -250,6 +256,7 @@ export function RecipeFormScreen() {
           values={values.ingredients}
           multiline={false}
           error={message('ingredients')}
+          disabled={recipeKept}
           onChange={(next) => set('ingredients', next)}
         />
         <p className="-mt-3 text-sm text-neutral-600">
@@ -263,6 +270,7 @@ export function RecipeFormScreen() {
           values={values.steps}
           multiline
           error={message('steps')}
+          disabled={recipeKept}
           onChange={(next) => set('steps', next)}
         />
         <Field id="photo" label="Zdjęcie (opcjonalnie)">
@@ -283,6 +291,7 @@ export function RecipeFormScreen() {
               type="url"
               className={inputClass}
               value={values.sourceUrl}
+              disabled={recipeKept}
               aria-invalid={invalid}
               aria-describedby={describedBy}
               onChange={(event) => set('sourceUrl', event.target.value)}
@@ -307,6 +316,7 @@ export function RecipeFormScreen() {
                   inputMode="decimal"
                   className={inputClass}
                   value={values.nutrition[key]}
+                  disabled={recipeKept}
                   aria-invalid={invalid}
                   aria-describedby={describedBy}
                   onChange={(event) => setNutrition(key, event.target.value)}
@@ -319,7 +329,10 @@ export function RecipeFormScreen() {
           <div className="flex flex-col gap-2">
             <ErrorNotice code={errorCode} onRetry={() => void submit()} />
             {recipeKept ? (
-              <p>Przepis jest już zapisany. Popraw zdjęcie albo usuń je i zapisz ponownie.</p>
+              <p>
+                Przepis jest już zapisany, więc jego pola są zablokowane. Popraw zdjęcie albo usuń
+                je i zapisz ponownie.
+              </p>
             ) : null}
           </div>
         ) : null}

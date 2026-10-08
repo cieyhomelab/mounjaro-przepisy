@@ -322,6 +322,14 @@ test.describe('S4: ręczne dodanie przepisu', () => {
 
     await expect(page.getByRole('alert')).toContainText('Nie udało się odczytać zdjęcia');
     await expect(page.getByLabel('Tytuł')).toHaveValue('Zły plik');
+    // Fields other than the photo are locked, so edits cannot be silently dropped.
+    await expect(page.getByLabel('Tytuł')).toBeDisabled();
+    await expect(page.getByLabel('Liczba porcji')).toBeDisabled();
+    await expect(page.getByLabel('Składnik 1')).toBeDisabled();
+    await expect(page.getByLabel('Krok 1')).toBeDisabled();
+    await expect(page.getByLabel('Kalorie (kcal)')).toBeDisabled();
+    await expect(page.getByLabel('Link do źródła (opcjonalnie)')).toBeDisabled();
+    await expect(page.getByLabel('Zdjęcie (opcjonalnie)')).toBeEnabled();
 
     await page.getByLabel('Zdjęcie (opcjonalnie)').setInputFiles([]);
     await page.getByRole('button', { name: 'Zapisz' }).click();

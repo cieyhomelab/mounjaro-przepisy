@@ -24,6 +24,25 @@ services:
       - '127.0.0.1:${APP_PORT:-3000}:3000'
     restart: unless-stopped
 
+  # HTTPS in front of the app with an automatic certificate. Optional: start it with
+  # `docker compose --profile tls up -d` when the server has no reverse proxy of its own.
+  caddy:
+    image: caddy:2-alpine
+    profiles:
+      - tls
+    # APP_DOMAIN must be set in .env (an empty value makes caddy stop with an error at start).
+    command: caddy reverse-proxy --from ${APP_DOMAIN:-} --to app:3000
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_started
+    restart: unless-stopped
+
   db:
     image: postgres:18-alpine
     environment:
@@ -41,3 +60,5 @@ services:
 
 volumes:
   db-data:
+  caddy-data:
+  caddy-config:

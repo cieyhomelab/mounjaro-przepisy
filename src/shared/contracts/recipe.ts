@@ -95,3 +95,7 @@ export const recipeResponseSchema = z.object({
   dataVersion: z.number().int(),
 });
 export type RecipeResponse = z.infer<typeof recipeResponseSchema>;
+
+/** Response of DELETE /api/recipes/:id. */
+export const recipeDeletedResponseSchema = z.object({ dataVersion: z.number().int() });
+export type RecipeDeletedResponse = z.infer<typeof recipeDeletedResponseSchema>;

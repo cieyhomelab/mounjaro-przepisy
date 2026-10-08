@@ -27,6 +27,11 @@ jobs:
         run: scripts/test-integration.sh
       - name: Build
         run: scripts/build.sh
+      - name: Compose file with the tls profile
+        env:
+          POSTGRES_PASSWORD: ci-only-placeholder
+          APP_DOMAIN: przepisy.example.test
+        run: docker compose --profile tls config --quiet
 
   e2e:
     name: E2E

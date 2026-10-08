@@ -4,10 +4,11 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: 'tests/e2e',
   outputDir: 'test-results',
-  fullyParallel: true,
+  // One server, one database, one clock: tests reset them, so they must not run concurrently.
+  fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: 1,
-  workers: 2,
+  workers: 1,
   reporter: [['list']],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',

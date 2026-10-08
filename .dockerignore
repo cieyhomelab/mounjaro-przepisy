@@ -1,0 +1,12 @@
+.git
+.github
+.ai
+node_modules
+dist
+test-results
+playwright-report
+docs
+*.md
+.env
+.env.*
+!.env.example

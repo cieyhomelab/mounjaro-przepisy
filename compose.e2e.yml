@@ -1,0 +1,27 @@
+# Override used only by scripts/test-e2e.sh (together with compose.yml).
+# No host ports are published; the Playwright runner shares the app's network
+# namespace, so tests reach the app at http://localhost:3000. localhost is a
+# secure context, which service workers and Web Push require.
+services:
+  app:
+    environment:
+      APP_ENV: e2e
+    ports: !reset []
+    restart: 'no'
+
+  db:
+    restart: 'no'
+
+  e2e:
+    build:
+      context: .
+      target: e2e
+    network_mode: service:app
+    environment:
+      E2E_BASE_URL: http://localhost:3000
+      CI: ${CI:-}
+    depends_on:
+      app:
+        condition: service_healthy
+    profiles:
+      - runner

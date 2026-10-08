@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { recipeDeletedResponseSchema, type Recipe } from '../../shared/contracts/recipe';
-import { NO_DATA, formatKcal, formatProtein } from '../../shared/domain/recipeList';
 import { formatSourceRating } from '../../shared/domain/sourceRating';
 import { ErrorNotice } from '../components/ErrorNotice';
+import { NutritionDetails } from '../components/NutritionDetails';
 import { RecipeImage } from '../components/RecipeImage';
 import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
-
-const wholeGrams = (value: number | null) => (value === null ? NO_DATA : `${Math.round(value)} g`);
 
 const actionClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
@@ -106,17 +104,7 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
         <p>Ocena ze źródła: {formatSourceRating(recipe)}</p>
       ) : null}
       <p>Liczba porcji: {recipe.servings.toLocaleString('pl-PL')}</p>
-      <section aria-labelledby="nutrition-heading" className="flex flex-col gap-1">
-        <h2 id="nutrition-heading" className="text-lg font-semibold">
-          Wartości odżywcze na porcję
-        </h2>
-        <ul>
-          <li>Kalorie: {formatKcal(recipe)}</li>
-          <li>Białko: {formatProtein(recipe)}</li>
-          <li>Tłuszcz: {wholeGrams(recipe.nutrition.fatG.value)}</li>
-          <li>Błonnik: {wholeGrams(recipe.nutrition.fiberG.value)}</li>
-        </ul>
-      </section>
+      <NutritionDetails recipe={recipe} />
       <section aria-labelledby="ingredients-heading" className="flex flex-col gap-1">
         <h2 id="ingredients-heading" className="text-lg font-semibold">
           Składniki

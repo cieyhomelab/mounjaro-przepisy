@@ -12,7 +12,7 @@ import {
 } from './nutrition';
 
 const lines = (texts: string[]) => texts.map(parseIngredientLine);
-const fixtureLookup = createNutritionLookup(testSet.table as IngredientNutrition[]);
+const fixtureLookup = createNutritionLookup(testSet.table);
 const empty: NutritionValues = { kcal: null, proteinG: null, fatG: null, fiberG: null };
 
 describe('normalizeIngredientName', () => {
@@ -32,13 +32,20 @@ describe('estimateNutrition', () => {
     );
     expect(estimate.unrecognized).toEqual([]);
     for (const key of ['kcal', 'proteinG', 'fatG', 'fiberG'] as const) {
-      expect(Math.abs((estimate.values[key] ?? NaN) - referenceRecipe.expectedPerServing[key])).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs((estimate.values[key] ?? NaN) - referenceRecipe.expectedPerServing[key]),
+      ).toBeLessThanOrEqual(1);
     }
   });
 
   it('lists lines it cannot count and leaves them out of the sum', () => {
     const estimate = estimateNutrition(
-      lines(['200 g piersi z kurczaka', '3 łyżki sosu tajemniczego', '2-3 ząbki czosnku', 'pęczek rzeczy']),
+      lines([
+        '200 g piersi z kurczaka',
+        '3 łyżki sosu tajemniczego',
+        '2-3 ząbki czosnku',
+        'pęczek rzeczy',
+      ]),
       1,
       fixtureLookup,
     );
@@ -51,7 +58,11 @@ describe('estimateNutrition', () => {
   });
 
   it('gives no values when no ingredient is recognized', () => {
-    const estimate = estimateNutrition(lines(['2 kostki dziwnego sera', 'sól do smaku']), 2, fixtureLookup);
+    const estimate = estimateNutrition(
+      lines(['2 kostki dziwnego sera', 'sól do smaku']),
+      2,
+      fixtureLookup,
+    );
     expect(estimate.values).toEqual(empty);
     expect(estimate.unrecognized).toEqual(['2 kostki dziwnego sera']);
   });
@@ -62,8 +73,7 @@ describe('estimateNutrition', () => {
   });
 
   it('turns millilitres, spoons, glasses and pieces into grams', () => {
-    const grams = (text: string) =>
-      estimateNutrition(lines([text]), 1, fixtureLookup).values.fatG;
+    const grams = (text: string) => estimateNutrition(lines([text]), 1, fixtureLookup).values.fatG;
     expect(grams('100 ml oliwy z oliwek')).toBe(92);
     expect(grams('1 łyżka oliwy z oliwek')).toBe(14);
     expect(grams('1 szklanka oliwy z oliwek')).toBe(230);
@@ -142,7 +152,17 @@ describe('ingredient table', () => {
   });
 
   it('has plausible, non-negative values per 100 g in known units', () => {
-    const units = new Set(['sztuka', 'ząbek', 'plaster', 'puszka', 'garść', 'pęczek', 'kostka', 'szczypta', 'opakowanie']);
+    const units = new Set([
+      'sztuka',
+      'ząbek',
+      'plaster',
+      'puszka',
+      'garść',
+      'pęczek',
+      'kostka',
+      'szczypta',
+      'opakowanie',
+    ]);
     for (const entry of entries) {
       for (const key of ['kcal', 'proteinG', 'fatG', 'fiberG'] as const) {
         expect(entry.per100g[key], `${entry.name} ${key}`).toBeGreaterThanOrEqual(0);

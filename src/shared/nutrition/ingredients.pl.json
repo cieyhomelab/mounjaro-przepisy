@@ -44,11 +44,7 @@
   },
   {
     "name": "mięso mielone z indyka",
-    "synonyms": [
-      "mielony indyk",
-      "indyk mielony",
-      "mięso z indyka mielone"
-    ],
+    "synonyms": ["mielony indyk", "indyk mielony", "mięso z indyka mielone"],
     "fdcId": 171505,
     "per100g": {
       "kcal": 148,
@@ -59,12 +55,7 @@
   },
   {
     "name": "pierś z indyka",
-    "synonyms": [
-      "piersi z indyka",
-      "filet z indyka",
-      "filety z indyka",
-      "pierś indyka"
-    ],
+    "synonyms": ["piersi z indyka", "filet z indyka", "filety z indyka", "pierś indyka"],
     "fdcId": 171098,
     "per100g": {
       "kcal": 114,
@@ -75,11 +66,7 @@
   },
   {
     "name": "wołowina mielona",
-    "synonyms": [
-      "mięso mielone wołowe",
-      "mielona wołowina",
-      "mięso mielone z wołowiny"
-    ],
+    "synonyms": ["mięso mielone wołowe", "mielona wołowina", "mięso mielone z wołowiny"],
     "fdcId": 174030,
     "per100g": {
       "kcal": 176,
@@ -90,12 +77,7 @@
   },
   {
     "name": "wołowina",
-    "synonyms": [
-      "mięso wołowe",
-      "polędwica wołowa",
-      "antrykot",
-      "rostbef"
-    ],
+    "synonyms": ["mięso wołowe", "polędwica wołowa", "antrykot", "rostbef"],
     "fdcId": 171757,
     "per100g": {
       "kcal": 121,
@@ -123,11 +105,7 @@
   },
   {
     "name": "mięso mielone wieprzowe",
-    "synonyms": [
-      "mielona wieprzowina",
-      "mięso mielone",
-      "wieprzowina mielona"
-    ],
+    "synonyms": ["mielona wieprzowina", "mięso mielone", "wieprzowina mielona"],
     "fdcId": 168372,
     "per100g": {
       "kcal": 218,
@@ -138,11 +116,7 @@
   },
   {
     "name": "boczek",
-    "synonyms": [
-      "boczek wędzony",
-      "boczek surowy",
-      "plastry boczku"
-    ],
+    "synonyms": ["boczek wędzony", "boczek surowy", "plastry boczku"],
     "fdcId": 168277,
     "per100g": {
       "kcal": 393,
@@ -156,12 +130,7 @@
   },
   {
     "name": "szynka",
-    "synonyms": [
-      "szynka gotowana",
-      "szynka wieprzowa",
-      "szynka drobiowa",
-      "plastry szynki"
-    ],
+    "synonyms": ["szynka gotowana", "szynka wieprzowa", "szynka drobiowa", "plastry szynki"],
     "fdcId": 173864,
     "per100g": {
       "kcal": 164,
@@ -175,11 +144,7 @@
   },
   {
     "name": "kiełbasa",
-    "synonyms": [
-      "kiełbasa wieprzowa",
-      "kiełbasa śląska",
-      "kiełbaski"
-    ],
+    "synonyms": ["kiełbasa wieprzowa", "kiełbasa śląska", "kiełbaski"],
     "fdcId": 172954,
     "per100g": {
       "kcal": 301,
@@ -213,10 +178,7 @@
   },
   {
     "name": "dorsz",
-    "synonyms": [
-      "filet z dorsza",
-      "filety z dorsza"
-    ],
+    "synonyms": ["filet z dorsza", "filety z dorsza"],
     "fdcId": 171955,
     "per100g": {
       "kcal": 82,
@@ -250,12 +212,7 @@
   },
   {
     "name": "śledź",
-    "synonyms": [
-      "filet ze śledzia",
-      "filety ze śledzia",
-      "śledzie",
-      "śledź w oleju"
-    ],
+    "synonyms": ["filet ze śledzia", "filety ze śledzia", "śledzie", "śledź w oleju"],
     "fdcId": 175116,
     "per100g": {
       "kcal": 158,
@@ -269,10 +226,7 @@
   },
   {
     "name": "pstrąg",
-    "synonyms": [
-      "filet z pstrąga",
-      "pstrąg tęczowy"
-    ],
+    "synonyms": ["filet z pstrąga", "pstrąg tęczowy"],
     "fdcId": 173717,
     "per100g": {
       "kcal": 141,
@@ -286,10 +240,7 @@
   },
   {
     "name": "makrela",
-    "synonyms": [
-      "makrela wędzona",
-      "filet z makreli"
-    ],
+    "synonyms": ["makrela wędzona", "filet z makreli"],
     "fdcId": 175119,
     "per100g": {
       "kcal": 205,
@@ -303,10 +254,7 @@
   },
   {
     "name": "krewetki",
-    "synonyms": [
-      "krewetka",
-      "krewetki obrane"
-    ],
+    "synonyms": ["krewetka", "krewetki obrane"],
     "fdcId": 174210,
     "per100g": {
       "kcal": 71,
@@ -317,14 +265,7 @@
   },
   {
     "name": "jajko",
-    "synonyms": [
-      "jajka",
-      "jajek",
-      "jaja",
-      "jajo",
-      "jajko kurze",
-      "jajka kurze"
-    ],
+    "synonyms": ["jajka", "jajek", "jaja", "jajo", "jajko kurze", "jajka kurze"],
     "fdcId": 171287,
     "per100g": {
       "kcal": 143,
@@ -338,11 +279,7 @@
   },
   {
     "name": "białko jajka",
-    "synonyms": [
-      "białka jaj",
-      "białko jaja",
-      "białka"
-    ],
+    "synonyms": ["białka jaj", "białko jaja", "białka"],
     "fdcId": 172183,
     "per100g": {
       "kcal": 52,
@@ -356,11 +293,7 @@
   },
   {
     "name": "żółtko",
-    "synonyms": [
-      "żółtka",
-      "żółtko jaja",
-      "żółtka jaj"
-    ],
+    "synonyms": ["żółtka", "żółtko jaja", "żółtka jaj"],
     "fdcId": 172184,
     "per100g": {
       "kcal": 322,
@@ -374,11 +307,7 @@
   },
   {
     "name": "mleko",
-    "synonyms": [
-      "mleko 2%",
-      "mleko krowie",
-      "mleka"
-    ],
+    "synonyms": ["mleko 2%", "mleko krowie", "mleka"],
     "fdcId": 171267,
     "per100g": {
       "kcal": 50,
@@ -390,10 +319,7 @@
   },
   {
     "name": "mleko odtłuszczone",
-    "synonyms": [
-      "mleko 0%",
-      "mleko chude"
-    ],
+    "synonyms": ["mleko 0%", "mleko chude"],
     "fdcId": 171269,
     "per100g": {
       "kcal": 34,
@@ -405,9 +331,7 @@
   },
   {
     "name": "mleko pełne",
-    "synonyms": [
-      "mleko tłuste"
-    ],
+    "synonyms": ["mleko tłuste"],
     "fdcId": 171265,
     "per100g": {
       "kcal": 61,
@@ -419,9 +343,7 @@
   },
   {
     "name": "mleko w proszku",
-    "synonyms": [
-      "mleko suche"
-    ],
+    "synonyms": ["mleko suche"],
     "fdcId": 173454,
     "per100g": {
       "kcal": 496,
@@ -433,10 +355,7 @@
   },
   {
     "name": "jogurt naturalny",
-    "synonyms": [
-      "jogurt",
-      "jogurtu naturalnego"
-    ],
+    "synonyms": ["jogurt", "jogurtu naturalnego"],
     "fdcId": 170886,
     "per100g": {
       "kcal": 63,
@@ -448,11 +367,7 @@
   },
   {
     "name": "jogurt grecki",
-    "synonyms": [
-      "jogurt typu grecki",
-      "jogurt typu greckiego",
-      "jogurtu greckiego"
-    ],
+    "synonyms": ["jogurt typu grecki", "jogurt typu greckiego", "jogurtu greckiego"],
     "fdcId": 170894,
     "per100g": {
       "kcal": 59,
@@ -464,9 +379,7 @@
   },
   {
     "name": "kefir",
-    "synonyms": [
-      "kefiru"
-    ],
+    "synonyms": ["kefiru"],
     "fdcId": 170886,
     "per100g": {
       "kcal": 63,
@@ -478,12 +391,7 @@
   },
   {
     "name": "śmietana 18%",
-    "synonyms": [
-      "śmietana",
-      "śmietany",
-      "śmietana kwaśna",
-      "śmietana 12%"
-    ],
+    "synonyms": ["śmietana", "śmietany", "śmietana kwaśna", "śmietana 12%"],
     "fdcId": 171256,
     "per100g": {
       "kcal": 135,
@@ -513,10 +421,7 @@
   },
   {
     "name": "masło",
-    "synonyms": [
-      "masła",
-      "masło ekstra"
-    ],
+    "synonyms": ["masła", "masło ekstra"],
     "fdcId": 173430,
     "per100g": {
       "kcal": 717,
@@ -531,12 +436,7 @@
   },
   {
     "name": "twaróg",
-    "synonyms": [
-      "twarożek",
-      "twaróg półtłusty",
-      "ser twarogowy",
-      "twarogu"
-    ],
+    "synonyms": ["twarożek", "twaróg półtłusty", "ser twarogowy", "twarogu"],
     "fdcId": 172182,
     "per100g": {
       "kcal": 81,
@@ -551,9 +451,7 @@
   },
   {
     "name": "twaróg chudy",
-    "synonyms": [
-      "twaróg odtłuszczony"
-    ],
+    "synonyms": ["twaróg odtłuszczony"],
     "fdcId": 172181,
     "per100g": {
       "kcal": 72,
@@ -565,9 +463,7 @@
   },
   {
     "name": "serek wiejski",
-    "synonyms": [
-      "ser wiejski"
-    ],
+    "synonyms": ["ser wiejski"],
     "fdcId": 172182,
     "per100g": {
       "kcal": 81,
@@ -602,11 +498,7 @@
   },
   {
     "name": "ser mozzarella",
-    "synonyms": [
-      "mozzarella",
-      "mozzarelli",
-      "kulka mozzarelli"
-    ],
+    "synonyms": ["mozzarella", "mozzarelli", "kulka mozzarelli"],
     "fdcId": 170845,
     "per100g": {
       "kcal": 299,
@@ -621,11 +513,7 @@
   },
   {
     "name": "parmezan",
-    "synonyms": [
-      "ser parmezan",
-      "parmezanu",
-      "ser grana padano"
-    ],
+    "synonyms": ["ser parmezan", "parmezanu", "ser grana padano"],
     "fdcId": 170848,
     "per100g": {
       "kcal": 392,
@@ -637,10 +525,7 @@
   },
   {
     "name": "feta",
-    "synonyms": [
-      "ser feta",
-      "fety"
-    ],
+    "synonyms": ["ser feta", "fety"],
     "fdcId": 173420,
     "per100g": {
       "kcal": 265,
@@ -652,11 +537,7 @@
   },
   {
     "name": "ser pleśniowy",
-    "synonyms": [
-      "ser błękitny",
-      "gorgonzola",
-      "ser lazur"
-    ],
+    "synonyms": ["ser błękitny", "gorgonzola", "ser lazur"],
     "fdcId": 172175,
     "per100g": {
       "kcal": 353,
@@ -668,11 +549,7 @@
   },
   {
     "name": "serek śmietankowy",
-    "synonyms": [
-      "serek homogenizowany",
-      "serek kremowy",
-      "serek philadelphia"
-    ],
+    "synonyms": ["serek homogenizowany", "serek kremowy", "serek philadelphia"],
     "fdcId": 173418,
     "per100g": {
       "kcal": 350,
@@ -684,9 +561,7 @@
   },
   {
     "name": "ricotta",
-    "synonyms": [
-      "ser ricotta"
-    ],
+    "synonyms": ["ser ricotta"],
     "fdcId": 171248,
     "per100g": {
       "kcal": 138,
@@ -698,11 +573,7 @@
   },
   {
     "name": "oliwa z oliwek",
-    "synonyms": [
-      "oliwa",
-      "oliwy z oliwek",
-      "oliwa extra virgin"
-    ],
+    "synonyms": ["oliwa", "oliwy z oliwek", "oliwa extra virgin"],
     "fdcId": 171413,
     "per100g": {
       "kcal": 884,
@@ -714,12 +585,7 @@
   },
   {
     "name": "olej rzepakowy",
-    "synonyms": [
-      "olej",
-      "oleju",
-      "olej roślinny",
-      "oleju rzepakowego"
-    ],
+    "synonyms": ["olej", "oleju", "olej roślinny", "oleju rzepakowego"],
     "fdcId": 172336,
     "per100g": {
       "kcal": 884,
@@ -731,9 +597,7 @@
   },
   {
     "name": "olej słonecznikowy",
-    "synonyms": [
-      "oleju słonecznikowego"
-    ],
+    "synonyms": ["oleju słonecznikowego"],
     "fdcId": 171025,
     "per100g": {
       "kcal": 884,
@@ -745,9 +609,7 @@
   },
   {
     "name": "olej kokosowy",
-    "synonyms": [
-      "oleju kokosowego"
-    ],
+    "synonyms": ["oleju kokosowego"],
     "fdcId": 171412,
     "per100g": {
       "kcal": 892,
@@ -759,9 +621,7 @@
   },
   {
     "name": "smalec",
-    "synonyms": [
-      "smalcu"
-    ],
+    "synonyms": ["smalcu"],
     "fdcId": 171401,
     "per100g": {
       "kcal": 902,
@@ -773,9 +633,7 @@
   },
   {
     "name": "margaryna",
-    "synonyms": [
-      "margaryny"
-    ],
+    "synonyms": ["margaryny"],
     "fdcId": 172346,
     "per100g": {
       "kcal": 717,
@@ -787,9 +645,7 @@
   },
   {
     "name": "majonez",
-    "synonyms": [
-      "majonezu"
-    ],
+    "synonyms": ["majonezu"],
     "fdcId": 171009,
     "per100g": {
       "kcal": 680,
@@ -801,9 +657,7 @@
   },
   {
     "name": "musztarda",
-    "synonyms": [
-      "musztardy"
-    ],
+    "synonyms": ["musztardy"],
     "fdcId": 172234,
     "per100g": {
       "kcal": 60,
@@ -815,9 +669,7 @@
   },
   {
     "name": "ketchup",
-    "synonyms": [
-      "keczup"
-    ],
+    "synonyms": ["keczup"],
     "fdcId": 168556,
     "per100g": {
       "kcal": 101,
@@ -829,11 +681,7 @@
   },
   {
     "name": "koncentrat pomidorowy",
-    "synonyms": [
-      "przecier pomidorowy",
-      "passata",
-      "koncentratu pomidorowego"
-    ],
+    "synonyms": ["przecier pomidorowy", "passata", "koncentratu pomidorowego"],
     "fdcId": 170459,
     "per100g": {
       "kcal": 82,
@@ -865,10 +713,7 @@
   },
   {
     "name": "sos sojowy",
-    "synonyms": [
-      "sos sojowy ciemny",
-      "sosu sojowego"
-    ],
+    "synonyms": ["sos sojowy ciemny", "sosu sojowego"],
     "fdcId": 174277,
     "per100g": {
       "kcal": 53,
@@ -880,12 +725,7 @@
   },
   {
     "name": "ocet",
-    "synonyms": [
-      "octu",
-      "ocet winny",
-      "ocet jabłkowy",
-      "ocet balsamiczny"
-    ],
+    "synonyms": ["octu", "ocet winny", "ocet jabłkowy", "ocet balsamiczny"],
     "fdcId": 172237,
     "per100g": {
       "kcal": 18,
@@ -897,9 +737,7 @@
   },
   {
     "name": "miód",
-    "synonyms": [
-      "miodu"
-    ],
+    "synonyms": ["miodu"],
     "fdcId": 169640,
     "per100g": {
       "kcal": 304,
@@ -911,11 +749,7 @@
   },
   {
     "name": "cukier",
-    "synonyms": [
-      "cukru",
-      "cukier biały",
-      "cukier kryształ"
-    ],
+    "synonyms": ["cukru", "cukier biały", "cukier kryształ"],
     "fdcId": 169655,
     "per100g": {
       "kcal": 387,
@@ -927,10 +761,7 @@
   },
   {
     "name": "cukier puder",
-    "synonyms": [
-      "cukru pudru",
-      "cukier w proszku"
-    ],
+    "synonyms": ["cukru pudru", "cukier w proszku"],
     "fdcId": 169656,
     "per100g": {
       "kcal": 389,
@@ -942,10 +773,7 @@
   },
   {
     "name": "cukier brązowy",
-    "synonyms": [
-      "cukru brązowego",
-      "cukier trzcinowy"
-    ],
+    "synonyms": ["cukru brązowego", "cukier trzcinowy"],
     "fdcId": 168833,
     "per100g": {
       "kcal": 380,
@@ -957,9 +785,7 @@
   },
   {
     "name": "syrop klonowy",
-    "synonyms": [
-      "syropu klonowego"
-    ],
+    "synonyms": ["syropu klonowego"],
     "fdcId": 169661,
     "per100g": {
       "kcal": 260,
@@ -971,11 +797,7 @@
   },
   {
     "name": "dżem",
-    "synonyms": [
-      "dżemu",
-      "konfitura",
-      "konfitury"
-    ],
+    "synonyms": ["dżemu", "konfitura", "konfitury"],
     "fdcId": 169641,
     "per100g": {
       "kcal": 278,
@@ -987,11 +809,7 @@
   },
   {
     "name": "czekolada gorzka",
-    "synonyms": [
-      "czekolada",
-      "czekolady",
-      "gorzka czekolada"
-    ],
+    "synonyms": ["czekolada", "czekolady", "gorzka czekolada"],
     "fdcId": 170273,
     "per100g": {
       "kcal": 598,
@@ -1005,11 +823,7 @@
   },
   {
     "name": "kakao",
-    "synonyms": [
-      "kakao ciemne",
-      "kakao naturalne",
-      "kakao w proszku"
-    ],
+    "synonyms": ["kakao ciemne", "kakao naturalne", "kakao w proszku"],
     "fdcId": 169593,
     "per100g": {
       "kcal": 228,
@@ -1021,13 +835,7 @@
   },
   {
     "name": "mąka pszenna",
-    "synonyms": [
-      "mąka",
-      "mąki",
-      "mąka tortowa",
-      "mąka wrocławska",
-      "mąka typ 500"
-    ],
+    "synonyms": ["mąka", "mąki", "mąka tortowa", "mąka wrocławska", "mąka typ 500"],
     "fdcId": 168894,
     "per100g": {
       "kcal": 364,
@@ -1039,10 +847,7 @@
   },
   {
     "name": "mąka pełnoziarnista",
-    "synonyms": [
-      "mąka razowa",
-      "mąka pszenna pełnoziarnista"
-    ],
+    "synonyms": ["mąka razowa", "mąka pszenna pełnoziarnista"],
     "fdcId": 168893,
     "per100g": {
       "kcal": 340,
@@ -1054,10 +859,7 @@
   },
   {
     "name": "mąka ziemniaczana",
-    "synonyms": [
-      "skrobia ziemniaczana",
-      "mąki ziemniaczanej"
-    ],
+    "synonyms": ["skrobia ziemniaczana", "mąki ziemniaczanej"],
     "fdcId": 168446,
     "per100g": {
       "kcal": 357,
@@ -1069,9 +871,7 @@
   },
   {
     "name": "skrobia kukurydziana",
-    "synonyms": [
-      "maizena"
-    ],
+    "synonyms": ["maizena"],
     "fdcId": 169698,
     "per100g": {
       "kcal": 381,
@@ -1083,9 +883,7 @@
   },
   {
     "name": "mąka żytnia",
-    "synonyms": [
-      "mąki żytniej"
-    ],
+    "synonyms": ["mąki żytniej"],
     "fdcId": 168886,
     "per100g": {
       "kcal": 349,
@@ -1097,9 +895,7 @@
   },
   {
     "name": "mąka migdałowa",
-    "synonyms": [
-      "mąki migdałowej"
-    ],
+    "synonyms": ["mąki migdałowej"],
     "fdcId": 170567,
     "per100g": {
       "kcal": 579,
@@ -1111,10 +907,7 @@
   },
   {
     "name": "bułka tarta",
-    "synonyms": [
-      "bułki tartej",
-      "panierka"
-    ],
+    "synonyms": ["bułki tartej", "panierka"],
     "fdcId": 174928,
     "per100g": {
       "kcal": 395,
@@ -1148,12 +941,7 @@
   },
   {
     "name": "bułka",
-    "synonyms": [
-      "bułki",
-      "bułka pszenna",
-      "bułka kajzerka",
-      "kajzerka"
-    ],
+    "synonyms": ["bułki", "bułka pszenna", "bułka kajzerka", "kajzerka"],
     "fdcId": 172796,
     "per100g": {
       "kcal": 279,
@@ -1167,11 +955,7 @@
   },
   {
     "name": "tortilla",
-    "synonyms": [
-      "tortille",
-      "placek tortilla",
-      "tortilla pszenna"
-    ],
+    "synonyms": ["tortille", "placek tortilla", "tortilla pszenna"],
     "fdcId": 167535,
     "per100g": {
       "kcal": 297,
@@ -1185,13 +969,7 @@
   },
   {
     "name": "ryż biały",
-    "synonyms": [
-      "ryż",
-      "ryżu",
-      "ryż długoziarnisty",
-      "ryż jaśminowy",
-      "ryż basmati"
-    ],
+    "synonyms": ["ryż", "ryżu", "ryż długoziarnisty", "ryż jaśminowy", "ryż basmati"],
     "fdcId": 168877,
     "per100g": {
       "kcal": 365,
@@ -1203,10 +981,7 @@
   },
   {
     "name": "ryż brązowy",
-    "synonyms": [
-      "ryż pełnoziarnisty",
-      "ryżu brązowego"
-    ],
+    "synonyms": ["ryż pełnoziarnisty", "ryżu brązowego"],
     "fdcId": 169703,
     "per100g": {
       "kcal": 367,
@@ -1241,9 +1016,7 @@
   },
   {
     "name": "makaron pełnoziarnisty",
-    "synonyms": [
-      "makaron razowy"
-    ],
+    "synonyms": ["makaron razowy"],
     "fdcId": 169738,
     "per100g": {
       "kcal": 352,
@@ -1255,11 +1028,7 @@
   },
   {
     "name": "kasza gryczana",
-    "synonyms": [
-      "kaszy gryczanej",
-      "kasza gryczana biała",
-      "kasza gryczana prażona"
-    ],
+    "synonyms": ["kaszy gryczanej", "kasza gryczana biała", "kasza gryczana prażona"],
     "fdcId": 170685,
     "per100g": {
       "kcal": 346,
@@ -1271,10 +1040,7 @@
   },
   {
     "name": "kasza jaglana",
-    "synonyms": [
-      "kaszy jaglanej",
-      "jaglanka"
-    ],
+    "synonyms": ["kaszy jaglanej", "jaglanka"],
     "fdcId": 169702,
     "per100g": {
       "kcal": 378,
@@ -1286,12 +1052,7 @@
   },
   {
     "name": "kasza jęczmienna",
-    "synonyms": [
-      "kaszy jęczmiennej",
-      "kasza pęczak",
-      "pęczak",
-      "kasza perłowa"
-    ],
+    "synonyms": ["kaszy jęczmiennej", "kasza pęczak", "pęczak", "kasza perłowa"],
     "fdcId": 170284,
     "per100g": {
       "kcal": 352,
@@ -1303,10 +1064,7 @@
   },
   {
     "name": "kasza manna",
-    "synonyms": [
-      "kaszy manny",
-      "manna"
-    ],
+    "synonyms": ["kaszy manny", "manna"],
     "fdcId": 169715,
     "per100g": {
       "kcal": 360,
@@ -1318,10 +1076,7 @@
   },
   {
     "name": "kuskus",
-    "synonyms": [
-      "kuskus pszenny",
-      "kuskusu"
-    ],
+    "synonyms": ["kuskus pszenny", "kuskusu"],
     "fdcId": 169699,
     "per100g": {
       "kcal": 376,
@@ -1333,10 +1088,7 @@
   },
   {
     "name": "quinoa",
-    "synonyms": [
-      "komosa ryżowa",
-      "komosy ryżowej"
-    ],
+    "synonyms": ["komosa ryżowa", "komosy ryżowej"],
     "fdcId": 168874,
     "per100g": {
       "kcal": 368,
@@ -1348,10 +1100,7 @@
   },
   {
     "name": "bulgur",
-    "synonyms": [
-      "kasza bulgur",
-      "kaszy bulgur"
-    ],
+    "synonyms": ["kasza bulgur", "kaszy bulgur"],
     "fdcId": 170688,
     "per100g": {
       "kcal": 342,
@@ -1363,11 +1112,7 @@
   },
   {
     "name": "płatki owsiane",
-    "synonyms": [
-      "płatków owsianych",
-      "płatki owsiane górskie",
-      "płatki owsiane błyskawiczne"
-    ],
+    "synonyms": ["płatków owsianych", "płatki owsiane górskie", "płatki owsiane błyskawiczne"],
     "fdcId": 173904,
     "per100g": {
       "kcal": 379,
@@ -1391,11 +1136,7 @@
   },
   {
     "name": "otręby owsiane",
-    "synonyms": [
-      "otręby",
-      "otręby pszenne",
-      "otrębów"
-    ],
+    "synonyms": ["otręby", "otręby pszenne", "otrębów"],
     "fdcId": 168872,
     "per100g": {
       "kcal": 246,
@@ -1407,12 +1148,7 @@
   },
   {
     "name": "ziemniaki",
-    "synonyms": [
-      "ziemniak",
-      "ziemniaków",
-      "ziemniaki młode",
-      "młode ziemniaki"
-    ],
+    "synonyms": ["ziemniak", "ziemniaków", "ziemniaki młode", "młode ziemniaki"],
     "fdcId": 170026,
     "per100g": {
       "kcal": 77,
@@ -1426,11 +1162,7 @@
   },
   {
     "name": "bataty",
-    "synonyms": [
-      "batat",
-      "słodkie ziemniaki",
-      "słodki ziemniak"
-    ],
+    "synonyms": ["batat", "słodkie ziemniaki", "słodki ziemniak"],
     "fdcId": 168482,
     "per100g": {
       "kcal": 86,
@@ -1444,12 +1176,7 @@
   },
   {
     "name": "cebula",
-    "synonyms": [
-      "cebule",
-      "cebuli",
-      "cebula biała",
-      "cebula żółta"
-    ],
+    "synonyms": ["cebule", "cebuli", "cebula biała", "cebula żółta"],
     "fdcId": 170000,
     "per100g": {
       "kcal": 40,
@@ -1464,9 +1191,7 @@
   },
   {
     "name": "szalotka",
-    "synonyms": [
-      "szalotki"
-    ],
+    "synonyms": ["szalotki"],
     "fdcId": 170499,
     "per100g": {
       "kcal": 72,
@@ -1480,12 +1205,7 @@
   },
   {
     "name": "czosnek",
-    "synonyms": [
-      "ząbek czosnku",
-      "ząbki czosnku",
-      "czosnku",
-      "główka czosnku"
-    ],
+    "synonyms": ["ząbek czosnku", "ząbki czosnku", "czosnku", "główka czosnku"],
     "fdcId": 169230,
     "per100g": {
       "kcal": 149,
@@ -1501,11 +1221,7 @@
   },
   {
     "name": "por",
-    "synonyms": [
-      "pora",
-      "pory",
-      "porów"
-    ],
+    "synonyms": ["pora", "pory", "porów"],
     "fdcId": 169246,
     "per100g": {
       "kcal": 61,
@@ -1519,12 +1235,7 @@
   },
   {
     "name": "marchew",
-    "synonyms": [
-      "marchewka",
-      "marchewki",
-      "marchwi",
-      "marchew surowa"
-    ],
+    "synonyms": ["marchewka", "marchewki", "marchwi", "marchew surowa"],
     "fdcId": 170393,
     "per100g": {
       "kcal": 41,
@@ -1538,10 +1249,7 @@
   },
   {
     "name": "pietruszka korzeń",
-    "synonyms": [
-      "korzeń pietruszki",
-      "pietruszki"
-    ],
+    "synonyms": ["korzeń pietruszki", "pietruszki"],
     "fdcId": 170417,
     "per100g": {
       "kcal": 75,
@@ -1555,11 +1263,7 @@
   },
   {
     "name": "seler",
-    "synonyms": [
-      "seler korzeń",
-      "korzeń selera",
-      "selera"
-    ],
+    "synonyms": ["seler korzeń", "korzeń selera", "selera"],
     "fdcId": 170400,
     "per100g": {
       "kcal": 42,
@@ -1573,11 +1277,7 @@
   },
   {
     "name": "seler naciowy",
-    "synonyms": [
-      "łodyga selera",
-      "łodygi selera",
-      "selera naciowego"
-    ],
+    "synonyms": ["łodyga selera", "łodygi selera", "selera naciowego"],
     "fdcId": 169988,
     "per100g": {
       "kcal": 14,
@@ -1592,12 +1292,7 @@
   },
   {
     "name": "burak",
-    "synonyms": [
-      "buraki",
-      "buraka",
-      "buraczki",
-      "burak czerwony"
-    ],
+    "synonyms": ["buraki", "buraka", "buraczki", "burak czerwony"],
     "fdcId": 169145,
     "per100g": {
       "kcal": 43,
@@ -1611,10 +1306,7 @@
   },
   {
     "name": "rzodkiewka",
-    "synonyms": [
-      "rzodkiewki",
-      "rzodkiewek"
-    ],
+    "synonyms": ["rzodkiewki", "rzodkiewek"],
     "fdcId": 169276,
     "per100g": {
       "kcal": 16,
@@ -1628,9 +1320,7 @@
   },
   {
     "name": "rzepa",
-    "synonyms": [
-      "rzepa biała"
-    ],
+    "synonyms": ["rzepa biała"],
     "fdcId": 170465,
     "per100g": {
       "kcal": 28,
@@ -1665,12 +1355,7 @@
   },
   {
     "name": "ogórek",
-    "synonyms": [
-      "ogórki",
-      "ogórka",
-      "ogórek zielony",
-      "ogórek świeży"
-    ],
+    "synonyms": ["ogórki", "ogórka", "ogórek zielony", "ogórek świeży"],
     "fdcId": 168409,
     "per100g": {
       "kcal": 15,
@@ -1684,10 +1369,7 @@
   },
   {
     "name": "ogórek kiszony",
-    "synonyms": [
-      "ogórki kiszone",
-      "ogórka kiszonego"
-    ],
+    "synonyms": ["ogórki kiszone", "ogórka kiszonego"],
     "fdcId": 168558,
     "per100g": {
       "kcal": 12,
@@ -1701,13 +1383,7 @@
   },
   {
     "name": "papryka czerwona",
-    "synonyms": [
-      "papryka",
-      "papryki",
-      "papryka żółta",
-      "papryka zielona",
-      "papryka słodka"
-    ],
+    "synonyms": ["papryka", "papryki", "papryka żółta", "papryka zielona", "papryka słodka"],
     "fdcId": 170108,
     "per100g": {
       "kcal": 26,
@@ -1721,11 +1397,7 @@
   },
   {
     "name": "papryczka chili",
-    "synonyms": [
-      "chili",
-      "papryczki chili",
-      "papryka chili"
-    ],
+    "synonyms": ["chili", "papryczki chili", "papryka chili"],
     "fdcId": 170106,
     "per100g": {
       "kcal": 40,
@@ -1739,10 +1411,7 @@
   },
   {
     "name": "cukinia",
-    "synonyms": [
-      "cukinii",
-      "cukinie"
-    ],
+    "synonyms": ["cukinii", "cukinie"],
     "fdcId": 169291,
     "per100g": {
       "kcal": 17,
@@ -1756,10 +1425,7 @@
   },
   {
     "name": "bakłażan",
-    "synonyms": [
-      "bakłażana",
-      "bakłażany"
-    ],
+    "synonyms": ["bakłażana", "bakłażany"],
     "fdcId": 169228,
     "per100g": {
       "kcal": 25,
@@ -1773,10 +1439,7 @@
   },
   {
     "name": "dynia",
-    "synonyms": [
-      "dyni",
-      "dynia hokkaido"
-    ],
+    "synonyms": ["dyni", "dynia hokkaido"],
     "fdcId": 168448,
     "per100g": {
       "kcal": 26,
@@ -1788,11 +1451,7 @@
   },
   {
     "name": "kapusta biała",
-    "synonyms": [
-      "kapusta",
-      "kapusty",
-      "kapusta świeża"
-    ],
+    "synonyms": ["kapusta", "kapusty", "kapusta świeża"],
     "fdcId": 169975,
     "per100g": {
       "kcal": 25,
@@ -1804,9 +1463,7 @@
   },
   {
     "name": "kapusta czerwona",
-    "synonyms": [
-      "kapusty czerwonej"
-    ],
+    "synonyms": ["kapusty czerwonej"],
     "fdcId": 169977,
     "per100g": {
       "kcal": 31,
@@ -1818,9 +1475,7 @@
   },
   {
     "name": "kapusta pekińska",
-    "synonyms": [
-      "kapusty pekińskiej"
-    ],
+    "synonyms": ["kapusty pekińskiej"],
     "fdcId": 170390,
     "per100g": {
       "kcal": 13,
@@ -1832,10 +1487,7 @@
   },
   {
     "name": "kapusta kiszona",
-    "synonyms": [
-      "kiszona kapusta",
-      "kapusty kiszonej"
-    ],
+    "synonyms": ["kiszona kapusta", "kapusty kiszonej"],
     "fdcId": 169279,
     "per100g": {
       "kcal": 19,
@@ -1847,11 +1499,7 @@
   },
   {
     "name": "brokuł",
-    "synonyms": [
-      "brokuły",
-      "brokułów",
-      "brokuły mrożone"
-    ],
+    "synonyms": ["brokuły", "brokułów", "brokuły mrożone"],
     "fdcId": 170379,
     "per100g": {
       "kcal": 34,
@@ -1866,9 +1514,7 @@
   },
   {
     "name": "kalafior",
-    "synonyms": [
-      "kalafiora"
-    ],
+    "synonyms": ["kalafiora"],
     "fdcId": 169986,
     "per100g": {
       "kcal": 25,
@@ -1883,10 +1529,7 @@
   },
   {
     "name": "brukselka",
-    "synonyms": [
-      "brukselki",
-      "kapusta brukselska"
-    ],
+    "synonyms": ["brukselki", "kapusta brukselska"],
     "fdcId": 170383,
     "per100g": {
       "kcal": 43,
@@ -1898,12 +1541,7 @@
   },
   {
     "name": "szpinak",
-    "synonyms": [
-      "szpinaku",
-      "szpinak świeży",
-      "liście szpinaku",
-      "szpinak mrożony"
-    ],
+    "synonyms": ["szpinaku", "szpinak świeży", "liście szpinaku", "szpinak mrożony"],
     "fdcId": 168462,
     "per100g": {
       "kcal": 23,
@@ -1941,11 +1579,7 @@
   },
   {
     "name": "rukola",
-    "synonyms": [
-      "rukoli",
-      "roszponka",
-      "roszponki"
-    ],
+    "synonyms": ["rukoli", "roszponka", "roszponki"],
     "fdcId": 169387,
     "per100g": {
       "kcal": 25,
@@ -1960,9 +1594,7 @@
   },
   {
     "name": "jarmuż",
-    "synonyms": [
-      "jarmużu"
-    ],
+    "synonyms": ["jarmużu"],
     "fdcId": 168421,
     "per100g": {
       "kcal": 35,
@@ -1977,10 +1609,7 @@
   },
   {
     "name": "szparagi",
-    "synonyms": [
-      "szparagów",
-      "szparag"
-    ],
+    "synonyms": ["szparagów", "szparag"],
     "fdcId": 168389,
     "per100g": {
       "kcal": 20,
@@ -1994,10 +1623,7 @@
   },
   {
     "name": "fasolka szparagowa",
-    "synonyms": [
-      "fasolka zielona",
-      "fasolki szparagowej"
-    ],
+    "synonyms": ["fasolka zielona", "fasolki szparagowej"],
     "fdcId": 169961,
     "per100g": {
       "kcal": 31,
@@ -2009,12 +1635,7 @@
   },
   {
     "name": "groszek zielony",
-    "synonyms": [
-      "groszek",
-      "groszku",
-      "groszek mrożony",
-      "groszek konserwowy"
-    ],
+    "synonyms": ["groszek", "groszku", "groszek mrożony", "groszek konserwowy"],
     "fdcId": 170419,
     "per100g": {
       "kcal": 81,
@@ -2026,11 +1647,7 @@
   },
   {
     "name": "kukurydza",
-    "synonyms": [
-      "kukurydzy",
-      "kukurydza konserwowa",
-      "kukurydza z puszki"
-    ],
+    "synonyms": ["kukurydzy", "kukurydza konserwowa", "kukurydza z puszki"],
     "fdcId": 169214,
     "per100g": {
       "kcal": 67,
@@ -2045,12 +1662,7 @@
   },
   {
     "name": "pieczarki",
-    "synonyms": [
-      "pieczarka",
-      "pieczarek",
-      "pieczarki świeże",
-      "grzyby"
-    ],
+    "synonyms": ["pieczarka", "pieczarek", "pieczarki świeże", "grzyby"],
     "fdcId": 169251,
     "per100g": {
       "kcal": 22,
@@ -2065,10 +1677,7 @@
   },
   {
     "name": "boczniaki",
-    "synonyms": [
-      "boczniak",
-      "boczniaków"
-    ],
+    "synonyms": ["boczniak", "boczniaków"],
     "fdcId": 168580,
     "per100g": {
       "kcal": 33,
@@ -2080,10 +1689,7 @@
   },
   {
     "name": "suszone grzyby",
-    "synonyms": [
-      "grzyby suszone",
-      "borowiki suszone"
-    ],
+    "synonyms": ["grzyby suszone", "borowiki suszone"],
     "fdcId": 168436,
     "per100g": {
       "kcal": 296,
@@ -2095,9 +1701,7 @@
   },
   {
     "name": "awokado",
-    "synonyms": [
-      "awokado dojrzałe"
-    ],
+    "synonyms": ["awokado dojrzałe"],
     "fdcId": 171705,
     "per100g": {
       "kcal": 160,
@@ -2111,10 +1715,7 @@
   },
   {
     "name": "cytryna",
-    "synonyms": [
-      "cytryny",
-      "cytryn"
-    ],
+    "synonyms": ["cytryny", "cytryn"],
     "fdcId": 167746,
     "per100g": {
       "kcal": 29,
@@ -2128,10 +1729,7 @@
   },
   {
     "name": "sok z cytryny",
-    "synonyms": [
-      "soku z cytryny",
-      "sok cytrynowy"
-    ],
+    "synonyms": ["soku z cytryny", "sok cytrynowy"],
     "fdcId": 167747,
     "per100g": {
       "kcal": 22,
@@ -2143,9 +1741,7 @@
   },
   {
     "name": "limonka",
-    "synonyms": [
-      "limonki"
-    ],
+    "synonyms": ["limonki"],
     "fdcId": 168155,
     "per100g": {
       "kcal": 30,
@@ -2159,9 +1755,7 @@
   },
   {
     "name": "sok z limonki",
-    "synonyms": [
-      "soku z limonki"
-    ],
+    "synonyms": ["soku z limonki"],
     "fdcId": 168156,
     "per100g": {
       "kcal": 25,
@@ -2173,10 +1767,7 @@
   },
   {
     "name": "pomarańcza",
-    "synonyms": [
-      "pomarańcze",
-      "pomarańczy"
-    ],
+    "synonyms": ["pomarańcze", "pomarańczy"],
     "fdcId": 169097,
     "per100g": {
       "kcal": 47,
@@ -2190,9 +1781,7 @@
   },
   {
     "name": "sok pomarańczowy",
-    "synonyms": [
-      "soku pomarańczowego"
-    ],
+    "synonyms": ["soku pomarańczowego"],
     "fdcId": 169098,
     "per100g": {
       "kcal": 45,
@@ -2204,10 +1793,7 @@
   },
   {
     "name": "jabłko",
-    "synonyms": [
-      "jabłka",
-      "jabłek"
-    ],
+    "synonyms": ["jabłka", "jabłek"],
     "fdcId": 171688,
     "per100g": {
       "kcal": 52,
@@ -2221,10 +1807,7 @@
   },
   {
     "name": "gruszka",
-    "synonyms": [
-      "gruszki",
-      "gruszek"
-    ],
+    "synonyms": ["gruszki", "gruszek"],
     "fdcId": 169118,
     "per100g": {
       "kcal": 57,
@@ -2238,10 +1821,7 @@
   },
   {
     "name": "banan",
-    "synonyms": [
-      "banany",
-      "bananów"
-    ],
+    "synonyms": ["banany", "bananów"],
     "fdcId": 173944,
     "per100g": {
       "kcal": 89,
@@ -2255,10 +1835,7 @@
   },
   {
     "name": "truskawki",
-    "synonyms": [
-      "truskawka",
-      "truskawek"
-    ],
+    "synonyms": ["truskawka", "truskawek"],
     "fdcId": 167762,
     "per100g": {
       "kcal": 32,
@@ -2270,10 +1847,7 @@
   },
   {
     "name": "maliny",
-    "synonyms": [
-      "malina",
-      "malin"
-    ],
+    "synonyms": ["malina", "malin"],
     "fdcId": 167755,
     "per100g": {
       "kcal": 52,
@@ -2285,11 +1859,7 @@
   },
   {
     "name": "borówki",
-    "synonyms": [
-      "borówka",
-      "borówek",
-      "jagody"
-    ],
+    "synonyms": ["borówka", "borówek", "jagody"],
     "fdcId": 171711,
     "per100g": {
       "kcal": 57,
@@ -2301,9 +1871,7 @@
   },
   {
     "name": "winogrona",
-    "synonyms": [
-      "winogron"
-    ],
+    "synonyms": ["winogron"],
     "fdcId": 174683,
     "per100g": {
       "kcal": 69,
@@ -2315,10 +1883,7 @@
   },
   {
     "name": "brzoskwinia",
-    "synonyms": [
-      "brzoskwinie",
-      "brzoskwiń"
-    ],
+    "synonyms": ["brzoskwinie", "brzoskwiń"],
     "fdcId": 169928,
     "per100g": {
       "kcal": 39,
@@ -2332,10 +1897,7 @@
   },
   {
     "name": "śliwki",
-    "synonyms": [
-      "śliwka",
-      "śliwek"
-    ],
+    "synonyms": ["śliwka", "śliwek"],
     "fdcId": 169949,
     "per100g": {
       "kcal": 46,
@@ -2349,11 +1911,7 @@
   },
   {
     "name": "wiśnie",
-    "synonyms": [
-      "wiśnia",
-      "wiśni",
-      "czereśnie"
-    ],
+    "synonyms": ["wiśnia", "wiśni", "czereśnie"],
     "fdcId": 173954,
     "per100g": {
       "kcal": 50,
@@ -2365,9 +1923,7 @@
   },
   {
     "name": "mango",
-    "synonyms": [
-      "mango dojrzałe"
-    ],
+    "synonyms": ["mango dojrzałe"],
     "fdcId": 169910,
     "per100g": {
       "kcal": 60,
@@ -2381,9 +1937,7 @@
   },
   {
     "name": "ananas",
-    "synonyms": [
-      "ananasa"
-    ],
+    "synonyms": ["ananasa"],
     "fdcId": 169124,
     "per100g": {
       "kcal": 50,
@@ -2395,9 +1949,7 @@
   },
   {
     "name": "kiwi",
-    "synonyms": [
-      "kiwi dojrzałe"
-    ],
+    "synonyms": ["kiwi dojrzałe"],
     "fdcId": 168153,
     "per100g": {
       "kcal": 61,
@@ -2411,9 +1963,7 @@
   },
   {
     "name": "arbuz",
-    "synonyms": [
-      "arbuza"
-    ],
+    "synonyms": ["arbuza"],
     "fdcId": 167765,
     "per100g": {
       "kcal": 30,
@@ -2425,9 +1975,7 @@
   },
   {
     "name": "melon",
-    "synonyms": [
-      "melona"
-    ],
+    "synonyms": ["melona"],
     "fdcId": 169092,
     "per100g": {
       "kcal": 34,
@@ -2439,9 +1987,7 @@
   },
   {
     "name": "rodzynki",
-    "synonyms": [
-      "rodzynek"
-    ],
+    "synonyms": ["rodzynek"],
     "fdcId": 168165,
     "per100g": {
       "kcal": 299,
@@ -2453,9 +1999,7 @@
   },
   {
     "name": "suszone żurawiny",
-    "synonyms": [
-      "żurawina suszona"
-    ],
+    "synonyms": ["żurawina suszona"],
     "fdcId": 171723,
     "per100g": {
       "kcal": 308,
@@ -2467,9 +2011,7 @@
   },
   {
     "name": "suszone morele",
-    "synonyms": [
-      "morele suszone"
-    ],
+    "synonyms": ["morele suszone"],
     "fdcId": 173941,
     "per100g": {
       "kcal": 241,
@@ -2481,9 +2023,7 @@
   },
   {
     "name": "śliwki suszone",
-    "synonyms": [
-      "suszone śliwki"
-    ],
+    "synonyms": ["suszone śliwki"],
     "fdcId": 168162,
     "per100g": {
       "kcal": 240,
@@ -2495,10 +2035,7 @@
   },
   {
     "name": "daktyle",
-    "synonyms": [
-      "daktyl",
-      "daktyli"
-    ],
+    "synonyms": ["daktyl", "daktyli"],
     "fdcId": 171726,
     "per100g": {
       "kcal": 282,
@@ -2513,9 +2050,7 @@
   },
   {
     "name": "figi suszone",
-    "synonyms": [
-      "suszone figi"
-    ],
+    "synonyms": ["suszone figi"],
     "fdcId": 174665,
     "per100g": {
       "kcal": 249,
@@ -2527,10 +2062,7 @@
   },
   {
     "name": "orzechy włoskie",
-    "synonyms": [
-      "orzech włoski",
-      "orzechów włoskich"
-    ],
+    "synonyms": ["orzech włoski", "orzechów włoskich"],
     "fdcId": 170187,
     "per100g": {
       "kcal": 654,
@@ -2542,11 +2074,7 @@
   },
   {
     "name": "migdały",
-    "synonyms": [
-      "migdał",
-      "migdałów",
-      "płatki migdałowe"
-    ],
+    "synonyms": ["migdał", "migdałów", "płatki migdałowe"],
     "fdcId": 170567,
     "per100g": {
       "kcal": 579,
@@ -2558,10 +2086,7 @@
   },
   {
     "name": "orzechy laskowe",
-    "synonyms": [
-      "orzech laskowy",
-      "orzechów laskowych"
-    ],
+    "synonyms": ["orzech laskowy", "orzechów laskowych"],
     "fdcId": 170581,
     "per100g": {
       "kcal": 628,
@@ -2573,10 +2098,7 @@
   },
   {
     "name": "orzechy nerkowca",
-    "synonyms": [
-      "nerkowce",
-      "orzechy nerkowiec"
-    ],
+    "synonyms": ["nerkowce", "orzechy nerkowiec"],
     "fdcId": 170162,
     "per100g": {
       "kcal": 553,
@@ -2588,11 +2110,7 @@
   },
   {
     "name": "orzeszki ziemne",
-    "synonyms": [
-      "orzechy ziemne",
-      "orzeszków ziemnych",
-      "arachidy"
-    ],
+    "synonyms": ["orzechy ziemne", "orzeszków ziemnych", "arachidy"],
     "fdcId": 172430,
     "per100g": {
       "kcal": 567,
@@ -2604,10 +2122,7 @@
   },
   {
     "name": "masło orzechowe",
-    "synonyms": [
-      "masła orzechowego",
-      "masło z orzeszków ziemnych"
-    ],
+    "synonyms": ["masła orzechowego", "masło z orzeszków ziemnych"],
     "fdcId": 174266,
     "per100g": {
       "kcal": 598,
@@ -2619,9 +2134,7 @@
   },
   {
     "name": "pistacje",
-    "synonyms": [
-      "pistacji"
-    ],
+    "synonyms": ["pistacji"],
     "fdcId": 170184,
     "per100g": {
       "kcal": 560,
@@ -2633,9 +2146,7 @@
   },
   {
     "name": "pestki dyni",
-    "synonyms": [
-      "pestek dyni"
-    ],
+    "synonyms": ["pestek dyni"],
     "fdcId": 170556,
     "per100g": {
       "kcal": 559,
@@ -2647,11 +2158,7 @@
   },
   {
     "name": "pestki słonecznika",
-    "synonyms": [
-      "słonecznik",
-      "słonecznika",
-      "ziarna słonecznika"
-    ],
+    "synonyms": ["słonecznik", "słonecznika", "ziarna słonecznika"],
     "fdcId": 170562,
     "per100g": {
       "kcal": 584,
@@ -2663,10 +2170,7 @@
   },
   {
     "name": "sezam",
-    "synonyms": [
-      "nasiona sezamu",
-      "sezamu"
-    ],
+    "synonyms": ["nasiona sezamu", "sezamu"],
     "fdcId": 170150,
     "per100g": {
       "kcal": 573,
@@ -2678,11 +2182,7 @@
   },
   {
     "name": "siemię lniane",
-    "synonyms": [
-      "nasiona lnu",
-      "siemienia lnianego",
-      "len mielony"
-    ],
+    "synonyms": ["nasiona lnu", "siemienia lnianego", "len mielony"],
     "fdcId": 169414,
     "per100g": {
       "kcal": 534,
@@ -2694,9 +2194,7 @@
   },
   {
     "name": "nasiona chia",
-    "synonyms": [
-      "chia"
-    ],
+    "synonyms": ["chia"],
     "fdcId": 170554,
     "per100g": {
       "kcal": 486,
@@ -2708,10 +2206,7 @@
   },
   {
     "name": "wiórki kokosowe",
-    "synonyms": [
-      "wiórków kokosowych",
-      "kokos"
-    ],
+    "synonyms": ["wiórków kokosowych", "kokos"],
     "fdcId": 170170,
     "per100g": {
       "kcal": 660,
@@ -2723,10 +2218,7 @@
   },
   {
     "name": "mleko kokosowe",
-    "synonyms": [
-      "mleczko kokosowe",
-      "mleka kokosowego"
-    ],
+    "synonyms": ["mleczko kokosowe", "mleka kokosowego"],
     "fdcId": 170173,
     "per100g": {
       "kcal": 197,
@@ -2738,12 +2230,7 @@
   },
   {
     "name": "soczewica czerwona",
-    "synonyms": [
-      "soczewica",
-      "soczewicy",
-      "soczewica zielona",
-      "soczewica brązowa"
-    ],
+    "synonyms": ["soczewica", "soczewicy", "soczewica zielona", "soczewica brązowa"],
     "fdcId": 172420,
     "per100g": {
       "kcal": 352,
@@ -2755,11 +2242,7 @@
   },
   {
     "name": "ciecierzyca",
-    "synonyms": [
-      "ciecierzycy",
-      "ciecierzyca z puszki",
-      "cieciorka"
-    ],
+    "synonyms": ["ciecierzycy", "ciecierzyca z puszki", "cieciorka"],
     "fdcId": 173756,
     "per100g": {
       "kcal": 378,
@@ -2771,12 +2254,7 @@
   },
   {
     "name": "fasola biała",
-    "synonyms": [
-      "fasoli białej",
-      "fasola",
-      "fasoli",
-      "fasola jaś"
-    ],
+    "synonyms": ["fasoli białej", "fasola", "fasoli", "fasola jaś"],
     "fdcId": 175202,
     "per100g": {
       "kcal": 333,
@@ -2788,10 +2266,7 @@
   },
   {
     "name": "fasola czerwona",
-    "synonyms": [
-      "fasoli czerwonej",
-      "fasola czerwona z puszki"
-    ],
+    "synonyms": ["fasoli czerwonej", "fasola czerwona z puszki"],
     "fdcId": 173744,
     "per100g": {
       "kcal": 337,
@@ -2803,9 +2278,7 @@
   },
   {
     "name": "fasola czarna",
-    "synonyms": [
-      "fasoli czarnej"
-    ],
+    "synonyms": ["fasoli czarnej"],
     "fdcId": 173734,
     "per100g": {
       "kcal": 341,
@@ -2817,10 +2290,7 @@
   },
   {
     "name": "groch",
-    "synonyms": [
-      "grochu",
-      "groch łuskany"
-    ],
+    "synonyms": ["grochu", "groch łuskany"],
     "fdcId": 172428,
     "per100g": {
       "kcal": 364,
@@ -2832,10 +2302,7 @@
   },
   {
     "name": "soja",
-    "synonyms": [
-      "nasiona soi",
-      "soi"
-    ],
+    "synonyms": ["nasiona soi", "soi"],
     "fdcId": 174270,
     "per100g": {
       "kcal": 446,
@@ -2847,10 +2314,7 @@
   },
   {
     "name": "tofu",
-    "synonyms": [
-      "tofu naturalne",
-      "tofu wędzone"
-    ],
+    "synonyms": ["tofu naturalne", "tofu wędzone"],
     "fdcId": 172475,
     "per100g": {
       "kcal": 144,
@@ -2862,9 +2326,7 @@
   },
   {
     "name": "hummus",
-    "synonyms": [
-      "hummusu"
-    ],
+    "synonyms": ["hummusu"],
     "fdcId": 174289,
     "per100g": {
       "kcal": 237,
@@ -2876,9 +2338,7 @@
   },
   {
     "name": "tahini",
-    "synonyms": [
-      "pasta sezamowa"
-    ],
+    "synonyms": ["pasta sezamowa"],
     "fdcId": 170191,
     "per100g": {
       "kcal": 586,
@@ -2890,9 +2350,7 @@
   },
   {
     "name": "sól",
-    "synonyms": [
-      "soli"
-    ],
+    "synonyms": ["soli"],
     "fdcId": 173468,
     "per100g": {
       "kcal": 0,
@@ -2908,11 +2366,7 @@
   },
   {
     "name": "pieprz",
-    "synonyms": [
-      "pieprzu",
-      "pieprz czarny",
-      "pieprz mielony"
-    ],
+    "synonyms": ["pieprzu", "pieprz czarny", "pieprz mielony"],
     "fdcId": 170931,
     "per100g": {
       "kcal": 251,
@@ -2928,11 +2382,7 @@
   },
   {
     "name": "papryka słodka mielona",
-    "synonyms": [
-      "papryka mielona",
-      "papryka w proszku",
-      "papryka wędzona"
-    ],
+    "synonyms": ["papryka mielona", "papryka w proszku", "papryka wędzona"],
     "fdcId": 171329,
     "per100g": {
       "kcal": 282,
@@ -2944,11 +2394,7 @@
   },
   {
     "name": "papryka ostra mielona",
-    "synonyms": [
-      "papryka ostra",
-      "chilli w proszku",
-      "płatki chili"
-    ],
+    "synonyms": ["papryka ostra", "chilli w proszku", "płatki chili"],
     "fdcId": 170932,
     "per100g": {
       "kcal": 318,
@@ -2960,9 +2406,7 @@
   },
   {
     "name": "kurkuma",
-    "synonyms": [
-      "kurkumy"
-    ],
+    "synonyms": ["kurkumy"],
     "fdcId": 172231,
     "per100g": {
       "kcal": 312,
@@ -2974,9 +2418,7 @@
   },
   {
     "name": "cynamon",
-    "synonyms": [
-      "cynamonu"
-    ],
+    "synonyms": ["cynamonu"],
     "fdcId": 171320,
     "per100g": {
       "kcal": 247,
@@ -2988,11 +2430,7 @@
   },
   {
     "name": "kmin rzymski",
-    "synonyms": [
-      "kminek",
-      "kminu rzymskiego",
-      "kmin"
-    ],
+    "synonyms": ["kminek", "kminu rzymskiego", "kmin"],
     "fdcId": 170923,
     "per100g": {
       "kcal": 375,
@@ -3004,9 +2442,7 @@
   },
   {
     "name": "oregano",
-    "synonyms": [
-      "oregano suszone"
-    ],
+    "synonyms": ["oregano suszone"],
     "fdcId": 171328,
     "per100g": {
       "kcal": 265,
@@ -3018,11 +2454,7 @@
   },
   {
     "name": "bazylia",
-    "synonyms": [
-      "bazylia świeża",
-      "bazylia suszona",
-      "liście bazylii"
-    ],
+    "synonyms": ["bazylia świeża", "bazylia suszona", "liście bazylii"],
     "fdcId": 171317,
     "per100g": {
       "kcal": 233,
@@ -3034,9 +2466,7 @@
   },
   {
     "name": "tymianek",
-    "synonyms": [
-      "tymianku"
-    ],
+    "synonyms": ["tymianku"],
     "fdcId": 170938,
     "per100g": {
       "kcal": 276,
@@ -3048,9 +2478,7 @@
   },
   {
     "name": "rozmaryn",
-    "synonyms": [
-      "rozmarynu"
-    ],
+    "synonyms": ["rozmarynu"],
     "fdcId": 171333,
     "per100g": {
       "kcal": 331,
@@ -3062,9 +2490,7 @@
   },
   {
     "name": "majeranek",
-    "synonyms": [
-      "majeranku"
-    ],
+    "synonyms": ["majeranku"],
     "fdcId": 170928,
     "per100g": {
       "kcal": 271,
@@ -3076,10 +2502,7 @@
   },
   {
     "name": "liść laurowy",
-    "synonyms": [
-      "liście laurowe",
-      "liści laurowych"
-    ],
+    "synonyms": ["liście laurowe", "liści laurowych"],
     "fdcId": 170917,
     "per100g": {
       "kcal": 313,
@@ -3091,9 +2514,7 @@
   },
   {
     "name": "ziele angielskie",
-    "synonyms": [
-      "ziela angielskiego"
-    ],
+    "synonyms": ["ziela angielskiego"],
     "fdcId": 171315,
     "per100g": {
       "kcal": 263,
@@ -3105,11 +2526,7 @@
   },
   {
     "name": "imbir",
-    "synonyms": [
-      "imbiru",
-      "imbir świeży",
-      "korzeń imbiru"
-    ],
+    "synonyms": ["imbiru", "imbir świeży", "korzeń imbiru"],
     "fdcId": 169231,
     "per100g": {
       "kcal": 80,
@@ -3121,9 +2538,7 @@
   },
   {
     "name": "gałka muszkatołowa",
-    "synonyms": [
-      "gałki muszkatołowej"
-    ],
+    "synonyms": ["gałki muszkatołowej"],
     "fdcId": 171326,
     "per100g": {
       "kcal": 525,
@@ -3157,12 +2572,7 @@
   },
   {
     "name": "koperek",
-    "synonyms": [
-      "koperku",
-      "koper",
-      "kopru",
-      "koper świeży"
-    ],
+    "synonyms": ["koperku", "koper", "kopru", "koper świeży"],
     "fdcId": 172233,
     "per100g": {
       "kcal": 43,
@@ -3178,13 +2588,7 @@
   },
   {
     "name": "szczypiorek",
-    "synonyms": [
-      "szczypiorku",
-      "szczypior",
-      "cebula zielona",
-      "zielona cebula",
-      "dymka"
-    ],
+    "synonyms": ["szczypiorku", "szczypior", "cebula zielona", "zielona cebula", "dymka"],
     "fdcId": 169994,
     "per100g": {
       "kcal": 30,
@@ -3199,9 +2603,7 @@
   },
   {
     "name": "mięta",
-    "synonyms": [
-      "mięty"
-    ],
+    "synonyms": ["mięty"],
     "fdcId": 173475,
     "per100g": {
       "kcal": 44,
@@ -3216,11 +2618,7 @@
   },
   {
     "name": "kolendra",
-    "synonyms": [
-      "kolendry",
-      "kolendra świeża",
-      "świeża kolendra"
-    ],
+    "synonyms": ["kolendry", "kolendra świeża", "świeża kolendra"],
     "fdcId": 169997,
     "per100g": {
       "kcal": 23,
@@ -3235,9 +2633,7 @@
   },
   {
     "name": "woda",
-    "synonyms": [
-      "wody"
-    ],
+    "synonyms": ["wody"],
     "fdcId": 173647,
     "per100g": {
       "kcal": 0,
@@ -3250,12 +2646,7 @@
   },
   {
     "name": "bulion",
-    "synonyms": [
-      "bulion warzywny",
-      "bulion drobiowy",
-      "bulion mięsny",
-      "rosół"
-    ],
+    "synonyms": ["bulion warzywny", "bulion drobiowy", "bulion mięsny", "rosół"],
     "fdcId": 174536,
     "per100g": {
       "kcal": 6,
@@ -3267,10 +2658,7 @@
   },
   {
     "name": "kostka rosołowa",
-    "synonyms": [
-      "kostka bulionowa",
-      "kostki rosołowe"
-    ],
+    "synonyms": ["kostka bulionowa", "kostki rosołowe"],
     "fdcId": 171563,
     "per100g": {
       "kcal": 198,
@@ -3284,10 +2672,7 @@
   },
   {
     "name": "wino białe",
-    "synonyms": [
-      "wina białego",
-      "białe wino"
-    ],
+    "synonyms": ["wina białego", "białe wino"],
     "fdcId": 174837,
     "per100g": {
       "kcal": 82,
@@ -3299,10 +2684,7 @@
   },
   {
     "name": "wino czerwone",
-    "synonyms": [
-      "wina czerwonego",
-      "czerwone wino"
-    ],
+    "synonyms": ["wina czerwonego", "czerwone wino"],
     "fdcId": 173190,
     "per100g": {
       "kcal": 85,
@@ -3314,9 +2696,7 @@
   },
   {
     "name": "piwo",
-    "synonyms": [
-      "piwa"
-    ],
+    "synonyms": ["piwa"],
     "fdcId": 168746,
     "per100g": {
       "kcal": 43,
@@ -3328,10 +2708,7 @@
   },
   {
     "name": "kawa",
-    "synonyms": [
-      "kawy",
-      "kawa rozpuszczalna"
-    ],
+    "synonyms": ["kawy", "kawa rozpuszczalna"],
     "fdcId": 171890,
     "per100g": {
       "kcal": 1,
@@ -3343,9 +2720,7 @@
   },
   {
     "name": "herbata",
-    "synonyms": [
-      "herbaty"
-    ],
+    "synonyms": ["herbaty"],
     "fdcId": 173227,
     "per100g": {
       "kcal": 1,
@@ -3357,9 +2732,7 @@
   },
   {
     "name": "proszek do pieczenia",
-    "synonyms": [
-      "proszku do pieczenia"
-    ],
+    "synonyms": ["proszku do pieczenia"],
     "fdcId": 172803,
     "per100g": {
       "kcal": 53,
@@ -3371,9 +2744,7 @@
   },
   {
     "name": "soda oczyszczona",
-    "synonyms": [
-      "sody oczyszczonej"
-    ],
+    "synonyms": ["sody oczyszczonej"],
     "fdcId": 175040,
     "per100g": {
       "kcal": 0,
@@ -3385,11 +2756,7 @@
   },
   {
     "name": "drożdże",
-    "synonyms": [
-      "drożdży",
-      "drożdże suche",
-      "drożdże świeże"
-    ],
+    "synonyms": ["drożdży", "drożdże suche", "drożdże świeże"],
     "fdcId": 175043,
     "per100g": {
       "kcal": 325,
@@ -3404,9 +2771,7 @@
   },
   {
     "name": "żelatyna",
-    "synonyms": [
-      "żelatyny"
-    ],
+    "synonyms": ["żelatyny"],
     "fdcId": 168775,
     "per100g": {
       "kcal": 381,
@@ -3418,10 +2783,7 @@
   },
   {
     "name": "wanilia",
-    "synonyms": [
-      "ekstrakt waniliowy",
-      "esencja waniliowa"
-    ],
+    "synonyms": ["ekstrakt waniliowy", "esencja waniliowa"],
     "fdcId": 173471,
     "per100g": {
       "kcal": 288,
@@ -3433,10 +2795,7 @@
   },
   {
     "name": "kurczak mielony",
-    "synonyms": [
-      "mięso mielone z kurczaka",
-      "mielony kurczak"
-    ],
+    "synonyms": ["mięso mielone z kurczaka", "mielony kurczak"],
     "fdcId": 171116,
     "per100g": {
       "kcal": 143,
@@ -3447,11 +2806,7 @@
   },
   {
     "name": "wątróbka drobiowa",
-    "synonyms": [
-      "wątróbka z kurczaka",
-      "wątróbki drobiowej",
-      "wątróbka"
-    ],
+    "synonyms": ["wątróbka z kurczaka", "wątróbki drobiowej", "wątróbka"],
     "fdcId": 171060,
     "per100g": {
       "kcal": 119,
@@ -3462,10 +2817,7 @@
   },
   {
     "name": "skrzydełka z kurczaka",
-    "synonyms": [
-      "skrzydełka kurczaka",
-      "skrzydełka"
-    ],
+    "synonyms": ["skrzydełka kurczaka", "skrzydełka"],
     "fdcId": 172390,
     "per100g": {
       "kcal": 191,
@@ -3479,11 +2831,7 @@
   },
   {
     "name": "kaczka",
-    "synonyms": [
-      "pierś z kaczki",
-      "piersi z kaczki",
-      "mięso z kaczki"
-    ],
+    "synonyms": ["pierś z kaczki", "piersi z kaczki", "mięso z kaczki"],
     "fdcId": 172410,
     "per100g": {
       "kcal": 135,
@@ -3494,10 +2842,7 @@
   },
   {
     "name": "cielęcina",
-    "synonyms": [
-      "mięso cielęce",
-      "polędwica cielęca"
-    ],
+    "synonyms": ["mięso cielęce", "polędwica cielęca"],
     "fdcId": 175269,
     "per100g": {
       "kcal": 107,
@@ -3508,10 +2853,7 @@
   },
   {
     "name": "baranina",
-    "synonyms": [
-      "jagnięcina",
-      "mięso jagnięce"
-    ],
+    "synonyms": ["jagnięcina", "mięso jagnięce"],
     "fdcId": 172486,
     "per100g": {
       "kcal": 125,
@@ -3522,11 +2864,7 @@
   },
   {
     "name": "szynka wieprzowa surowa",
-    "synonyms": [
-      "łopatka wieprzowa",
-      "łopatka",
-      "szynka surowa"
-    ],
+    "synonyms": ["łopatka wieprzowa", "łopatka", "szynka surowa"],
     "fdcId": 167845,
     "per100g": {
       "kcal": 148,
@@ -3537,9 +2875,7 @@
   },
   {
     "name": "żeberka",
-    "synonyms": [
-      "żeberka wieprzowe"
-    ],
+    "synonyms": ["żeberka wieprzowe"],
     "fdcId": 167853,
     "per100g": {
       "kcal": 277,
@@ -3550,11 +2886,7 @@
   },
   {
     "name": "parówki",
-    "synonyms": [
-      "parówka",
-      "parówek",
-      "hot dog"
-    ],
+    "synonyms": ["parówka", "parówek", "hot dog"],
     "fdcId": 173862,
     "per100g": {
       "kcal": 315,
@@ -3568,9 +2900,7 @@
   },
   {
     "name": "salami",
-    "synonyms": [
-      "salami plastry"
-    ],
+    "synonyms": ["salami plastry"],
     "fdcId": 174603,
     "per100g": {
       "kcal": 425,
@@ -3584,10 +2914,7 @@
   },
   {
     "name": "pasztet",
-    "synonyms": [
-      "pasztetu",
-      "pasztet drobiowy"
-    ],
+    "synonyms": ["pasztetu", "pasztet drobiowy"],
     "fdcId": 172928,
     "per100g": {
       "kcal": 201,
@@ -3598,10 +2925,7 @@
   },
   {
     "name": "sardynki w puszce",
-    "synonyms": [
-      "sardynki",
-      "sardynek"
-    ],
+    "synonyms": ["sardynki", "sardynek"],
     "fdcId": 175139,
     "per100g": {
       "kcal": 208,
@@ -3615,10 +2939,7 @@
   },
   {
     "name": "łosoś wędzony",
-    "synonyms": [
-      "wędzony łosoś",
-      "łososia wędzonego"
-    ],
+    "synonyms": ["wędzony łosoś", "łososia wędzonego"],
     "fdcId": 173687,
     "per100g": {
       "kcal": 117,
@@ -3632,9 +2953,7 @@
   },
   {
     "name": "karp",
-    "synonyms": [
-      "filet z karpia"
-    ],
+    "synonyms": ["filet z karpia"],
     "fdcId": 171952,
     "per100g": {
       "kcal": 127,
@@ -3666,10 +2985,7 @@
   },
   {
     "name": "okoń",
-    "synonyms": [
-      "sandacz",
-      "filet z sandacza"
-    ],
+    "synonyms": ["sandacz", "filet z sandacza"],
     "fdcId": 173678,
     "per100g": {
       "kcal": 91,
@@ -3680,9 +2996,7 @@
   },
   {
     "name": "małże",
-    "synonyms": [
-      "mule"
-    ],
+    "synonyms": ["mule"],
     "fdcId": 174216,
     "per100g": {
       "kcal": 86,
@@ -3693,9 +3007,7 @@
   },
   {
     "name": "kalmary",
-    "synonyms": [
-      "kalmar"
-    ],
+    "synonyms": ["kalmar"],
     "fdcId": 174223,
     "per100g": {
       "kcal": 92,
@@ -3706,10 +3018,7 @@
   },
   {
     "name": "mleko skondensowane",
-    "synonyms": [
-      "mleka skondensowanego",
-      "mleko skondensowane słodzone"
-    ],
+    "synonyms": ["mleka skondensowanego", "mleko skondensowane słodzone"],
     "fdcId": 171275,
     "per100g": {
       "kcal": 321,
@@ -3721,11 +3030,7 @@
   },
   {
     "name": "mleko sojowe",
-    "synonyms": [
-      "napój sojowy",
-      "mleko roślinne",
-      "napój roślinny"
-    ],
+    "synonyms": ["napój sojowy", "mleko roślinne", "napój roślinny"],
     "fdcId": 172446,
     "per100g": {
       "kcal": 54,
@@ -3737,9 +3042,7 @@
   },
   {
     "name": "mleko migdałowe",
-    "synonyms": [
-      "napój migdałowy"
-    ],
+    "synonyms": ["napój migdałowy"],
     "fdcId": 174832,
     "per100g": {
       "kcal": 15,
@@ -3751,9 +3054,7 @@
   },
   {
     "name": "śmietanka 12%",
-    "synonyms": [
-      "śmietanka do kawy"
-    ],
+    "synonyms": ["śmietanka do kawy"],
     "fdcId": 171255,
     "per100g": {
       "kcal": 131,
@@ -3765,9 +3066,7 @@
   },
   {
     "name": "jogurt owocowy",
-    "synonyms": [
-      "jogurt z owocami"
-    ],
+    "synonyms": ["jogurt z owocami"],
     "fdcId": 173456,
     "per100g": {
       "kcal": 99,
@@ -3779,9 +3078,7 @@
   },
   {
     "name": "serek wiejski light",
-    "synonyms": [
-      "serek wiejski lekki"
-    ],
+    "synonyms": ["serek wiejski lekki"],
     "fdcId": 173417,
     "per100g": {
       "kcal": 72,
@@ -3793,9 +3090,7 @@
   },
   {
     "name": "ser camembert",
-    "synonyms": [
-      "camembert"
-    ],
+    "synonyms": ["camembert"],
     "fdcId": 172178,
     "per100g": {
       "kcal": 300,
@@ -3806,9 +3101,7 @@
   },
   {
     "name": "ser brie",
-    "synonyms": [
-      "brie"
-    ],
+    "synonyms": ["brie"],
     "fdcId": 172177,
     "per100g": {
       "kcal": 334,
@@ -3819,9 +3112,7 @@
   },
   {
     "name": "ser kozi",
-    "synonyms": [
-      "kozi ser"
-    ],
+    "synonyms": ["kozi ser"],
     "fdcId": 172197,
     "per100g": {
       "kcal": 452,
@@ -3832,9 +3123,7 @@
   },
   {
     "name": "ser topiony",
-    "synonyms": [
-      "serek topiony"
-    ],
+    "synonyms": ["serek topiony"],
     "fdcId": 171254,
     "per100g": {
       "kcal": 290,
@@ -3846,10 +3135,7 @@
   },
   {
     "name": "oliwki",
-    "synonyms": [
-      "oliwki zielone",
-      "oliwki czarne"
-    ],
+    "synonyms": ["oliwki zielone", "oliwki czarne"],
     "fdcId": 169094,
     "per100g": {
       "kcal": 116,
@@ -3863,9 +3149,7 @@
   },
   {
     "name": "kapary",
-    "synonyms": [
-      "kaparów"
-    ],
+    "synonyms": ["kaparów"],
     "fdcId": 172238,
     "per100g": {
       "kcal": 23,
@@ -3877,9 +3161,7 @@
   },
   {
     "name": "ogórki konserwowe",
-    "synonyms": [
-      "ogórek konserwowy w occie"
-    ],
+    "synonyms": ["ogórek konserwowy w occie"],
     "fdcId": 169378,
     "per100g": {
       "kcal": 91,
@@ -3893,9 +3175,7 @@
   },
   {
     "name": "papryka konserwowa",
-    "synonyms": [
-      "papryka marynowana"
-    ],
+    "synonyms": ["papryka marynowana"],
     "fdcId": 168546,
     "per100g": {
       "kcal": 18,
@@ -3906,9 +3186,7 @@
   },
   {
     "name": "karczochy",
-    "synonyms": [
-      "karczoch"
-    ],
+    "synonyms": ["karczoch"],
     "fdcId": 169205,
     "per100g": {
       "kcal": 47,
@@ -3922,9 +3200,7 @@
   },
   {
     "name": "rzodkiew",
-    "synonyms": [
-      "rzodkiew biała"
-    ],
+    "synonyms": ["rzodkiew biała"],
     "fdcId": 170081,
     "per100g": {
       "kcal": 14,
@@ -3935,9 +3211,7 @@
   },
   {
     "name": "kalarepa",
-    "synonyms": [
-      "kalarepy"
-    ],
+    "synonyms": ["kalarepy"],
     "fdcId": 168424,
     "per100g": {
       "kcal": 27,
@@ -3951,9 +3225,7 @@
   },
   {
     "name": "kapusta włoska",
-    "synonyms": [
-      "włoszczyzna kapusta"
-    ],
+    "synonyms": ["włoszczyzna kapusta"],
     "fdcId": 170388,
     "per100g": {
       "kcal": 27,
@@ -3965,9 +3237,7 @@
   },
   {
     "name": "botwina",
-    "synonyms": [
-      "botwinka"
-    ],
+    "synonyms": ["botwinka"],
     "fdcId": 170375,
     "per100g": {
       "kcal": 22,
@@ -3979,9 +3249,7 @@
   },
   {
     "name": "boćwina",
-    "synonyms": [
-      "liście boćwiny"
-    ],
+    "synonyms": ["liście boćwiny"],
     "fdcId": 169991,
     "per100g": {
       "kcal": 19,
@@ -3993,9 +3261,7 @@
   },
   {
     "name": "fenkuł",
-    "synonyms": [
-      "koper włoski"
-    ],
+    "synonyms": ["koper włoski"],
     "fdcId": 169385,
     "per100g": {
       "kcal": 31,
@@ -4009,9 +3275,7 @@
   },
   {
     "name": "okra",
-    "synonyms": [
-      "okry"
-    ],
+    "synonyms": ["okry"],
     "fdcId": 169260,
     "per100g": {
       "kcal": 33,
@@ -4022,10 +3286,7 @@
   },
   {
     "name": "chrzan",
-    "synonyms": [
-      "chrzanu",
-      "tarty chrzan"
-    ],
+    "synonyms": ["chrzanu", "tarty chrzan"],
     "fdcId": 173472,
     "per100g": {
       "kcal": 48,
@@ -4037,9 +3298,7 @@
   },
   {
     "name": "cebula czerwona",
-    "synonyms": [
-      "czerwona cebula"
-    ],
+    "synonyms": ["czerwona cebula"],
     "fdcId": 170000,
     "per100g": {
       "kcal": 40,
@@ -4054,12 +3313,7 @@
   },
   {
     "name": "mix warzyw",
-    "synonyms": [
-      "mieszanka warzyw",
-      "warzywa mrożone",
-      "mrożonka warzywna",
-      "mieszanka warzywna"
-    ],
+    "synonyms": ["mieszanka warzyw", "warzywa mrożone", "mrożonka warzywna", "mieszanka warzywna"],
     "fdcId": 170471,
     "per100g": {
       "kcal": 72,
@@ -4071,10 +3325,7 @@
   },
   {
     "name": "burak gotowany",
-    "synonyms": [
-      "buraki gotowane",
-      "pieczone buraki"
-    ],
+    "synonyms": ["buraki gotowane", "pieczone buraki"],
     "fdcId": 169146,
     "per100g": {
       "kcal": 44,
@@ -4088,9 +3339,7 @@
   },
   {
     "name": "ziemniaki gotowane",
-    "synonyms": [
-      "gotowane ziemniaki"
-    ],
+    "synonyms": ["gotowane ziemniaki"],
     "fdcId": 170438,
     "per100g": {
       "kcal": 87,
@@ -4104,9 +3353,7 @@
   },
   {
     "name": "frytki",
-    "synonyms": [
-      "frytki mrożone"
-    ],
+    "synonyms": ["frytki mrożone"],
     "fdcId": 168442,
     "per100g": {
       "kcal": 147,
@@ -4117,9 +3364,7 @@
   },
   {
     "name": "makaron jajeczny",
-    "synonyms": [
-      "makaron jajeczny suchy"
-    ],
+    "synonyms": ["makaron jajeczny suchy"],
     "fdcId": 169731,
     "per100g": {
       "kcal": 384,
@@ -4131,10 +3376,7 @@
   },
   {
     "name": "makaron ryżowy",
-    "synonyms": [
-      "makaron sojowy",
-      "makaron ryżowy suchy"
-    ],
+    "synonyms": ["makaron sojowy", "makaron ryżowy suchy"],
     "fdcId": 169742,
     "per100g": {
       "kcal": 364,
@@ -4146,10 +3388,7 @@
   },
   {
     "name": "lasagne",
-    "synonyms": [
-      "płaty lasagne",
-      "makaron lasagne"
-    ],
+    "synonyms": ["płaty lasagne", "makaron lasagne"],
     "fdcId": 169736,
     "per100g": {
       "kcal": 371,
@@ -4161,9 +3400,7 @@
   },
   {
     "name": "ryż dziki",
-    "synonyms": [
-      "ryżu dzikiego"
-    ],
+    "synonyms": ["ryżu dzikiego"],
     "fdcId": 169726,
     "per100g": {
       "kcal": 357,
@@ -4175,10 +3412,7 @@
   },
   {
     "name": "ryż do sushi",
-    "synonyms": [
-      "ryż sushi",
-      "ryż okrągłoziarnisty"
-    ],
+    "synonyms": ["ryż sushi", "ryż okrągłoziarnisty"],
     "fdcId": 168931,
     "per100g": {
       "kcal": 358,
@@ -4190,9 +3424,7 @@
   },
   {
     "name": "płatki jaglane",
-    "synonyms": [
-      "płatków jaglanych"
-    ],
+    "synonyms": ["płatków jaglanych"],
     "fdcId": 169702,
     "per100g": {
       "kcal": 378,
@@ -4204,9 +3436,7 @@
   },
   {
     "name": "płatki żytnie",
-    "synonyms": [
-      "płatków żytnich"
-    ],
+    "synonyms": ["płatków żytnich"],
     "fdcId": 168884,
     "per100g": {
       "kcal": 338,
@@ -4218,9 +3448,7 @@
   },
   {
     "name": "amarantus",
-    "synonyms": [
-      "amarantus ziarno"
-    ],
+    "synonyms": ["amarantus ziarno"],
     "fdcId": 170682,
     "per100g": {
       "kcal": 371,
@@ -4232,9 +3460,7 @@
   },
   {
     "name": "kasza kukurydziana",
-    "synonyms": [
-      "kaszy kukurydzianej"
-    ],
+    "synonyms": ["kaszy kukurydzianej"],
     "fdcId": 169697,
     "per100g": {
       "kcal": 362,
@@ -4246,9 +3472,7 @@
   },
   {
     "name": "mąka kukurydziana",
-    "synonyms": [
-      "mąki kukurydzianej"
-    ],
+    "synonyms": ["mąki kukurydzianej"],
     "fdcId": 169697,
     "per100g": {
       "kcal": 362,
@@ -4260,9 +3484,7 @@
   },
   {
     "name": "mąka kokosowa",
-    "synonyms": [
-      "mąki kokosowej"
-    ],
+    "synonyms": ["mąki kokosowej"],
     "fdcId": 170170,
     "per100g": {
       "kcal": 660,
@@ -4274,9 +3496,7 @@
   },
   {
     "name": "mąka z ciecierzycy",
-    "synonyms": [
-      "mąka ciecierzycowa"
-    ],
+    "synonyms": ["mąka ciecierzycowa"],
     "fdcId": 174288,
     "per100g": {
       "kcal": 387,
@@ -4288,9 +3508,7 @@
   },
   {
     "name": "mąka jaglana",
-    "synonyms": [
-      "mąki jaglanej"
-    ],
+    "synonyms": ["mąki jaglanej"],
     "fdcId": 172023,
     "per100g": {
       "kcal": 382,
@@ -4302,9 +3520,7 @@
   },
   {
     "name": "mąka ryżowa",
-    "synonyms": [
-      "mąki ryżowej"
-    ],
+    "synonyms": ["mąki ryżowej"],
     "fdcId": 169714,
     "per100g": {
       "kcal": 366,
@@ -4316,9 +3532,7 @@
   },
   {
     "name": "mąka orkiszowa",
-    "synonyms": [
-      "mąki orkiszowej"
-    ],
+    "synonyms": ["mąki orkiszowej"],
     "fdcId": 169745,
     "per100g": {
       "kcal": 338,
@@ -4330,9 +3544,7 @@
   },
   {
     "name": "chleb żytni razowy",
-    "synonyms": [
-      "chleb razowy żytni"
-    ],
+    "synonyms": ["chleb razowy żytni"],
     "fdcId": 172684,
     "per100g": {
       "kcal": 259,
@@ -4346,11 +3558,7 @@
   },
   {
     "name": "chleb tostowy",
-    "synonyms": [
-      "tosty",
-      "tost",
-      "kromka tostowa"
-    ],
+    "synonyms": ["tosty", "tost", "kromka tostowa"],
     "fdcId": 174925,
     "per100g": {
       "kcal": 290,
@@ -4364,9 +3572,7 @@
   },
   {
     "name": "bagietka",
-    "synonyms": [
-      "bagietki"
-    ],
+    "synonyms": ["bagietki"],
     "fdcId": 172675,
     "per100g": {
       "kcal": 272,
@@ -4380,10 +3586,7 @@
   },
   {
     "name": "wafle ryżowe",
-    "synonyms": [
-      "wafel ryżowy",
-      "wafle"
-    ],
+    "synonyms": ["wafel ryżowy", "wafle"],
     "fdcId": 170250,
     "per100g": {
       "kcal": 387,
@@ -4397,9 +3600,7 @@
   },
   {
     "name": "chipsy",
-    "synonyms": [
-      "chipsów"
-    ],
+    "synonyms": ["chipsów"],
     "fdcId": 169677,
     "per100g": {
       "kcal": 532,
@@ -4410,10 +3611,7 @@
   },
   {
     "name": "herbatniki",
-    "synonyms": [
-      "ciastka",
-      "ciastka maślane"
-    ],
+    "synonyms": ["ciastka", "ciastka maślane"],
     "fdcId": 174950,
     "per100g": {
       "kcal": 467,
@@ -4427,10 +3625,7 @@
   },
   {
     "name": "biszkopty",
-    "synonyms": [
-      "biszkopt",
-      "podłużne biszkopty"
-    ],
+    "synonyms": ["biszkopt", "podłużne biszkopty"],
     "fdcId": 172706,
     "per100g": {
       "kcal": 290,
@@ -4444,9 +3639,7 @@
   },
   {
     "name": "ciasto francuskie",
-    "synonyms": [
-      "ciasta francuskiego"
-    ],
+    "synonyms": ["ciasta francuskiego"],
     "fdcId": 172738,
     "per100g": {
       "kcal": 558,
@@ -4457,9 +3650,7 @@
   },
   {
     "name": "ciasto kruche",
-    "synonyms": [
-      "kruche ciasto"
-    ],
+    "synonyms": ["kruche ciasto"],
     "fdcId": 175023,
     "per100g": {
       "kcal": 501,
@@ -4470,9 +3661,7 @@
   },
   {
     "name": "pizza",
-    "synonyms": [
-      "ciasto na pizzę"
-    ],
+    "synonyms": ["ciasto na pizzę"],
     "fdcId": 170317,
     "per100g": {
       "kcal": 268,
@@ -4483,9 +3672,7 @@
   },
   {
     "name": "galaretka",
-    "synonyms": [
-      "galaretki"
-    ],
+    "synonyms": ["galaretki"],
     "fdcId": 169691,
     "per100g": {
       "kcal": 381,
@@ -4497,9 +3684,7 @@
   },
   {
     "name": "budyń",
-    "synonyms": [
-      "budyniu"
-    ],
+    "synonyms": ["budyniu"],
     "fdcId": 169609,
     "per100g": {
       "kcal": 379,
@@ -4511,9 +3696,7 @@
   },
   {
     "name": "lody",
-    "synonyms": [
-      "lodów"
-    ],
+    "synonyms": ["lodów"],
     "fdcId": 167575,
     "per100g": {
       "kcal": 207,
@@ -4525,9 +3708,7 @@
   },
   {
     "name": "żurawina",
-    "synonyms": [
-      "żurawiny świeżej"
-    ],
+    "synonyms": ["żurawiny świeżej"],
     "fdcId": 171722,
     "per100g": {
       "kcal": 46,
@@ -4539,9 +3720,7 @@
   },
   {
     "name": "agrest",
-    "synonyms": [
-      "agrestu"
-    ],
+    "synonyms": ["agrestu"],
     "fdcId": 173030,
     "per100g": {
       "kcal": 44,
@@ -4553,11 +3732,7 @@
   },
   {
     "name": "porzeczki",
-    "synonyms": [
-      "porzeczka",
-      "porzeczek",
-      "czarne porzeczki"
-    ],
+    "synonyms": ["porzeczka", "porzeczek", "czarne porzeczki"],
     "fdcId": 173963,
     "per100g": {
       "kcal": 63,
@@ -4569,9 +3744,7 @@
   },
   {
     "name": "jeżyny",
-    "synonyms": [
-      "jeżyna"
-    ],
+    "synonyms": ["jeżyna"],
     "fdcId": 173946,
     "per100g": {
       "kcal": 43,
@@ -4583,9 +3756,7 @@
   },
   {
     "name": "granat",
-    "synonyms": [
-      "granatu"
-    ],
+    "synonyms": ["granatu"],
     "fdcId": 169134,
     "per100g": {
       "kcal": 83,
@@ -4599,9 +3770,7 @@
   },
   {
     "name": "grejpfrut",
-    "synonyms": [
-      "grejpfruta"
-    ],
+    "synonyms": ["grejpfruta"],
     "fdcId": 174673,
     "per100g": {
       "kcal": 42,
@@ -4615,9 +3784,7 @@
   },
   {
     "name": "mandarynka",
-    "synonyms": [
-      "mandarynki"
-    ],
+    "synonyms": ["mandarynki"],
     "fdcId": 169105,
     "per100g": {
       "kcal": 53,
@@ -4631,10 +3798,7 @@
   },
   {
     "name": "morele",
-    "synonyms": [
-      "morela",
-      "moreli"
-    ],
+    "synonyms": ["morela", "moreli"],
     "fdcId": 171697,
     "per100g": {
       "kcal": 48,
@@ -4648,9 +3812,7 @@
   },
   {
     "name": "nektarynka",
-    "synonyms": [
-      "nektarynki"
-    ],
+    "synonyms": ["nektarynki"],
     "fdcId": 169914,
     "per100g": {
       "kcal": 44,
@@ -4664,10 +3826,7 @@
   },
   {
     "name": "figi",
-    "synonyms": [
-      "figa",
-      "fig świeżych"
-    ],
+    "synonyms": ["figa", "fig świeżych"],
     "fdcId": 173021,
     "per100g": {
       "kcal": 74,
@@ -4681,9 +3840,7 @@
   },
   {
     "name": "papaja",
-    "synonyms": [
-      "papai"
-    ],
+    "synonyms": ["papai"],
     "fdcId": 169926,
     "per100g": {
       "kcal": 43,
@@ -4695,9 +3852,7 @@
   },
   {
     "name": "sok jabłkowy",
-    "synonyms": [
-      "soku jabłkowego"
-    ],
+    "synonyms": ["soku jabłkowego"],
     "fdcId": 173933,
     "per100g": {
       "kcal": 46,
@@ -4709,9 +3864,7 @@
   },
   {
     "name": "sok pomidorowy",
-    "synonyms": [
-      "soku pomidorowego"
-    ],
+    "synonyms": ["soku pomidorowego"],
     "fdcId": 170545,
     "per100g": {
       "kcal": 17,
@@ -4723,9 +3876,7 @@
   },
   {
     "name": "sok z marchwi",
-    "synonyms": [
-      "soku marchwiowego"
-    ],
+    "synonyms": ["soku marchwiowego"],
     "fdcId": 170491,
     "per100g": {
       "kcal": 40,
@@ -4737,9 +3888,7 @@
   },
   {
     "name": "cola",
-    "synonyms": [
-      "coca-cola"
-    ],
+    "synonyms": ["coca-cola"],
     "fdcId": 174852,
     "per100g": {
       "kcal": 42,
@@ -4751,9 +3900,7 @@
   },
   {
     "name": "cukier waniliowy",
-    "synonyms": [
-      "waniliowy cukier"
-    ],
+    "synonyms": ["waniliowy cukier"],
     "fdcId": 169655,
     "per100g": {
       "kcal": 387,
@@ -4765,9 +3912,7 @@
   },
   {
     "name": "melasa",
-    "synonyms": [
-      "melasy"
-    ],
+    "synonyms": ["melasy"],
     "fdcId": 168820,
     "per100g": {
       "kcal": 290,
@@ -4779,9 +3924,7 @@
   },
   {
     "name": "nutella",
-    "synonyms": [
-      "krem czekoladowo-orzechowy"
-    ],
+    "synonyms": ["krem czekoladowo-orzechowy"],
     "fdcId": 168000,
     "per100g": {
       "kcal": 539,
@@ -4793,9 +3936,7 @@
   },
   {
     "name": "czekolada mleczna",
-    "synonyms": [
-      "mleczna czekolada"
-    ],
+    "synonyms": ["mleczna czekolada"],
     "fdcId": 167587,
     "per100g": {
       "kcal": 535,
@@ -4809,10 +3950,7 @@
   },
   {
     "name": "wiórki czekoladowe",
-    "synonyms": [
-      "kropelki czekoladowe",
-      "chipsy czekoladowe"
-    ],
+    "synonyms": ["kropelki czekoladowe", "chipsy czekoladowe"],
     "fdcId": 167976,
     "per100g": {
       "kcal": 480,
@@ -4824,10 +3962,7 @@
   },
   {
     "name": "curry",
-    "synonyms": [
-      "przyprawa curry",
-      "curry w proszku"
-    ],
+    "synonyms": ["przyprawa curry", "curry w proszku"],
     "fdcId": 170924,
     "per100g": {
       "kcal": 325,
@@ -4839,9 +3974,7 @@
   },
   {
     "name": "pieprz cayenne",
-    "synonyms": [
-      "pieprzu cayenne"
-    ],
+    "synonyms": ["pieprzu cayenne"],
     "fdcId": 170932,
     "per100g": {
       "kcal": 318,
@@ -4853,10 +3986,7 @@
   },
   {
     "name": "czosnek granulowany",
-    "synonyms": [
-      "czosnek suszony",
-      "czosnek w proszku"
-    ],
+    "synonyms": ["czosnek suszony", "czosnek w proszku"],
     "fdcId": 171325,
     "per100g": {
       "kcal": 331,
@@ -4868,10 +3998,7 @@
   },
   {
     "name": "cebula suszona",
-    "synonyms": [
-      "cebula granulowana",
-      "cebula w proszku"
-    ],
+    "synonyms": ["cebula granulowana", "cebula w proszku"],
     "fdcId": 171327,
     "per100g": {
       "kcal": 341,
@@ -4883,9 +4010,7 @@
   },
   {
     "name": "musztarda dijon",
-    "synonyms": [
-      "dijon"
-    ],
+    "synonyms": ["dijon"],
     "fdcId": 172234,
     "per100g": {
       "kcal": 60,
@@ -4897,9 +4022,7 @@
   },
   {
     "name": "sos worcestershire",
-    "synonyms": [
-      "worcestershire"
-    ],
+    "synonyms": ["worcestershire"],
     "fdcId": 171610,
     "per100g": {
       "kcal": 77,
@@ -4911,9 +4034,7 @@
   },
   {
     "name": "sos rybny",
-    "synonyms": [
-      "sosu rybnego"
-    ],
+    "synonyms": ["sosu rybnego"],
     "fdcId": 174531,
     "per100g": {
       "kcal": 35,
@@ -4925,9 +4046,7 @@
   },
   {
     "name": "sos ostrygowy",
-    "synonyms": [
-      "sosu ostrygowego"
-    ],
+    "synonyms": ["sosu ostrygowego"],
     "fdcId": 174529,
     "per100g": {
       "kcal": 51,
@@ -4939,10 +4058,7 @@
   },
   {
     "name": "sos pomidorowy",
-    "synonyms": [
-      "sos do makaronu",
-      "sos pomidorowy z puszki"
-    ],
+    "synonyms": ["sos do makaronu", "sos pomidorowy z puszki"],
     "fdcId": 171192,
     "per100g": {
       "kcal": 50,
@@ -4954,9 +4070,7 @@
   },
   {
     "name": "pesto",
-    "synonyms": [
-      "pesto bazyliowe"
-    ],
+    "synonyms": ["pesto bazyliowe"],
     "fdcId": 171579,
     "per100g": {
       "kcal": 418,
@@ -4968,9 +4082,7 @@
   },
   {
     "name": "sos teriyaki",
-    "synonyms": [
-      "teriyaki"
-    ],
+    "synonyms": ["teriyaki"],
     "fdcId": 171167,
     "per100g": {
       "kcal": 89,
@@ -4982,9 +4094,7 @@
   },
   {
     "name": "miso",
-    "synonyms": [
-      "pasta miso"
-    ],
+    "synonyms": ["pasta miso"],
     "fdcId": 172442,
     "per100g": {
       "kcal": 198,
@@ -4996,9 +4106,7 @@
   },
   {
     "name": "glony nori",
-    "synonyms": [
-      "nori"
-    ],
+    "synonyms": ["nori"],
     "fdcId": 168458,
     "per100g": {
       "kcal": 35,
@@ -5012,9 +4120,7 @@
   },
   {
     "name": "algi wakame",
-    "synonyms": [
-      "wakame"
-    ],
+    "synonyms": ["wakame"],
     "fdcId": 170496,
     "per100g": {
       "kcal": 45,
@@ -5025,9 +4131,7 @@
   },
   {
     "name": "tempeh",
-    "synonyms": [
-      "tempehu"
-    ],
+    "synonyms": ["tempehu"],
     "fdcId": 174272,
     "per100g": {
       "kcal": 192,
@@ -5038,9 +4142,7 @@
   },
   {
     "name": "seitan",
-    "synonyms": [
-      "seitanu"
-    ],
+    "synonyms": ["seitanu"],
     "fdcId": 168147,
     "per100g": {
       "kcal": 370,
@@ -5051,10 +4153,7 @@
   },
   {
     "name": "białko w proszku",
-    "synonyms": [
-      "odżywka białkowa",
-      "proteina serwatkowa"
-    ],
+    "synonyms": ["odżywka białkowa", "proteina serwatkowa"],
     "fdcId": 171283,
     "per100g": {
       "kcal": 353,

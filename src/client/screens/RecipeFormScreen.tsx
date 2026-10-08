@@ -11,6 +11,7 @@ import {
   recipeToForm,
   type RecipeFormValues,
 } from '../../shared/domain/recipeForm';
+import { ORIGIN_LABELS, type NutritionKey } from '../../shared/domain/nutrition';
 import { formatSourceRating } from '../../shared/domain/sourceRating';
 import type { RecipeField, RecipeFieldCode } from '../../shared/domain/recipeValidation';
 import { ErrorNotice } from '../components/ErrorNotice';
@@ -193,6 +194,17 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
     return code ? fieldMessages[field][code] : undefined;
   };
 
+  // What the field would hold if left empty: the stored value of a recipe being edited, or what
+  // the source page stated for a recipe read from a link.
+  const nutritionHint = (key: NutritionKey) => {
+    const stored = existing?.nutrition[key];
+    if (stored && stored.origin !== 'manual' && stored.origin !== 'none') {
+      return `Teraz: ${stored.value} (${ORIGIN_LABELS[stored.origin]})`;
+    }
+    const fromSource = draft?.sourceImport?.nutrition?.[key];
+    return typeof fromSource === 'number' ? `Strona podaje: ${fromSource}` : undefined;
+  };
+
   const submit = async () => {
     setErrorCode(null);
     if (!saved.current) {
@@ -362,6 +374,9 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
         </Field>
         <fieldset className="flex flex-col gap-3">
           <legend className="font-medium">Wartości odżywcze na porcję (opcjonalnie)</legend>
+          <p className="text-sm text-neutral-600">
+            Zostaw pole puste, aby użyć wartości ze strony źródłowej albo wyliczonej ze składników.
+          </p>
           {(
             [
               ['kcal', 'Kalorie (kcal)'],
@@ -370,7 +385,13 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
               ['fiberG', 'Błonnik (g)'],
             ] as const
           ).map(([key, label]) => (
-            <Field key={key} id={`nutrition-${key}`} label={label} error={message(key)}>
+            <Field
+              key={key}
+              id={`nutrition-${key}`}
+              label={label}
+              hint={nutritionHint(key)}
+              error={message(key)}
+            >
               {(describedBy, invalid) => (
                 <input
                   id={`nutrition-${key}`}

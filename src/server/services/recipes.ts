@@ -1,10 +1,22 @@
 import { randomUUID } from 'node:crypto';
 import { and, asc, eq, isNull, sql } from 'drizzle-orm';
-import type { Recipe, RecipeInput } from '../../shared/contracts/recipe';
+import {
+  sourceNutritionSchema,
+  type Ingredient,
+  type Recipe,
+  type RecipeInput,
+  type SourceNutrition,
+} from '../../shared/contracts/recipe';
 import { normalizeIngredient } from '../../shared/domain/ingredientLine';
+import {
+  createNutritionLookup,
+  estimateNutrition,
+  resolveNutrition,
+} from '../../shared/domain/nutrition';
 import { parseSourceUrl } from '../../shared/domain/sourceUrl';
 import type { Database } from '../db/client';
 import { accounts, recipePhotos, recipes } from '../db/schema';
+import ingredientTable from '../../shared/nutrition/ingredients.pl.json';
 
 /** Anything that can run a select: the database itself or a transaction. */
 export type Executor = Pick<Database['db'], 'select'>;
@@ -58,11 +70,35 @@ export function toRecipe(row: RecipeRow, photoId: string | null): Recipe {
   };
 }
 
-/** Value typed by the user, or nothing: until estimates exist (stage 1.2) there is no other source. */
-function manualNutrition(value: number | null | undefined) {
-  return value === null || value === undefined
-    ? { value: null, origin: 'none' as const }
-    : { value, origin: 'manual' as const };
+const nutritionLookup = createNutritionLookup(ingredientTable);
+
+/**
+ * The nutrition columns of a recipe (S5): each of the four values is what the user typed, else
+ * what the source page stated, else the estimate from the ingredients, else empty. Run on every
+ * save, so estimates follow the ingredients and servings while typed and source values stay.
+ */
+function nutritionColumns(
+  input: RecipeInput,
+  ingredients: Ingredient[],
+  source: SourceNutrition | null,
+) {
+  const estimate = estimateNutrition(ingredients, input.servings, nutritionLookup);
+  const resolved = resolveNutrition({
+    manual: input.nutritionManual,
+    source,
+    estimate: estimate.values,
+  });
+  return {
+    kcal: resolved.kcal.value,
+    kcalOrigin: resolved.kcal.origin,
+    proteinG: resolved.proteinG.value,
+    proteinOrigin: resolved.proteinG.origin,
+    fatG: resolved.fatG.value,
+    fatOrigin: resolved.fatG.origin,
+    fiberG: resolved.fiberG.value,
+    fiberOrigin: resolved.fiberG.origin,
+    unrecognizedIngredients: estimate.unrecognized,
+  };
 }
 
 /** The source columns for an address: the address itself, its normalized key and the site name. */
@@ -127,11 +163,8 @@ async function insertRecipe(
   now: Date,
 ): Promise<{ recipe: Recipe; dataVersion: number } | DuplicateSource> {
   const id = randomUUID();
-  const kcal = manualNutrition(input.nutritionManual.kcal);
-  const protein = manualNutrition(input.nutritionManual.proteinG);
-  const fat = manualNutrition(input.nutritionManual.fatG);
-  const fiber = manualNutrition(input.nutritionManual.fiberG);
   const imported = input.sourceImport;
+  const ingredients = input.ingredients.map(normalizeIngredient);
   const source = sourceColumns(input.sourceUrl, imported?.siteName);
   return db.transaction(async (tx) => {
     const duplicate = await recipeWithKey(tx, accountId, source.sourceUrlKey);
@@ -144,20 +177,13 @@ async function insertRecipe(
         title: input.title,
         kind: imported && input.sourceUrl ? 'link' : 'manual',
         servings: input.servings,
-        ingredients: input.ingredients.map(normalizeIngredient),
+        ingredients,
         steps: input.steps,
         ...source,
         sourceRating: imported?.rating ?? null,
         sourceRatingCount: imported?.ratingCount ?? null,
         sourceNutrition: imported?.nutrition ?? null,
-        kcal: kcal.value === null ? null : Math.round(kcal.value),
-        kcalOrigin: kcal.origin,
-        proteinG: protein.value,
-        proteinOrigin: protein.origin,
-        fatG: fat.value,
-        fatOrigin: fat.origin,
-        fiberG: fiber.value,
-        fiberOrigin: fiber.origin,
+        ...nutritionColumns(input, ingredients, imported?.nutrition ?? null),
         createdAt: now,
         updatedAt: now,
       })
@@ -222,14 +248,11 @@ export async function updateRecipe(
   input: RecipeInput,
   now: Date,
 ): Promise<{ recipe: Recipe; dataVersion: number } | DuplicateSource | null> {
-  const kcal = manualNutrition(input.nutritionManual.kcal);
-  const protein = manualNutrition(input.nutritionManual.proteinG);
-  const fat = manualNutrition(input.nutritionManual.fatG);
-  const fiber = manualNutrition(input.nutritionManual.fiberG);
+  const ingredients = input.ingredients.map(normalizeIngredient);
   const source = sourceColumns(input.sourceUrl);
   const dataVersion = await db.transaction(async (tx) => {
     const [current] = await tx
-      .select({ kind: recipes.kind })
+      .select({ kind: recipes.kind, sourceNutrition: recipes.sourceNutrition })
       .from(recipes)
       .where(and(eq(recipes.id, recipeId), eq(recipes.accountId, accountId)))
       .for('update');
@@ -243,17 +266,14 @@ export async function updateRecipe(
       .set({
         title: input.title,
         servings: input.servings,
-        ingredients: input.ingredients.map(normalizeIngredient),
+        ingredients,
         steps: input.steps,
         ...(current.kind === 'manual' ? source : {}),
-        kcal: kcal.value === null ? null : Math.round(kcal.value),
-        kcalOrigin: kcal.origin,
-        proteinG: protein.value,
-        proteinOrigin: protein.origin,
-        fatG: fat.value,
-        fatOrigin: fat.origin,
-        fiberG: fiber.value,
-        fiberOrigin: fiber.origin,
+        ...nutritionColumns(
+          input,
+          ingredients,
+          sourceNutritionSchema.nullable().catch(null).parse(current.sourceNutrition),
+        ),
         updatedAt: now,
       })
       .where(eq(recipes.id, recipeId));

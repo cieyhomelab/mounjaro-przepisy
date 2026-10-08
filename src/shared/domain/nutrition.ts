@@ -117,7 +117,10 @@ export function estimateNutrition(
   };
 }
 
-export type ResolvedNutrition = Record<NutritionKey, { value: number | null; origin: NutritionOrigin }>;
+export type ResolvedNutrition = Record<
+  NutritionKey,
+  { value: number | null; origin: NutritionOrigin }
+>;
 
 const store = (key: NutritionKey, value: number) =>
   key === 'kcal' ? Math.round(value) : Math.round(value * 10) / 10;

@@ -25,11 +25,7 @@
     },
     {
       "name": "oliwa z oliwek",
-      "synonyms": [
-        "oliwa",
-        "oliwy z oliwek",
-        "oliwa extra virgin"
-      ],
+      "synonyms": ["oliwa", "oliwy z oliwek", "oliwa extra virgin"],
       "per100g": {
         "kcal": 884,
         "proteinG": 0,
@@ -40,13 +36,7 @@
     },
     {
       "name": "ryż biały",
-      "synonyms": [
-        "ryż",
-        "ryżu",
-        "ryż długoziarnisty",
-        "ryż jaśminowy",
-        "ryż basmati"
-      ],
+      "synonyms": ["ryż", "ryżu", "ryż długoziarnisty", "ryż jaśminowy", "ryż basmati"],
       "per100g": {
         "kcal": 365,
         "proteinG": 7.13,
@@ -57,12 +47,7 @@
     },
     {
       "name": "cebula",
-      "synonyms": [
-        "cebule",
-        "cebuli",
-        "cebula biała",
-        "cebula żółta"
-      ],
+      "synonyms": ["cebule", "cebuli", "cebula biała", "cebula żółta"],
       "per100g": {
         "kcal": 40,
         "proteinG": 1.1,
@@ -76,12 +61,7 @@
     },
     {
       "name": "czosnek",
-      "synonyms": [
-        "ząbek czosnku",
-        "ząbki czosnku",
-        "czosnku",
-        "główka czosnku"
-      ],
+      "synonyms": ["ząbek czosnku", "ząbki czosnku", "czosnku", "główka czosnku"],
       "per100g": {
         "kcal": 149,
         "proteinG": 6.36,
@@ -96,11 +76,7 @@
     },
     {
       "name": "brokuł",
-      "synonyms": [
-        "brokuły",
-        "brokułów",
-        "brokuły mrożone"
-      ],
+      "synonyms": ["brokuły", "brokułów", "brokuły mrożone"],
       "per100g": {
         "kcal": 34,
         "proteinG": 2.82,
@@ -114,9 +90,7 @@
     },
     {
       "name": "sól",
-      "synonyms": [
-        "soli"
-      ],
+      "synonyms": ["soli"],
       "per100g": {
         "kcal": 0,
         "proteinG": 0,

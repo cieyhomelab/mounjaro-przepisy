@@ -58,7 +58,7 @@ async function readCsv(file: string, onRow: (row: Record<string, string>) => voi
 
 const dataDir = process.argv[2];
 if (!dataDir) {
-  console.error('Usage: build.ts <directory with the SR Legacy CSV files>');
+  process.stderr.write('Usage: build.ts <directory with the SR Legacy CSV files>\n');
   process.exit(2);
 }
 
@@ -70,7 +70,10 @@ await readCsv(path.join(dataDir, 'food.csv'), (row) => {
   if (wanted.has(row.fdc_id ?? '')) descriptions.set(row.fdc_id ?? '', row.description ?? '');
 });
 
-const values = new Map<string, Partial<Record<(typeof NUTRIENTS)[keyof typeof NUTRIENTS], number>>>();
+const values = new Map<
+  string,
+  Partial<Record<(typeof NUTRIENTS)[keyof typeof NUTRIENTS], number>>
+>();
 await readCsv(path.join(dataDir, 'food_nutrient.csv'), (row) => {
   const id = row.fdc_id ?? '';
   const key = NUTRIENTS[(row.nutrient_id ?? '') as keyof typeof NUTRIENTS];
@@ -82,7 +85,9 @@ const round = (value: number) => Math.round(value * 100) / 100;
 const table = entries.map((entry) => {
   const id = String(entry.fdcId);
   if (descriptions.get(id) !== entry.fdcDescription) {
-    throw new Error(`FDC ${id} is "${descriptions.get(id)}", the mapping expects "${entry.fdcDescription}"`);
+    throw new Error(
+      `FDC ${id} is "${descriptions.get(id)}", the mapping expects "${entry.fdcDescription}"`,
+    );
   }
   const found = values.get(id) ?? {};
   for (const key of ['kcal', 'proteinG', 'fatG'] as const) {
@@ -106,4 +111,4 @@ const table = entries.map((entry) => {
 });
 
 await writeFile(OUT_FILE, `${JSON.stringify(table, null, 2)}\n`);
-console.log(`Wrote ${table.length} ingredients to ${path.relative(ROOT, OUT_FILE)}`);
+process.stdout.write(`Wrote ${table.length} ingredients to ${path.relative(ROOT, OUT_FILE)}\n`);

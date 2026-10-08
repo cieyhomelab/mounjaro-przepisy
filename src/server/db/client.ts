@@ -10,6 +10,8 @@ export function createDatabase(databaseUrl: string) {
   const db = drizzle(pool, { schema });
   return {
     db,
+    /** Raw pool, for tests that inspect tables directly. */
+    pool,
     /** Applies pending migrations from the drizzle/ directory. */
     migrate: (migrationsFolder = 'drizzle') => migrate(db, { migrationsFolder }),
     /** True when the database answers a trivial query. */

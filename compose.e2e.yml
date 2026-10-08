@@ -6,6 +6,9 @@ services:
   app:
     environment:
       APP_ENV: e2e
+      AUTH_MODE: mock
+      APP_BASE_URL: http://localhost:3000
+      ALLOWED_EMAIL: owner@example.test
     ports: !reset []
     restart: 'no'
 

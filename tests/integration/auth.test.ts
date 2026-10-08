@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { describe, expect, it } from 'vitest';
 import { sessionResponseSchema } from '../../src/shared/contracts/session';
 import { CookieJar, OWNER_EMAIL, loginWithMock, originHeaders, useApp } from './helpers';
@@ -73,6 +74,18 @@ describe('session and mock login', () => {
     const location = await loginWithMock(harness.app, jar, OWNER_EMAIL, 'https://evil.example/');
 
     expect(location).toBe('/');
+  });
+
+  it('treats a repeated returnTo parameter as absent instead of failing', async () => {
+    const start = await harness.app.inject({
+      method: 'GET',
+      url: '/api/auth/google/start?returnTo=a&returnTo=b',
+    });
+
+    expect(start.statusCode).toBe(302);
+    const raw = start.cookies.find((c) => c.name === 'login')?.value ?? '{}';
+    const login = z.object({ returnTo: z.string() }).parse(JSON.parse(decodeURIComponent(raw)));
+    expect(login.returnTo).toBe('/');
   });
 
   it('refuses another address without creating a session or account', async () => {

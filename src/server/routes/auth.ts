@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
+import { googleStartQuerySchema } from '../../shared/contracts/auth';
 import { sanitizeReturnTo } from '../../shared/domain/returnTo';
 import type { Clock } from '../clock';
 import type { Config } from '../config';
@@ -54,7 +55,7 @@ export function registerAuthRoutes(app: FastifyInstance, deps: AuthRoutesDeps) {
   };
 
   app.get('/api/auth/google/start', async (request, reply) => {
-    const { returnTo } = request.query as { returnTo?: string };
+    const { returnTo } = googleStartQuerySchema.parse(request.query);
     const { codeVerifier, ...checks } = createLoginChecks();
     const url = await provider.authorizationUrl({ ...checks, redirectUri });
     reply.setCookie(

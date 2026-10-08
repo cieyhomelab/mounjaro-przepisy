@@ -1,30 +1,11 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { App } from './App';
+import { clearLocalData } from './data/localDb';
+import { json, loggedIn, renderAt, stubFetch, unauthenticated } from './testHelpers';
 
-type Handler = (url: string, init?: RequestInit) => Response | Promise<Response>;
-
-function stubFetch(handler: Handler) {
-  const fetchMock = vi.fn((url: string, init?: RequestInit) => Promise.resolve(handler(url, init)));
-  vi.stubGlobal('fetch', fetchMock);
-  return fetchMock;
-}
-
-const json = (status: number, body: unknown) => Response.json(body, { status });
-const unauthenticated = () => json(401, { error: { code: 'unauthenticated' } });
-const loggedIn = () => json(200, { email: 'owner@example.test', apiVersion: 1 });
-
-function renderAt(path: string) {
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <App />
-    </MemoryRouter>,
-  );
-}
-
-afterEach(() => {
+afterEach(async () => {
   cleanup();
+  await clearLocalData();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });

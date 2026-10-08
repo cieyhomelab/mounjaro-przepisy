@@ -8,6 +8,7 @@ const messages: Record<string, string> = {
   not_found: 'Nie znaleziono tych danych.',
   conflict: 'Te dane zmieniły się w międzyczasie. Odśwież i spróbuj ponownie.',
   payload_too_large: 'Przesyłane dane są za duże.',
+  unsupported_image: 'Nie udało się odczytać zdjęcia. Wybierz plik JPEG, PNG lub WebP.',
 };
 
 /** Polish text for an API error code; technical details never reach the user. */

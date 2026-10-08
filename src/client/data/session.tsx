@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { sessionResponseSchema } from '../../shared/contracts/session';
 import { ApiError, apiRequest, setUnauthenticatedHandler } from './api';
+import { clearLocalData } from './localDb';
 
 export type SessionState =
   | { status: 'loading' }
@@ -49,13 +50,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   useEffect(() => {
-    setUnauthenticatedHandler(() => setState({ status: 'anonymous' }));
+    setUnauthenticatedHandler(() => {
+      // The data on the device is for the logged-in user only.
+      void clearLocalData();
+      setState({ status: 'anonymous' });
+    });
     return () => setUnauthenticatedHandler(undefined);
   }, []);
 
   const logout = useCallback(async () => {
     if (!navigator.onLine) throw new ApiError('offline', 0);
     await apiRequest('/api/auth/logout', { method: 'POST' });
+    await clearLocalData();
     setState({ status: 'anonymous' });
   }, []);
 

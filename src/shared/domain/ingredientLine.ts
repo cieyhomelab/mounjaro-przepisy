@@ -111,9 +111,9 @@ export function parseIngredientLine(line: string): Ingredient {
  * splitting to us; otherwise what it sent is kept.
  */
 export function normalizeIngredient(input: {
-  quantity?: number | null;
-  unit?: string | null;
-  name?: string | null;
+  quantity?: number | null | undefined;
+  unit?: string | null | undefined;
+  name?: string | null | undefined;
   originalText: string;
 }): Ingredient {
   if (input.quantity === undefined && input.unit === undefined && input.name === undefined) {

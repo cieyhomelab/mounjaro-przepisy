@@ -5,6 +5,8 @@ import { normalizeIngredient } from '../../shared/domain/ingredientLine';
 import type { Database } from '../db/client';
 import { accounts, recipePhotos, recipes } from '../db/schema';
 
+/** Anything that can run a select: the database itself or a transaction. */
+export type Executor = Pick<Database['db'], 'select'>;
 type Tx = Parameters<Parameters<Database['db']['transaction']>[0]>[0];
 type RecipeRow = typeof recipes.$inferSelect;
 
@@ -120,7 +122,7 @@ export async function createManualRecipe(
 }
 
 /** Every recipe of the account, oldest first, for the snapshot. */
-export async function listRecipes({ db }: Database, accountId: string): Promise<Recipe[]> {
+export async function listRecipes(db: Executor, accountId: string): Promise<Recipe[]> {
   const rows = await db
     .select({ recipe: recipes, photoId: recipePhotos.id })
     .from(recipes)
@@ -132,7 +134,7 @@ export async function listRecipes({ db }: Database, accountId: string): Promise<
 
 /** One recipe of the account, or null. */
 export async function findRecipe(
-  { db }: Database,
+  db: Executor,
   accountId: string,
   recipeId: string,
 ): Promise<Recipe | null> {

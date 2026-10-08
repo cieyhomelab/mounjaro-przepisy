@@ -12,7 +12,7 @@ export function registerSnapshotRoutes(
     const accountId = request.session?.accountId ?? '';
     const known = request.headers['if-none-match'];
     // Cheap check first: a client that is up to date gets 304 without the data being read.
-    const current = snapshotEtag(await readDataVersion(deps.database, accountId));
+    const current = snapshotEtag(await readDataVersion(deps.database.db, accountId));
     if (known === current) return reply.code(304).header('ETag', current).send();
     const snapshot = await buildSnapshot(deps.database, accountId, deps.clock.now());
     return reply

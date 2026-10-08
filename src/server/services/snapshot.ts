@@ -3,10 +3,10 @@ import { API_VERSION } from '../../shared/contracts/session';
 import type { Snapshot } from '../../shared/contracts/snapshot';
 import type { Database } from '../db/client';
 import { accounts, settings } from '../db/schema';
-import { listRecipes } from './recipes';
+import { listRecipes, type Executor } from './recipes';
 
 /** Current data version of the account; the ETag of the snapshot. */
-export async function readDataVersion({ db }: Database, accountId: string): Promise<number> {
+export async function readDataVersion(db: Executor, accountId: string): Promise<number> {
   const [row] = await db
     .select({ dataVersion: accounts.dataVersion })
     .from(accounts)
@@ -26,8 +26,7 @@ export async function buildSnapshot(
   const { db } = database;
   return db.transaction(
     async (tx) => {
-      const view = { ...database, db: tx } as Database;
-      const dataVersion = await readDataVersion(view, accountId);
+      const dataVersion = await readDataVersion(tx, accountId);
       const [row] = await tx.select().from(settings).where(eq(settings.accountId, accountId));
       return {
         apiVersion: API_VERSION,
@@ -40,7 +39,7 @@ export async function buildSnapshot(
           thresholdKcal: row?.thresholdKcal ?? 400,
           thresholdSmallPortionKcal: row?.thresholdSmallPortionKcal ?? 300,
         },
-        recipes: await listRecipes(view, accountId),
+        recipes: await listRecipes(tx, accountId),
         collections: [],
         cookEvents: [],
       };

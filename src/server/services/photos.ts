@@ -81,7 +81,7 @@ export async function setRecipePhoto(
     return bumpDataVersion(tx, accountId);
   });
   if (dataVersion === null) return null;
-  const recipe = await findRecipe(database, accountId, recipeId);
+  const recipe = await findRecipe(database.db, accountId, recipeId);
   return recipe ? { recipe, dataVersion } : null;
 }
 

@@ -51,8 +51,8 @@ function Field({
 }: {
   id: string;
   label: string;
-  hint?: string;
-  error?: string;
+  hint?: string | undefined;
+  error?: string | undefined;
   children: (describedBy: string | undefined, invalid: boolean) => ReactNode;
 }) {
   const describedBy = error ? `${id}-error` : undefined;
@@ -89,7 +89,7 @@ function LineList({
   addLabel: string;
   values: string[];
   multiline: boolean;
-  error?: string;
+  error?: string | undefined;
   onChange: (values: string[]) => void;
 }) {
   const errorId = `${idPrefix}-error`;

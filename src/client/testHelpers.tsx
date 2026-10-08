@@ -8,7 +8,7 @@ import { App } from './App';
 export type Handler = (url: string, init?: RequestInit) => Response | Promise<Response>;
 
 export const json = (status: number, body: unknown, headers?: Record<string, string>) =>
-  Response.json(body, { status, headers });
+  Response.json(body, { status, headers: headers ?? {} });
 export const unauthenticated = () => json(401, { error: { code: 'unauthenticated' } });
 export const loggedIn = () => json(200, { email: 'owner@example.test', apiVersion: 1 });
 

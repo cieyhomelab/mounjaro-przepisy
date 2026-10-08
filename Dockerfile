@@ -50,4 +50,5 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY playwright.config.ts tsconfig.base.json tsconfig.json ./
 COPY tests/e2e ./tests/e2e
+COPY tests/fixtures/nutrition ./tests/fixtures/nutrition
 ENTRYPOINT ["npx", "playwright", "test"]

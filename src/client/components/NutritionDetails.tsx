@@ -152,6 +152,8 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
 /** The four values with their origin, and the details: each value, ingredients left out of the sum. */
 export function NutritionDetails({ recipe }: { recipe: Recipe }) {
   const unrecognized = recipe.unrecognizedIngredients;
+  // The details are drawn only while open, so their text is not in the page twice.
+  const [open, setOpen] = useState(false);
   return (
     <section aria-labelledby="nutrition-heading" className="flex flex-col gap-2">
       <h2 id="nutrition-heading" className="text-lg font-semibold">
@@ -165,25 +167,33 @@ export function NutritionDetails({ recipe }: { recipe: Recipe }) {
           </li>
         ))}
       </ul>
-      <details className="rounded-lg border border-neutral-300 p-3">
+      <details
+        open={open}
+        onToggle={(event) => setOpen(event.currentTarget.open)}
+        className="rounded-lg border border-neutral-300 p-3"
+      >
         <summary className="min-h-11 cursor-pointer py-2 font-medium">
           Szczegóły wartości odżywczych
         </summary>
-        <ul className="divide-y divide-neutral-200">
-          {NUTRITION_KEYS.map((key) => (
-            <NutritionRow key={key} recipe={recipe} nutritionKey={key} />
-          ))}
-        </ul>
-        {unrecognized.length > 0 ? (
-          <div className="mt-3 flex flex-col gap-1">
-            <h3 className="font-medium">Nierozpoznane składniki</h3>
-            <p>Te składniki nie zostały wliczone do wartości szacunkowych:</p>
-            <ul className="list-disc pl-5">
-              {unrecognized.map((item, index) => (
-                <li key={index}>{item}</li>
+        {open ? (
+          <>
+            <ul className="divide-y divide-neutral-200">
+              {NUTRITION_KEYS.map((key) => (
+                <NutritionRow key={key} recipe={recipe} nutritionKey={key} />
               ))}
             </ul>
-          </div>
+            {unrecognized.length > 0 ? (
+              <div className="mt-3 flex flex-col gap-1">
+                <h3 className="font-medium">Nierozpoznane składniki</h3>
+                <p>Te składniki nie zostały wliczone do wartości szacunkowych:</p>
+                <ul className="list-disc pl-5">
+                  {unrecognized.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </>
         ) : null}
       </details>
     </section>

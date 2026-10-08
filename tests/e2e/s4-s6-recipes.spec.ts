@@ -117,7 +117,8 @@ test.describe('S4: ręczne dodanie przepisu', () => {
     await expect(item).toContainText('Kurczak z ryżem');
     await expect(item).toContainText('ręczny');
     await expect(item.getByRole('img', { name: 'Brak zdjęcia' })).toBeVisible();
-    await expect(item).toContainText('Białko: —');
+    // 200 g of chicken breast in 2 servings: the value is estimated from the ingredients (S5).
+    await expect(item).toContainText('Białko: 23 g');
   });
 
   test('S4: przycisk „Dodaj przepis” w niepustej kolekcji prowadzi do formularza „Ręcznie”', async ({

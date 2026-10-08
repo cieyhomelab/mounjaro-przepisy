@@ -102,10 +102,12 @@ test.describe('S5: pochodzenie wartości odżywczych', () => {
 
     await openDetails(page);
 
-    await expect(page.getByRole('heading', { name: 'Nierozpoznane składniki' })).toBeVisible();
-    await expect(page.getByText('nie zostały wliczone', { exact: false })).toBeVisible();
-    await expect(page.getByText('3 łyżki sosu tajemniczego')).toBeVisible();
-    await expect(page.getByText('200 g piersi z kurczaka').nth(1)).toBeHidden();
+    const unrecognized = page
+      .getByRole('heading', { name: 'Nierozpoznane składniki' })
+      .locator('xpath=..');
+    await expect(unrecognized).toBeVisible();
+    await expect(unrecognized).toContainText('nie zostały wliczone');
+    await expect(unrecognized.getByRole('listitem')).toHaveText(['3 łyżki sosu tajemniczego']);
   });
 
   test('S5: przepis bez rozpoznanych składników pokazuje „brak danych” i pozwala wpisać każdą wartość ręcznie', async ({

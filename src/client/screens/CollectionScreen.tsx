@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import type { Recipe } from '../../shared/contracts/recipe';
 import { formatKcal, formatProtein, sortByProteinDesc } from '../../shared/domain/recipeList';
+import { formatSourceRating } from '../../shared/domain/sourceRating';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { RecipeImage } from '../components/RecipeImage';
 import { useCollection } from '../data/collection';
@@ -9,15 +10,15 @@ import { useCollection } from '../data/collection';
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
 
-/** The two ways to add a recipe. "Z linku" arrives with stage 1.2 and stays disabled until then. */
+/** The two ways to add a recipe: from a link or by hand. */
 function AddRecipeChoices() {
   const navigate = useNavigate();
   return (
     <div className="flex flex-wrap gap-2">
       <button
         type="button"
-        disabled
-        className={`${buttonClass} cursor-not-allowed bg-neutral-200 text-neutral-600`}
+        onClick={() => void navigate('/przepisy/z-linku')}
+        className={`${buttonClass} bg-neutral-900 text-white`}
       >
         Z linku
       </button>
@@ -66,10 +67,10 @@ function RecipeListItem({ recipe }: { recipe: Recipe }) {
             <span>Białko: {formatProtein(recipe)}</span>
             <span>Kalorie: {formatKcal(recipe)}</span>
           </span>
-          {sourceRating !== null || ownRating !== null ? (
+          {recipe.kind === 'link' || sourceRating !== null || ownRating !== null ? (
             <span className="flex flex-wrap gap-x-4 text-sm text-neutral-600">
-              {sourceRating !== null ? (
-                <span>Ocena ze źródła: {sourceRating.toLocaleString('pl-PL')}</span>
+              {recipe.kind === 'link' || sourceRating !== null ? (
+                <span>Ocena ze źródła: {formatSourceRating(recipe)}</span>
               ) : null}
               {ownRating !== null ? <span>Twoja ocena: {ownRating}/5</span> : null}
             </span>

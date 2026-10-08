@@ -8,6 +8,9 @@ const messages: Record<string, string> = {
   not_found: 'Nie znaleziono tych danych.',
   conflict: 'Te dane zmieniły się w międzyczasie. Odśwież i spróbuj ponownie.',
   payload_too_large: 'Przesyłane dane są za duże.',
+  invalid_url: 'To nie jest poprawny link',
+  source_unavailable: 'Strona nie odpowiada',
+  duplicate_source: 'Przepis z tego adresu już jest w Twojej kolekcji.',
   unsupported_image: 'Nie udało się odczytać zdjęcia. Wybierz plik JPEG, PNG lub WebP.',
 };
 

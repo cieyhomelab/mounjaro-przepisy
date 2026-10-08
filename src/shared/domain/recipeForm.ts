@@ -1,4 +1,5 @@
-import type { Recipe } from '../contracts/recipe';
+import type { Recipe, SourceImport } from '../contracts/recipe';
+import type { ImportDraft } from '../contracts/recipeImport';
 import { validateRecipeInput, type RecipeValidation } from './recipeValidation';
 
 export type RecipeFormValues = {
@@ -38,6 +39,17 @@ export const recipeToForm = (recipe: Recipe): RecipeFormValues => ({
   },
 });
 
+/** The form filled with what was read from a recipe page; fields the page did not give stay empty. */
+export const importDraftToForm = (draft: ImportDraft): RecipeFormValues => ({
+  title: draft.title,
+  servings: draft.servings === null ? '' : toText(draft.servings),
+  ingredients:
+    draft.ingredients.length > 0 ? draft.ingredients.map((item) => item.originalText) : [''],
+  steps: draft.steps.length > 0 ? draft.steps : [''],
+  sourceUrl: draft.sourceUrl,
+  nutrition: { kcal: '', proteinG: '', fatG: '', fiberG: '' },
+});
+
 /** A number typed by the user ("1,5" or "1.5"); undefined when empty, NaN when it is not a number. */
 export function parseDecimalText(text: string): number | undefined {
   const trimmed = text.trim();
@@ -48,7 +60,11 @@ export function parseDecimalText(text: string): number | undefined {
 const nonBlank = (lines: string[]) => lines.map((line) => line.trim()).filter(Boolean);
 
 /** Turns the text typed in the form into a recipe request and validates it. */
-export function buildRecipeInput(values: RecipeFormValues): RecipeValidation {
+export function buildRecipeInput(
+  values: RecipeFormValues,
+  /** What the form carries besides the typed text: the downloaded photo and the data read from the source. */
+  imported?: { photoId: string | null; sourceImport: SourceImport | null },
+): RecipeValidation {
   const nutrition = (text: string) => parseDecimalText(text) ?? null;
   return validateRecipeInput({
     title: values.title,
@@ -56,6 +72,8 @@ export function buildRecipeInput(values: RecipeFormValues): RecipeValidation {
     ingredients: nonBlank(values.ingredients).map((originalText) => ({ originalText })),
     steps: nonBlank(values.steps),
     sourceUrl: values.sourceUrl.trim() || null,
+    ...(imported?.photoId ? { photoId: imported.photoId } : {}),
+    ...(imported?.sourceImport ? { sourceImport: imported.sourceImport } : {}),
     nutritionManual: {
       kcal: nutrition(values.nutrition.kcal),
       proteinG: nutrition(values.nutrition.proteinG),

@@ -27,7 +27,7 @@ test.describe('S6: lista kolekcji', () => {
 
     await expect(collectionHeading(page)).toBeVisible();
     await expect(page.getByText('Dodaj pierwszy przepis')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Z linku' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Z linku' })).toBeEnabled();
     await expect(page.getByRole('button', { name: 'Ręcznie' })).toBeEnabled();
     await expect(recipeList(page)).toHaveCount(0);
   });
@@ -128,7 +128,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
     await page.reload();
 
     await page.getByRole('button', { name: 'Dodaj przepis' }).click();
-    await expect(page.getByRole('button', { name: 'Z linku' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Z linku' })).toBeEnabled();
     await openManualForm(page);
   });
 

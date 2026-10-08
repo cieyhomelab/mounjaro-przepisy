@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- Structural replica of a recipe page of a starter service (JSON-LD with a protocol-relative
+     image, review count and rating on a scale to 10). The content is invented; it is not a copy of
+     the site. -->
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <title>Kasza jaglana z warzywami - Przepisy (replika)</title>
+    <meta property="og:site_name" content="Przepisy (replika)" />
+    <script type="application/ld+json">
+      {
+        "@context": "http://schema.org",
+        "@type": "Recipe",
+        "name": "Kasza jaglana z warzywami",
+        "image": "//cdn.example.test/kasza.jpg",
+        "recipeYield": "3",
+        "recipeIngredient": [
+          "1 szklanka kaszy jaglanej",
+          "1 marchew",
+          "1 pietruszka",
+          "2 łyżki oleju"
+        ],
+        "recipeInstructions": [
+          { "@type": "HowToStep", "text": "Ugotuj kaszę." },
+          { "@type": "HowToStep", "text": "Dodaj podduszone warzywa." }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": 8.4,
+          "bestRating": 10,
+          "worstRating": 0,
+          "reviewCount": 210
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Kasza jaglana z warzywami</h1>
+  </body>
+</html>

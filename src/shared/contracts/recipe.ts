@@ -29,6 +29,27 @@ export const ingredientInputSchema = z.object({
   originalText: z.string().trim().min(1).max(300),
 });
 
+const sourceNutritionValue = z.number().min(0).max(100_000).nullable().optional();
+
+/** Nutrition values per serving as the source page states them (stage 1.2 only stores them). */
+export const sourceNutritionSchema = z.object({
+  kcal: sourceNutritionValue,
+  proteinG: sourceNutritionValue,
+  fatG: sourceNutritionValue,
+  fiberG: sourceNutritionValue,
+});
+export type SourceNutrition = z.infer<typeof sourceNutritionSchema>;
+
+/** What was read from the source page of a recipe saved from a link; the saved recipe becomes kind "link". */
+export const sourceImportSchema = z.object({
+  /** Scale 0–5. */
+  rating: z.number().min(0).max(5).nullable(),
+  ratingCount: z.number().int().min(0).nullable(),
+  siteName: z.string().trim().min(1).max(200).nullable(),
+  nutrition: sourceNutritionSchema.nullable(),
+});
+export type SourceImport = z.infer<typeof sourceImportSchema>;
+
 const manualNutritionValue = z.number().min(0).max(100_000).nullable().optional();
 
 /** Request body of POST /api/recipes and PUT /api/recipes/:id. */
@@ -43,6 +64,8 @@ export const recipeInputSchema = z.object({
     .nullable()
     .optional(),
   photoId: z.uuid().nullable().optional(),
+  /** Present only when the recipe was read from `sourceUrl` (POST /api/recipes/import-preview). */
+  sourceImport: sourceImportSchema.optional(),
   nutritionManual: z
     .object({
       kcal: manualNutritionValue,

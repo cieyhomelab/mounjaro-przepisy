@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { recipeDeletedResponseSchema, type Recipe } from '../../shared/contracts/recipe';
 import { NO_DATA, formatKcal, formatProtein } from '../../shared/domain/recipeList';
+import { formatSourceRating } from '../../shared/domain/sourceRating';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { RecipeImage } from '../components/RecipeImage';
 import { ApiError, apiRequest } from '../data/api';
@@ -101,6 +102,9 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
           <span className="rounded-full bg-neutral-200 px-2 text-sm">ręczny</span>
         ) : null}
       </div>
+      {recipe.kind === 'link' || recipe.sourceRating !== null ? (
+        <p>Ocena ze źródła: {formatSourceRating(recipe)}</p>
+      ) : null}
       <p>Liczba porcji: {recipe.servings.toLocaleString('pl-PL')}</p>
       <section aria-labelledby="nutrition-heading" className="flex flex-col gap-1">
         <h2 id="nutrition-heading" className="text-lg font-semibold">

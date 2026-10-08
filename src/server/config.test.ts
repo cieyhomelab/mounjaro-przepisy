@@ -24,7 +24,27 @@ describe('loadConfig', () => {
       allowedEmail: 'owner@example.test',
       googleClientId: undefined,
       googleClientSecret: undefined,
+      fetchTimeoutMs: 12_000,
+      fetchAllowPrivateNetwork: false,
     });
+  });
+
+  it('reads the page fetcher settings and caps the time limit at 15 seconds', () => {
+    const config = loadConfig({
+      ...base,
+      AUTH_MODE: 'mock',
+      FETCH_TIMEOUT_MS: '3000',
+      FETCH_ALLOW_PRIVATE_NETWORK: 'true',
+    });
+    expect(config.fetchTimeoutMs).toBe(3000);
+    expect(config.fetchAllowPrivateNetwork).toBe(true);
+    const tooLong = { ...base, AUTH_MODE: 'mock', FETCH_TIMEOUT_MS: '20000' };
+    expect(() => loadConfig(tooLong)).toThrow(/FETCH_TIMEOUT_MS/);
+  });
+
+  it('refuses private-network fetching in production', () => {
+    const production = { ...google, APP_ENV: 'production', FETCH_ALLOW_PRIVATE_NETWORK: 'true' };
+    expect(() => loadConfig(production)).toThrow(/FETCH_ALLOW_PRIVATE_NETWORK/);
   });
 
   it('normalizes the base url and treats empty values as unset', () => {

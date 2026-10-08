@@ -9,10 +9,24 @@ services:
       AUTH_MODE: mock
       APP_BASE_URL: http://localhost:3000
       ALLOWED_EMAIL: owner@example.test
+      # Recipe pages come from the "fixtures" service on the private Compose network.
+      FETCH_ALLOW_PRIVATE_NETWORK: 'true'
+      FETCH_TIMEOUT_MS: '3000'
     ports: !reset []
     restart: 'no'
 
   db:
+    restart: 'no'
+
+  # Test pages standing in for recipe sites; reachable as http://fixtures.test:8080.
+  fixtures:
+    build:
+      context: .
+      target: fixtures
+    networks:
+      default:
+        aliases:
+          - fixtures.test
     restart: 'no'
 
   e2e:
@@ -26,5 +40,7 @@ services:
     depends_on:
       app:
         condition: service_healthy
+      fixtures:
+        condition: service_started
     profiles:
       - runner

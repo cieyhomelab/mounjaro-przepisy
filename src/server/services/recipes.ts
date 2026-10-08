@@ -145,3 +145,88 @@ export async function findRecipe(
     .where(and(eq(recipes.id, recipeId), eq(recipes.accountId, accountId)));
   return row ? toRecipe(row.recipe, row.photoId) : null;
 }
+
+/**
+ * Replaces the editable fields of a recipe and returns it with the new data version, or null
+ * when the account has no such recipe. The row is locked while it changes, so two saves of the
+ * same recipe apply one after the other and the one that arrives later wins (S15). A link
+ * recipe keeps its source address; the photo is replaced only when `photoId` names an
+ * unattached upload of the account.
+ */
+export async function updateRecipe(
+  { db }: Database,
+  accountId: string,
+  recipeId: string,
+  input: RecipeInput,
+  now: Date,
+): Promise<{ recipe: Recipe; dataVersion: number } | null> {
+  const kcal = manualNutrition(input.nutritionManual.kcal);
+  const protein = manualNutrition(input.nutritionManual.proteinG);
+  const fat = manualNutrition(input.nutritionManual.fatG);
+  const fiber = manualNutrition(input.nutritionManual.fiberG);
+  const dataVersion = await db.transaction(async (tx) => {
+    const [current] = await tx
+      .select({ kind: recipes.kind })
+      .from(recipes)
+      .where(and(eq(recipes.id, recipeId), eq(recipes.accountId, accountId)))
+      .for('update');
+    if (!current) return null;
+    await tx
+      .update(recipes)
+      .set({
+        title: input.title,
+        servings: input.servings,
+        ingredients: input.ingredients.map(normalizeIngredient),
+        steps: input.steps,
+        ...(current.kind === 'manual' ? { sourceUrl: input.sourceUrl ?? null } : {}),
+        kcal: kcal.value === null ? null : Math.round(kcal.value),
+        kcalOrigin: kcal.origin,
+        proteinG: protein.value,
+        proteinOrigin: protein.origin,
+        fatG: fat.value,
+        fatOrigin: fat.origin,
+        fiberG: fiber.value,
+        fiberOrigin: fiber.origin,
+        updatedAt: now,
+      })
+      .where(eq(recipes.id, recipeId));
+    if (input.photoId) {
+      const [free] = await tx
+        .select({ id: recipePhotos.id })
+        .from(recipePhotos)
+        .where(
+          and(
+            eq(recipePhotos.id, input.photoId),
+            eq(recipePhotos.accountId, accountId),
+            isNull(recipePhotos.recipeId),
+          ),
+        );
+      if (free) {
+        await tx.delete(recipePhotos).where(eq(recipePhotos.recipeId, recipeId));
+        await tx.update(recipePhotos).set({ recipeId }).where(eq(recipePhotos.id, free.id));
+      }
+    }
+    return bumpDataVersion(tx, accountId);
+  });
+  if (dataVersion === null) return null;
+  const recipe = await findRecipe(db, accountId, recipeId);
+  return recipe ? { recipe, dataVersion } : null;
+}
+
+/**
+ * Deletes a recipe with its photo and returns the new data version, or null when the account has
+ * no such recipe. Own collections (stage 1.3) will drop their entries for it here as well.
+ */
+export async function deleteRecipe(
+  { db }: Database,
+  accountId: string,
+  recipeId: string,
+): Promise<number | null> {
+  return db.transaction(async (tx) => {
+    const removed = await tx
+      .delete(recipes)
+      .where(and(eq(recipes.id, recipeId), eq(recipes.accountId, accountId)))
+      .returning({ id: recipes.id });
+    return removed.length === 0 ? null : bumpDataVersion(tx, accountId);
+  });
+}

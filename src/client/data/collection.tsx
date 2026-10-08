@@ -11,7 +11,7 @@ import {
 import type { Recipe } from '../../shared/contracts/recipe';
 import { snapshotEtag, snapshotSchema } from '../../shared/contracts/snapshot';
 import { ApiError, NOT_MODIFIED, apiRequest } from './api';
-import { readLocalData, storeRecipe, storeSnapshot } from './localDb';
+import { readLocalData, removeRecipe, storeRecipe, storeSnapshot } from './localDb';
 
 export type CollectionState =
   | { status: 'loading' }
@@ -24,6 +24,8 @@ type CollectionContextValue = {
   sync: () => Promise<void>;
   /** Records a recipe the server has just saved; pulls the whole snapshot if another device changed data meanwhile. */
   recipeSaved: (recipe: Recipe, dataVersion: number) => Promise<void>;
+  /** Records a recipe the server has just deleted; pulls the whole snapshot if another device changed data meanwhile. */
+  recipeDeleted: (recipeId: string, dataVersion: number) => Promise<void>;
 };
 
 const CollectionContext = createContext<CollectionContextValue | null>(null);
@@ -82,6 +84,18 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     [reload, sync],
   );
 
+  const recipeDeleted = useCallback(
+    async (recipeId: string, dataVersion: number) => {
+      if (knownVersion.current !== null && dataVersion === knownVersion.current + 1) {
+        await removeRecipe(recipeId, dataVersion);
+        await reload();
+        return;
+      }
+      await sync();
+    },
+    [reload, sync],
+  );
+
   useEffect(() => {
     let active = true;
     const start = async () => {
@@ -107,7 +121,10 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     await sync();
   }, [sync]);
 
-  const value = useMemo(() => ({ state, sync: retry, recipeSaved }), [state, retry, recipeSaved]);
+  const value = useMemo(
+    () => ({ state, sync: retry, recipeSaved, recipeDeleted }),
+    [state, retry, recipeSaved, recipeDeleted],
+  );
   return <CollectionContext.Provider value={value}>{children}</CollectionContext.Provider>;
 }
 

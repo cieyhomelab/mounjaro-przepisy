@@ -1,9 +1,10 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { recipeResponseSchema, type Recipe } from '../../shared/contracts/recipe';
 import {
   buildRecipeInput,
   emptyRecipeForm,
+  recipeToForm,
   type RecipeFormValues,
 } from '../../shared/domain/recipeForm';
 import type { RecipeField, RecipeFieldCode } from '../../shared/domain/recipeValidation';
@@ -146,11 +147,16 @@ function LineList({
   );
 }
 
-/** Form for adding a recipe by hand. What the user typed stays in the form whatever happens on save. */
-export function RecipeFormScreen() {
+/**
+ * Form for adding a recipe by hand (no `recipe`) or editing a saved one. What the user typed stays
+ * in the form whatever happens on save.
+ */
+function RecipeForm({ recipe: existing }: { recipe?: Recipe }) {
   const navigate = useNavigate();
   const { recipeSaved } = useCollection();
-  const [values, setValues] = useState<RecipeFormValues>(emptyRecipeForm);
+  const [values, setValues] = useState<RecipeFormValues>(() =>
+    existing ? recipeToForm(existing) : emptyRecipeForm(),
+  );
   const [photo, setPhoto] = useState<File | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [errorCode, setErrorCode] = useState<string | null>(null);
@@ -178,7 +184,10 @@ export function RecipeFormScreen() {
       setSaving(true);
       try {
         const created = recipeResponseSchema.parse(
-          await apiRequest('/api/recipes', { method: 'POST', body: result.input }),
+          await apiRequest(existing ? `/api/recipes/${existing.id}` : '/api/recipes', {
+            method: existing ? 'PUT' : 'POST',
+            body: result.input,
+          }),
         );
         saved.current = created.recipe;
         setRecipeKept(true);
@@ -217,7 +226,7 @@ export function RecipeFormScreen() {
 
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Nowy przepis</h1>
+      <h1 className="text-2xl font-semibold">{existing ? 'Edycja przepisu' : 'Nowy przepis'}</h1>
       <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
         <Field id="title" label="Tytuł" error={message('title')}>
           {(describedBy, invalid) => (
@@ -273,7 +282,11 @@ export function RecipeFormScreen() {
           disabled={recipeKept}
           onChange={(next) => set('steps', next)}
         />
-        <Field id="photo" label="Zdjęcie (opcjonalnie)">
+        <Field
+          id="photo"
+          label={existing?.photoId ? 'Nowe zdjęcie (opcjonalnie)' : 'Zdjęcie (opcjonalnie)'}
+          hint={existing?.photoId ? 'Bez wyboru pliku zostanie dotychczasowe zdjęcie.' : undefined}
+        >
           {() => (
             <input
               id="photo"
@@ -291,7 +304,7 @@ export function RecipeFormScreen() {
               type="url"
               className={inputClass}
               value={values.sourceUrl}
-              disabled={recipeKept}
+              disabled={recipeKept || existing?.kind === 'link'}
               aria-invalid={invalid}
               aria-describedby={describedBy}
               onChange={(event) => set('sourceUrl', event.target.value)}
@@ -344,11 +357,33 @@ export function RecipeFormScreen() {
           >
             Zapisz
           </button>
-          <Link to="/" className={secondaryButton}>
+          <Link to={existing ? `/przepisy/${existing.id}` : '/'} className={secondaryButton}>
             Anuluj
           </Link>
         </div>
       </form>
     </section>
   );
+}
+
+export function RecipeFormScreen() {
+  return <RecipeForm />;
+}
+
+/** Edit form of the recipe named in the address, filled from the local copy. */
+export function RecipeEditScreen() {
+  const { id } = useParams();
+  const { state, sync } = useCollection();
+  if (state.status === 'loading') {
+    return (
+      <p role="status" className="text-neutral-600">
+        Ładowanie…
+      </p>
+    );
+  }
+  if (state.status === 'error')
+    return <ErrorNotice code={state.code} onRetry={() => void sync()} />;
+  const recipe = state.recipes.find((item) => item.id === id);
+  if (!recipe) return <p>Nie znaleziono tego przepisu.</p>;
+  return <RecipeForm key={recipe.id} recipe={recipe} />;
 }

@@ -57,6 +57,14 @@ export async function storeRecipe(recipe: Recipe, dataVersion: number): Promise<
   });
 }
 
+/** Removes a recipe the server has just deleted, together with the new data version. */
+export async function removeRecipe(recipeId: string, dataVersion: number): Promise<void> {
+  await localDb.transaction('rw', localDb.recipes, localDb.meta, async () => {
+    await localDb.recipes.delete(recipeId);
+    await localDb.meta.put({ key: META_DATA_VERSION, value: dataVersion });
+  });
+}
+
 /** Removes everything held for the user (logout, expired session). */
 export async function clearLocalData(): Promise<void> {
   await localDb.transaction('rw', localDb.recipes, localDb.settings, localDb.meta, async () => {

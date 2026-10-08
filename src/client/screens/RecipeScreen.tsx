@@ -1,11 +1,91 @@
-import { Link, useParams } from 'react-router';
-import type { Recipe } from '../../shared/contracts/recipe';
+import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
+import { recipeDeletedResponseSchema, type Recipe } from '../../shared/contracts/recipe';
 import { NO_DATA, formatKcal, formatProtein } from '../../shared/domain/recipeList';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { RecipeImage } from '../components/RecipeImage';
+import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 
 const wholeGrams = (value: number | null) => (value === null ? NO_DATA : `${Math.round(value)} g`);
+
+const actionClass =
+  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
+
+/** Delete button with a confirmation step; "Anuluj" leaves the recipe untouched. */
+function DeleteRecipe({ recipe }: { recipe: Recipe }) {
+  const navigate = useNavigate();
+  const { recipeDeleted } = useCollection();
+  const [asking, setAsking] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+
+  const confirm = async () => {
+    if (deleting) return;
+    if (!navigator.onLine) return setErrorCode('offline');
+    setErrorCode(null);
+    setDeleting(true);
+    try {
+      const result = recipeDeletedResponseSchema.parse(
+        await apiRequest(`/api/recipes/${recipe.id}`, { method: 'DELETE' }),
+      );
+      await recipeDeleted(recipe.id, result.dataVersion);
+      void navigate('/');
+    } catch (error) {
+      setDeleting(false);
+      setErrorCode(error instanceof ApiError ? error.code : 'internal');
+    }
+  };
+
+  if (!asking) {
+    return (
+      <button
+        type="button"
+        className={`${actionClass} border border-red-800 text-red-900`}
+        onClick={() => setAsking(true)}
+      >
+        Usuń
+      </button>
+    );
+  }
+  return (
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="delete-title"
+      className="flex w-full flex-col gap-3 rounded-lg border border-red-800 bg-red-50 p-4"
+    >
+      <h2 id="delete-title" className="text-lg font-semibold">
+        Usunąć przepis „{recipe.title}”?
+      </h2>
+      <p>
+        Przepis zniknie z kolekcji i ze wszystkich Twoich kolekcji. Tej operacji nie można cofnąć.
+      </p>
+      {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void confirm()} /> : null}
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={deleting}
+          className={`${actionClass} bg-red-800 text-white disabled:opacity-60`}
+          onClick={() => void confirm()}
+        >
+          Usuń
+        </button>
+        <button
+          type="button"
+          disabled={deleting}
+          className={`${actionClass} border border-neutral-400`}
+          onClick={() => {
+            setAsking(false);
+            setErrorCode(null);
+          }}
+        >
+          Anuluj
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function RecipeDetails({ recipe }: { recipe: Recipe }) {
   return (
@@ -55,6 +135,15 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
           ))}
         </ol>
       </section>
+      <div className="flex flex-wrap gap-2">
+        <Link
+          to={`/przepisy/${recipe.id}/edycja`}
+          className={`${actionClass} border border-neutral-400`}
+        >
+          Edytuj
+        </Link>
+        <DeleteRecipe recipe={recipe} />
+      </div>
       {recipe.sourceUrl ? (
         <p>
           Źródło:{' '}

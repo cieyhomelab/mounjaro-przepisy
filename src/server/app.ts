@@ -11,7 +11,10 @@ import { sendError } from './errors';
 import { createAuthProvider, type AuthProvider } from './integrations/auth';
 import { SESSION_COOKIE, registerAuthRoutes, sessionCookieOptions } from './routes/auth';
 import { registerHealthRoutes } from './routes/health';
+import { registerPhotoRoutes } from './routes/photos';
+import { registerRecipeRoutes } from './routes/recipes';
 import { registerSessionRoutes } from './routes/session';
+import { registerSnapshotRoutes } from './routes/snapshot';
 import { registerTestSupportRoutes } from './routes/testSupport';
 import { resolveSession, type ActiveSession } from './services/sessions';
 
@@ -103,6 +106,9 @@ export async function buildApp({ config, database, clientDir, clock, authProvide
 
   registerHealthRoutes(app, database);
   registerSessionRoutes(app);
+  registerSnapshotRoutes(app, { database, clock: appClock });
+  registerRecipeRoutes(app, { database, clock: appClock });
+  await registerPhotoRoutes(app, { database, clock: appClock });
   registerAuthRoutes(app, {
     config,
     database,

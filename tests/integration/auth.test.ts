@@ -6,7 +6,17 @@ import { CookieJar, OWNER_EMAIL, loginWithMock, originHeaders, useApp } from './
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Every route that requires a session. Add new protected routes here. */
-const protectedRoutes = [{ method: 'GET', url: '/api/session' }] as const;
+const protectedRoutes = [
+  { method: 'GET', url: '/api/session' },
+  { method: 'GET', url: '/api/snapshot' },
+  { method: 'POST', url: '/api/recipes', headers: originHeaders, payload: {} },
+  {
+    method: 'PUT',
+    url: '/api/recipes/00000000-0000-4000-8000-000000000000/photo',
+    headers: originHeaders,
+  },
+  { method: 'GET', url: '/api/photos/00000000-0000-4000-8000-000000000000' },
+] as const;
 
 describe('session and mock login', () => {
   const harness = useApp();

@@ -17,6 +17,8 @@ export default defineConfig({
           name: 'unit-client',
           environment: 'jsdom',
           include: ['src/client/**/*.test.{ts,tsx}'],
+          // The local copy of the data is IndexedDB, which jsdom does not provide.
+          setupFiles: ['fake-indexeddb/auto'],
         },
       },
       {

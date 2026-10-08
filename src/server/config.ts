@@ -11,6 +11,8 @@ const envSchema = z
     ALLOWED_EMAIL: z.email().optional(),
     GOOGLE_CLIENT_ID: z.string().min(1).optional(),
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+    FETCH_TIMEOUT_MS: z.coerce.number().int().min(100).max(15_000).default(12_000),
+    FETCH_ALLOW_PRIVATE_NETWORK: z.enum(['true', 'false']).default('false'),
   })
   .superRefine((env, ctx) => {
     const missing = (name: string) =>
@@ -25,6 +27,13 @@ const envSchema = z
       if (!env.GOOGLE_CLIENT_SECRET) missing('GOOGLE_CLIENT_SECRET');
     }
     if (env.APP_ENV === 'production' && !env.APP_BASE_URL) missing('APP_BASE_URL');
+    if (env.APP_ENV === 'production' && env.FETCH_ALLOW_PRIVATE_NETWORK === 'true') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['FETCH_ALLOW_PRIVATE_NETWORK'],
+        message: 'not allowed in production',
+      });
+    }
   });
 
 export type Config = {
@@ -39,6 +48,10 @@ export type Config = {
   allowedEmail: string;
   googleClientId: string | undefined;
   googleClientSecret: string | undefined;
+  /** Time limit for fetching one page of somebody else's site, in milliseconds (at most 15 s). */
+  fetchTimeoutMs: number;
+  /** Lets the page fetcher reach private addresses (test pages); never true in production. */
+  fetchAllowPrivateNetwork: boolean;
 };
 
 /** Parses and validates environment variables. Throws listing every invalid variable. */
@@ -62,5 +75,7 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     allowedEmail: (data.ALLOWED_EMAIL ?? '').toLowerCase(),
     googleClientId: data.GOOGLE_CLIENT_ID,
     googleClientSecret: data.GOOGLE_CLIENT_SECRET,
+    fetchTimeoutMs: data.FETCH_TIMEOUT_MS,
+    fetchAllowPrivateNetwork: data.FETCH_ALLOW_PRIVATE_NETWORK === 'true',
   };
 }

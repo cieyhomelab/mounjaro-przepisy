@@ -16,6 +16,8 @@ export const errorResponseSchema = z.object({
   error: z.object({
     code: z.string(),
     fields: z.record(z.string(), z.string()).optional(),
+    /** The recipe already in the collection, for `duplicate_source`. */
+    recipeId: z.uuid().optional(),
   }),
 });
 

@@ -6,6 +6,8 @@ export class ApiError extends Error {
     readonly code: string,
     readonly status: number,
     readonly fields?: Record<string, string>,
+    /** The recipe already in the collection, for `duplicate_source`. */
+    readonly recipeId?: string,
   ) {
     super(code);
     this.name = 'ApiError';
@@ -59,7 +61,12 @@ export async function apiRequest(path: string, options: RequestOptions = {}): Pr
     if (response.status === 401) onUnauthenticated?.();
     const parsed = errorResponseSchema.safeParse(payload);
     if (parsed.success) {
-      throw new ApiError(parsed.data.error.code, response.status, parsed.data.error.fields);
+      throw new ApiError(
+        parsed.data.error.code,
+        response.status,
+        parsed.data.error.fields,
+        parsed.data.error.recipeId,
+      );
     }
     throw new ApiError('internal', response.status);
   }

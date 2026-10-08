@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { and, asc, eq, isNull, sql } from 'drizzle-orm';
 import type { Recipe, RecipeInput } from '../../shared/contracts/recipe';
 import { normalizeIngredient } from '../../shared/domain/ingredientLine';
+import { parseSourceUrl } from '../../shared/domain/sourceUrl';
 import type { Database } from '../db/client';
 import { accounts, recipePhotos, recipes } from '../db/schema';
 
@@ -64,30 +65,91 @@ function manualNutrition(value: number | null | undefined) {
     : { value, origin: 'manual' as const };
 }
 
-/** Creates a manual recipe and returns it with the new data version. */
-export async function createManualRecipe(
+/** The source columns for an address: the address itself, its normalized key and the site name. */
+function sourceColumns(sourceUrl: string | null | undefined, siteName?: string | null) {
+  const parsed = sourceUrl ? parseSourceUrl(sourceUrl) : null;
+  return {
+    sourceUrl: sourceUrl ?? null,
+    sourceUrlKey: parsed?.key ?? null,
+    sourceSiteName: parsed ? (siteName ?? parsed.host) : null,
+  };
+}
+
+/** The recipe of the account holding this source key, other than `exceptId`. */
+async function recipeWithKey(
+  tx: Executor,
+  accountId: string,
+  key: string | null,
+  exceptId?: string,
+): Promise<string | null> {
+  if (!key) return null;
+  const rows = await tx
+    .select({ id: recipes.id })
+    .from(recipes)
+    .where(and(eq(recipes.accountId, accountId), eq(recipes.sourceUrlKey, key)));
+  return rows.find((row) => row.id !== exceptId)?.id ?? null;
+}
+
+const isUniqueViolation = (error: unknown) =>
+  (error as { code?: string } | null)?.code === '23505' ||
+  (error as { cause?: { code?: string } } | null)?.cause?.code === '23505';
+
+/** The page the recipe came from is already in the collection (S2): the existing recipe's id. */
+export type DuplicateSource = { duplicateOf: string };
+
+/**
+ * Creates a recipe (typed by hand, or read from a link when the input carries `sourceImport`) and
+ * returns it with the new data version. A second recipe from the same page is refused.
+ */
+export async function createRecipe(
+  database: Database,
+  accountId: string,
+  input: RecipeInput,
+  now: Date,
+): Promise<{ recipe: Recipe; dataVersion: number } | DuplicateSource> {
+  const key = input.sourceUrl ? (parseSourceUrl(input.sourceUrl)?.key ?? null) : null;
+  try {
+    return await insertRecipe(database, accountId, input, now);
+  } catch (error) {
+    // Two saves of the same page at once: the unique index lets one through.
+    const existing = isUniqueViolation(error)
+      ? await recipeWithKey(database.db, accountId, key)
+      : null;
+    if (existing) return { duplicateOf: existing };
+    throw error;
+  }
+}
+
+async function insertRecipe(
   { db }: Database,
   accountId: string,
   input: RecipeInput,
   now: Date,
-): Promise<{ recipe: Recipe; dataVersion: number }> {
+): Promise<{ recipe: Recipe; dataVersion: number } | DuplicateSource> {
   const id = randomUUID();
   const kcal = manualNutrition(input.nutritionManual.kcal);
   const protein = manualNutrition(input.nutritionManual.proteinG);
   const fat = manualNutrition(input.nutritionManual.fatG);
   const fiber = manualNutrition(input.nutritionManual.fiberG);
+  const imported = input.sourceImport;
+  const source = sourceColumns(input.sourceUrl, imported?.siteName);
   return db.transaction(async (tx) => {
+    const duplicate = await recipeWithKey(tx, accountId, source.sourceUrlKey);
+    if (duplicate) return { duplicateOf: duplicate };
     const [row] = await tx
       .insert(recipes)
       .values({
         id,
         accountId,
         title: input.title,
-        kind: 'manual',
+        kind: imported && input.sourceUrl ? 'link' : 'manual',
         servings: input.servings,
         ingredients: input.ingredients.map(normalizeIngredient),
         steps: input.steps,
-        sourceUrl: input.sourceUrl ?? null,
+        ...source,
+        sourceRating: imported?.rating ?? null,
+        sourceRatingCount: imported?.ratingCount ?? null,
+        sourceNutrition: imported?.nutrition ?? null,
         kcal: kcal.value === null ? null : Math.round(kcal.value),
         kcalOrigin: kcal.origin,
         proteinG: protein.value,
@@ -159,11 +221,12 @@ export async function updateRecipe(
   recipeId: string,
   input: RecipeInput,
   now: Date,
-): Promise<{ recipe: Recipe; dataVersion: number } | null> {
+): Promise<{ recipe: Recipe; dataVersion: number } | DuplicateSource | null> {
   const kcal = manualNutrition(input.nutritionManual.kcal);
   const protein = manualNutrition(input.nutritionManual.proteinG);
   const fat = manualNutrition(input.nutritionManual.fatG);
   const fiber = manualNutrition(input.nutritionManual.fiberG);
+  const source = sourceColumns(input.sourceUrl);
   const dataVersion = await db.transaction(async (tx) => {
     const [current] = await tx
       .select({ kind: recipes.kind })
@@ -171,6 +234,10 @@ export async function updateRecipe(
       .where(and(eq(recipes.id, recipeId), eq(recipes.accountId, accountId)))
       .for('update');
     if (!current) return null;
+    if (current.kind === 'manual') {
+      const duplicate = await recipeWithKey(tx, accountId, source.sourceUrlKey, recipeId);
+      if (duplicate) return { duplicateOf: duplicate };
+    }
     await tx
       .update(recipes)
       .set({
@@ -178,7 +245,7 @@ export async function updateRecipe(
         servings: input.servings,
         ingredients: input.ingredients.map(normalizeIngredient),
         steps: input.steps,
-        ...(current.kind === 'manual' ? { sourceUrl: input.sourceUrl ?? null } : {}),
+        ...(current.kind === 'manual' ? source : {}),
         kcal: kcal.value === null ? null : Math.round(kcal.value),
         kcalOrigin: kcal.origin,
         proteinG: protein.value,
@@ -209,6 +276,7 @@ export async function updateRecipe(
     return bumpDataVersion(tx, accountId);
   });
   if (dataVersion === null) return null;
+  if (typeof dataVersion === 'object') return dataVersion;
   const recipe = await findRecipe(db, accountId, recipeId);
   return recipe ? { recipe, dataVersion } : null;
 }

@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- Structural replica of a recipe page of a starter service (schema.org microdata). The content
+     is invented; it is not a copy of the site. -->
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <title>Leczo z cukinią | Kwestia Smaku (replika)</title>
+    <meta property="og:title" content="Leczo z cukinią" />
+    <meta property="og:site_name" content="Kwestia Smaku (replika)" />
+    <meta property="og:image" content="/sites/default/files/leczo.jpg" />
+  </head>
+  <body>
+    <div itemscope itemtype="http://schema.org/Recipe">
+      <h1 itemprop="name">Leczo z cukinią</h1>
+      <img itemprop="image" src="/sites/default/files/leczo.jpg" alt="Leczo" />
+      <div itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
+        <span itemprop="ratingValue">4,5</span>/<span itemprop="bestRating">5</span> (<span
+          itemprop="ratingCount"
+          >57</span
+        >
+        głosów)
+      </div>
+      <div>Porcje: <span itemprop="recipeYield">4 porcje</span></div>
+      <div class="field-skladniki">
+        <ul>
+          <li itemprop="recipeIngredient">2 papryki</li>
+          <li itemprop="recipeIngredient">1 cukinia</li>
+          <li itemprop="recipeIngredient">400 g pomidorów z puszki</li>
+        </ul>
+      </div>
+      <div itemprop="recipeInstructions">
+        <ol>
+          <li>Podsmaż paprykę i cukinię.</li>
+          <li>Dodaj pomidory i duś 15 minut.</li>
+        </ol>
+      </div>
+    </div>
+  </body>
+</html>

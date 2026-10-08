@@ -7,7 +7,10 @@ export function sendError(
   status: number,
   code: string,
   fields?: Record<string, string>,
+  recipeId?: string,
 ) {
-  const body: ErrorResponse = { error: fields ? { code, fields } : { code } };
+  const body: ErrorResponse = {
+    error: { code, ...(fields ? { fields } : {}), ...(recipeId ? { recipeId } : {}) },
+  };
   return reply.code(status).send(body);
 }

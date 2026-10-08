@@ -1,0 +1,66 @@
+<!doctype html>
+<!-- Structural replica of a recipe page of a starter service (JSON-LD in an @graph, ImageObject,
+     named steps, yield as a list). The content is invented; it is not a copy of the site. -->
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pieczone udka z ziołami - przepis</title>
+    <meta property="og:title" content="Pieczone udka z ziołami" />
+    <meta property="og:image" content="https://cdn.example.test/udka.jpg" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://aniagotuje.example/#website",
+            "name": "Ania Gotuje (replika)"
+          },
+          { "@type": "Article", "headline": "Pieczone udka z ziołami" },
+          {
+            "@type": "Recipe",
+            "name": "Pieczone udka z ziołami",
+            "image": {
+              "@type": "ImageObject",
+              "url": "https://cdn.example.test/udka.jpg",
+              "width": 1200,
+              "height": 800
+            },
+            "recipeYield": ["6", "6 porcji"],
+            "recipeIngredient": [
+              "6 udek z kurczaka",
+              "2 łyżki oliwy",
+              "1 łyżeczka suszonego tymianku",
+              "sól, pieprz"
+            ],
+            "recipeInstructions": [
+              {
+                "@type": "HowToStep",
+                "name": "Przyprawianie",
+                "text": "Natrzyj udka oliwą i ziołami.",
+                "url": "https://aniagotuje.example/udka#step-1"
+              },
+              {
+                "@type": "HowToStep",
+                "name": "Pieczenie",
+                "text": "Piecz 45 minut w 190 stopniach.",
+                "url": "https://aniagotuje.example/udka#step-2"
+              }
+            ],
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.78",
+              "ratingCount": "1234",
+              "bestRating": "5",
+              "worstRating": "1"
+            },
+            "nutrition": { "@type": "NutritionInformation", "calories": "320 kcal" }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Pieczone udka z ziołami</h1>
+  </body>
+</html>

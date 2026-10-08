@@ -9,6 +9,7 @@ import type { Config } from './config';
 import type { Database } from './db/client';
 import { sendError } from './errors';
 import { createAuthProvider, type AuthProvider } from './integrations/auth';
+import { createPageFetcher, type PageFetcher } from './integrations/pageFetcher';
 import { SESSION_COOKIE, registerAuthRoutes, sessionCookieOptions } from './routes/auth';
 import { registerHealthRoutes } from './routes/health';
 import { registerPhotoRoutes } from './routes/photos';
@@ -33,6 +34,8 @@ export type AppDeps = {
   clock?: Clock;
   /** Identity provider; defaults to the one selected by `AUTH_MODE`. */
   authProvider?: AuthProvider;
+  /** Fetcher of recipe pages; defaults to the real one configured by `FETCH_*`. */
+  pageFetcher?: PageFetcher;
 };
 
 /** Routes reachable without a session. Everything else under /api is protected by default. */
@@ -41,7 +44,14 @@ const isPublicRoute = (url: string) =>
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
-export async function buildApp({ config, database, clientDir, clock, authProvider }: AppDeps) {
+export async function buildApp({
+  config,
+  database,
+  clientDir,
+  clock,
+  authProvider,
+  pageFetcher,
+}: AppDeps) {
   const app = Fastify({
     logger: {
       level: config.logLevel,
@@ -107,7 +117,17 @@ export async function buildApp({ config, database, clientDir, clock, authProvide
   registerHealthRoutes(app, database);
   registerSessionRoutes(app);
   registerSnapshotRoutes(app, { database, clock: appClock });
-  registerRecipeRoutes(app, { database, clock: appClock });
+  registerRecipeRoutes(app, {
+    database,
+    clock: appClock,
+    fetcher:
+      pageFetcher ??
+      createPageFetcher({
+        timeoutMs: config.fetchTimeoutMs,
+        allowPrivateNetwork: config.fetchAllowPrivateNetwork,
+      }),
+    fetchTimeoutMs: config.fetchTimeoutMs,
+  });
   await registerPhotoRoutes(app, { database, clock: appClock });
   registerAuthRoutes(app, {
     config,

@@ -1,14 +1,20 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { recipeResponseSchema, type Recipe } from '../../shared/contracts/recipe';
+import {
+  recipeResponseSchema,
+  type Recipe,
+  type SourceImport,
+} from '../../shared/contracts/recipe';
 import {
   buildRecipeInput,
   emptyRecipeForm,
   recipeToForm,
   type RecipeFormValues,
 } from '../../shared/domain/recipeForm';
+import { formatSourceRating } from '../../shared/domain/sourceRating';
 import type { RecipeField, RecipeFieldCode } from '../../shared/domain/recipeValidation';
 import { ErrorNotice } from '../components/ErrorNotice';
+import { RecipeImage } from '../components/RecipeImage';
 import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 
@@ -148,14 +154,27 @@ function LineList({
 }
 
 /**
- * Form for adding a recipe by hand (no `recipe`) or editing a saved one. What the user typed stays
- * in the form whatever happens on save.
+ * A recipe read from a link, waiting in the form. "preview" is a complete reading the user may
+ * correct (S2); "manual" is the by-hand form opened with whatever could be read (S3).
  */
-function RecipeForm({ recipe: existing }: { recipe?: Recipe }) {
+export type FormDraft = {
+  mode: 'preview' | 'manual';
+  values: RecipeFormValues;
+  photoId: string | null;
+  sourceImport: SourceImport | null;
+  /** Shown above the form, for example why it was opened. */
+  notice?: string;
+};
+
+/**
+ * Form for adding a recipe by hand (no `recipe`), from a reading of a link (`draft`) or editing a
+ * saved one. What the user typed stays in the form whatever happens on save.
+ */
+export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft?: FormDraft }) {
   const navigate = useNavigate();
   const { recipeSaved } = useCollection();
   const [values, setValues] = useState<RecipeFormValues>(() =>
-    existing ? recipeToForm(existing) : emptyRecipeForm(),
+    existing ? recipeToForm(existing) : (draft?.values ?? emptyRecipeForm()),
   );
   const [photo, setPhoto] = useState<File | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -177,7 +196,10 @@ function RecipeForm({ recipe: existing }: { recipe?: Recipe }) {
   const submit = async () => {
     setErrorCode(null);
     if (!saved.current) {
-      const result = buildRecipeInput(values);
+      const result = buildRecipeInput(
+        values,
+        draft && { photoId: draft.photoId, sourceImport: draft.sourceImport },
+      );
       setFieldErrors(result.ok ? {} : result.fields);
       if (!result.ok) return;
       if (!navigator.onLine) return setErrorCode('offline');
@@ -226,7 +248,34 @@ function RecipeForm({ recipe: existing }: { recipe?: Recipe }) {
 
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">{existing ? 'Edycja przepisu' : 'Nowy przepis'}</h1>
+      <h1 className="text-2xl font-semibold">
+        {existing
+          ? 'Edycja przepisu'
+          : draft?.mode === 'preview'
+            ? 'Podgląd przepisu'
+            : 'Nowy przepis'}
+      </h1>
+      {draft?.notice ? (
+        <p role="status" className="rounded-lg bg-amber-50 p-3 text-amber-950">
+          {draft.notice}
+        </p>
+      ) : null}
+      {draft?.mode === 'preview' ? (
+        <div className="flex flex-col gap-2">
+          <RecipeImage
+            photoId={draft.photoId}
+            title={draft.values.title}
+            className="aspect-4/3 w-full rounded-lg"
+          />
+          <p>
+            Ocena ze źródła:{' '}
+            {formatSourceRating({
+              sourceRating: draft.sourceImport?.rating ?? null,
+              sourceRatingCount: draft.sourceImport?.ratingCount ?? null,
+            })}
+          </p>
+        </div>
+      ) : null}
       <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
         <Field id="title" label="Tytuł" error={message('title')}>
           {(describedBy, invalid) => (
@@ -304,7 +353,7 @@ function RecipeForm({ recipe: existing }: { recipe?: Recipe }) {
               type="url"
               className={inputClass}
               value={values.sourceUrl}
-              disabled={recipeKept || existing?.kind === 'link'}
+              disabled={recipeKept || existing?.kind === 'link' || draft?.mode === 'preview'}
               aria-invalid={invalid}
               aria-describedby={describedBy}
               onChange={(event) => set('sourceUrl', event.target.value)}

@@ -33,7 +33,7 @@ trap 'exit 143' TERM
 
 echo "E2E project: ${PROJECT}"
 compose --profile runner build --quiet
-if ! compose up -d --wait db app; then
+if ! compose up -d --wait db app fixtures; then
   compose logs --no-color app db | tail -n 100
   exit 1
 fi

@@ -35,6 +35,14 @@ HEALTHCHECK --interval=5s --timeout=3s --start-period=20s --retries=10 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["node", "dist/server/main.js"]
 
+# fixtures: test pages that stand in for recipe sites in the e2e stack (see compose.e2e.yml).
+FROM ${NODE_IMAGE} AS fixtures
+WORKDIR /fixtures
+COPY tests/e2e/fixtures ./
+USER node
+EXPOSE 8080
+CMD ["node", "server.ts"]
+
 # e2e: Playwright runner with browsers preinstalled.
 FROM ${PLAYWRIGHT_IMAGE} AS e2e
 WORKDIR /e2e

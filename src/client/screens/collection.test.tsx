@@ -14,13 +14,13 @@ const withRecipes = (...recipes: Parameters<typeof snapshotOf>[0] & object) =>
   json(200, snapshotOf(recipes, 3), { ETag: '"3"' });
 
 describe('S6: collection list', () => {
-  it('S6: an empty collection invites to add the first recipe, "Z linku" is disabled', async () => {
+  it('S6: an empty collection invites to add the first recipe, "Z linku" is enabled', async () => {
     stubFetch(loggedIn);
 
     renderAt('/');
 
     expect(await screen.findByText('Dodaj pierwszy przepis')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Z linku' }).hasAttribute('disabled')).toBe(true);
+    expect(screen.getByRole('button', { name: 'Z linku' }).hasAttribute('disabled')).toBe(false);
     const manualButton = screen.getByRole('button', { name: 'Ręcznie' });
     expect(manualButton.hasAttribute('disabled')).toBe(false);
     fireEvent.click(manualButton);

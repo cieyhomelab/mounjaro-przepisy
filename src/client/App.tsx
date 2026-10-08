@@ -5,6 +5,7 @@ import { CollectionProvider } from './data/collection';
 import { SessionProvider } from './data/session';
 import { AccountScreen } from './screens/AccountScreen';
 import { CollectionScreen } from './screens/CollectionScreen';
+import { ImportScreen } from './screens/ImportScreen';
 import { LoginScreen } from './screens/LoginScreen';
 import { NotFoundScreen } from './screens/NotFoundScreen';
 import { RecipeEditScreen, RecipeFormScreen } from './screens/RecipeFormScreen';
@@ -29,6 +30,7 @@ export function App() {
             <Route element={<AppShell />}>
               <Route index element={<CollectionScreen />} />
               <Route path="przepisy/nowy" element={<RecipeFormScreen />} />
+              <Route path="przepisy/z-linku" element={<ImportScreen />} />
               <Route path="przepisy/:id/edycja" element={<RecipeEditScreen />} />
               <Route path="przepisy/:id" element={<RecipeScreen />} />
               <Route path="konto" element={<AccountScreen />} />

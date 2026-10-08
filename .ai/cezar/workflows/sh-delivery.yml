@@ -1,0 +1,88 @@
+# Workflow Cezara: od issue do PR gotowego do merge'u.
+# Inżynier -> tester -> bramka testów -> reviewer -> bramka recenzji.
+# Bramki to kroki shellowe; przy porażce wracają do inżyniera
+# z raportem dołączonym do jego promptu.
+#
+# Plik kontraktowy między krokami: katalog .ai/sh-run/ w worktree
+# (wykluczony z gita przez inżyniera):
+#   pr            numer PR
+#   test-result   1. linia PASS albo FAIL, dalej raport
+#   review-verdict 1. linia APPROVE albo CHANGES, dalej uwagi
+#   blocked       powód zatrzymania; jego obecność kończy przebieg
+#   test-cycle, review-cycle  liczniki
+#
+# Uruchamiać z flagą Autonomous.
+
+name: sh-delivery
+description: Issue -> PR. Inżynier, tester i reviewer; poprawki wracają do inżyniera, po 3 nieudanych cyklach etykieta blocked.
+steps:
+  - id: implement
+    name: Inżynier
+    prompt: "{{task}}"
+    skill: sh-inzynier
+    model: sonnet
+
+  - id: test
+    name: Tester
+    prompt: "Przetestuj PR przygotowany dla zadania: {{task}}"
+    skill: sh-tester
+    model: sonnet
+
+  - id: test-gate
+    name: Bramka testów
+    command: |
+      [ -f .ai/sh-run/blocked ] && exit 0
+      r=$(head -n1 .ai/sh-run/test-result 2>/dev/null)
+      [ "$r" = "PASS" ] && exit 0
+      n=$(( $(cat .ai/sh-run/test-cycle 2>/dev/null || echo 0) + 1 ))
+      echo "$n" > .ai/sh-run/test-cycle
+      if [ "$n" -gt 3 ]; then
+        pr=$(cat .ai/sh-run/pr 2>/dev/null)
+        echo "Testy nie przechodzą po 3 próbach naprawy." > .ai/sh-run/blocked
+        if [ -n "$pr" ]; then
+          gh pr edit "$pr" --add-label blocked
+          gh pr comment "$pr" --body "🤖 Bramka testów: Testy nie przechodzą po 3 próbach naprawy. Ostatni raport testera jest w komentarzach powyżej."
+          sh-notify blocked "$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)" "$pr"
+        fi
+        exit 0
+      fi
+      cat .ai/sh-run/test-result 2>/dev/null || echo "Tester nie zapisał raportu."
+      exit 1
+    onFail:
+      retry: implement
+      max: 3
+
+  - id: review
+    name: Reviewer
+    prompt: "Zrecenzuj PR przygotowany dla zadania: {{task}}"
+    skill: sh-reviewer
+    model: opus
+
+  - id: review-gate
+    name: Bramka recenzji
+    command: |
+      [ -f .ai/sh-run/blocked ] && exit 0
+      v=$(head -n1 .ai/sh-run/review-verdict 2>/dev/null)
+      repo=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)
+      if [ "$v" = "APPROVE" ]; then
+        pr=$(cat .ai/sh-run/pr 2>/dev/null)
+        [ -n "$pr" ] && [ -n "$repo" ] && sh-notify merge "$repo" "$pr"
+        exit 0
+      fi
+      n=$(( $(cat .ai/sh-run/review-cycle 2>/dev/null || echo 0) + 1 ))
+      echo "$n" > .ai/sh-run/review-cycle
+      if [ "$n" -gt 3 ]; then
+        pr=$(cat .ai/sh-run/pr 2>/dev/null)
+        echo "Recenzja odrzucona po 3 cyklach poprawek." > .ai/sh-run/blocked
+        if [ -n "$pr" ]; then
+          gh pr edit "$pr" --add-label blocked
+          gh pr comment "$pr" --body "🤖 Bramka recenzji: Recenzja nadal odrzuca PR po 3 cyklach poprawek. Potrzebna decyzja właściciela."
+          sh-notify blocked "$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)" "$pr"
+        fi
+        exit 0
+      fi
+      cat .ai/sh-run/review-verdict 2>/dev/null || echo "Reviewer nie zapisał werdyktu."
+      exit 1
+    onFail:
+      retry: implement
+      max: 3

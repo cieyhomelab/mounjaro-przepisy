@@ -8,6 +8,12 @@ test.beforeEach(async ({ request }) => {
 const collectionHeading = (page: Page) => page.getByRole('heading', { level: 1, name: 'Kolekcja' });
 const recipeList = (page: Page) => page.getByRole('list', { name: 'Przepisy' });
 
+/** Logs in and waits for the collection, so the session cookie is set before API calls. */
+async function logInToCollection(page: Page) {
+  await logIn(page);
+  await expect(collectionHeading(page)).toBeVisible();
+}
+
 async function openManualForm(page: Page) {
   await page.getByRole('button', { name: 'Ręcznie' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Nowy przepis' })).toBeVisible();
@@ -17,7 +23,7 @@ test.describe('S6: lista kolekcji', () => {
   test('S6: pusta kolekcja zachęca do dodania pierwszego przepisu przyciskami „Z linku” i „Ręcznie”', async ({
     page,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
 
     await expect(collectionHeading(page)).toBeVisible();
     await expect(page.getByText('Dodaj pierwszy przepis')).toBeVisible();
@@ -29,7 +35,7 @@ test.describe('S6: lista kolekcji', () => {
   test('S6: przepisy są posortowane malejąco według białka, a pozycja pokazuje tytuł, grafikę zastępczą, białko i kalorie', async ({
     page,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await seedRecipe(page, { title: 'Sałatka', nutritionManual: { kcal: 200, proteinG: 12.4 } });
     await seedRecipe(page, { title: 'Kurczak', nutritionManual: { kcal: 412, proteinG: 27.6 } });
     await seedRecipe(page, { title: 'Jajecznica', nutritionManual: { kcal: 350, proteinG: 18 } });
@@ -48,7 +54,7 @@ test.describe('S6: lista kolekcji', () => {
   });
 
   test('S6: przepis bez wartości pokazuje „—” i trafia na koniec listy', async ({ page }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await seedRecipe(page, { title: 'Zupa bez danych' });
     await seedRecipe(page, { title: 'Bez kalorii', nutritionManual: { proteinG: 5 } });
     await seedRecipe(page, { title: 'Kurczak', nutritionManual: { kcal: 400, proteinG: 30 } });
@@ -66,7 +72,7 @@ test.describe('S6: lista kolekcji', () => {
   });
 
   test('S6: przepisy o równym białku mają wyżej przepis dodany później', async ({ page }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await seedRecipe(page, { title: 'Starszy', nutritionManual: { proteinG: 20 } });
     await seedRecipe(page, { title: 'Nowszy', nutritionManual: { proteinG: 20 } });
 
@@ -79,7 +85,7 @@ test.describe('S6: lista kolekcji', () => {
     page,
     context,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await seedRecipe(page, { title: 'Kurczak', nutritionManual: { proteinG: 30 } });
     await page.reload();
     await expect(recipeList(page).getByRole('listitem')).toHaveCount(1);
@@ -96,7 +102,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
   test('S4: wypełniony przepis pojawia się w kolekcji oznaczony jako „ręczny”, z grafiką zastępczą', async ({
     page,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
 
     await fillRecipeForm(page);
@@ -117,7 +123,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
   test('S4: przycisk „Dodaj przepis” w niepustej kolekcji prowadzi do formularza „Ręcznie”', async ({
     page,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await seedRecipe(page, { title: 'Pierwszy' });
     await page.reload();
 
@@ -127,7 +133,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
   });
 
   test('S4: przepis z wpisanymi wartościami odżywczymi pokazuje je na liście', async ({ page }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
 
     await fillRecipeForm(page, { title: 'Tosty' });
@@ -144,7 +150,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
   test('S4: brak tytułu, porcji, składników i kroków nie zapisuje przepisu i wskazuje każde pole', async ({
     page,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
 
     await page.getByRole('button', { name: 'Zapisz' }).click();
@@ -159,7 +165,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
   });
 
   test('S4: brakujące tylko składniki lub kroki wskazuje dokładnie to pole', async ({ page }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
     await page.getByLabel('Tytuł').fill('Coś');
     await page.getByLabel('Liczba porcji').fill('1');
@@ -176,7 +182,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
     test(`S4: liczba porcji „${servings}” nie zapisuje przepisu i pole jest wskazane`, async ({
       page,
     }) => {
-      await logIn(page);
+      await logInToCollection(page);
       await openManualForm(page);
       await fillRecipeForm(page, { servings });
 
@@ -190,7 +196,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
 
   for (const servings of ['0,5', '99', '2,5']) {
     test(`S4: liczba porcji „${servings}” jest przyjęta`, async ({ page }) => {
-      await logIn(page);
+      await logInToCollection(page);
       await openManualForm(page);
       await fillRecipeForm(page, { servings });
 
@@ -201,7 +207,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
   }
 
   test('S4: składnik tylko z nazwą, bez ilości i jednostki, zostaje przyjęty', async ({ page }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
     await fillRecipeForm(page, { ingredient: 'sól do smaku' });
 
@@ -212,7 +218,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
   });
 
   test('S4: kilka składników i kroków zachowuje kolejność', async ({ page }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
     await fillRecipeForm(page);
     await page.getByRole('button', { name: 'Dodaj składnik' }).click();
@@ -231,7 +237,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
   test('S4: błąd sieci przy zapisie pokazuje komunikat, dane zostają w formularzu, a ponowienie zapisuje', async ({
     page,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
     await fillRecipeForm(page, { title: 'Zupa dyniowa', servings: '4' });
     let failing = true;
@@ -258,7 +264,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
     page,
     context,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
     await fillRecipeForm(page, { title: 'Zupa dyniowa' });
 
@@ -279,7 +285,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
   test('S4: przepis dodany ze zdjęciem pokazuje zdjęcie na liście i w szczegółach', async ({
     page,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
     await fillRecipeForm(page, { title: 'Ze zdjęciem' });
     await page
@@ -303,7 +309,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
   test('S4: plik, który nie jest zdjęciem, pokazuje komunikat, a przepis zostaje zapisany bez ponownego dodawania', async ({
     page,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
     await fillRecipeForm(page, { title: 'Zły plik' });
     await page.getByLabel('Zdjęcie (opcjonalnie)').setInputFiles({
@@ -329,7 +335,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
     page,
     browser,
   }) => {
-    await logIn(page);
+    await logInToCollection(page);
     await openManualForm(page);
     await fillRecipeForm(page, { title: 'Na dwóch urządzeniach' });
     await page.getByRole('button', { name: 'Zapisz' }).click();

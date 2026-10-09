@@ -101,9 +101,6 @@ function ListControls({ collections }: { collections: { id: string; name: string
             ))}
           </select>
         </label>
-        <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
-          Kolekcje własne
-        </Link>
       </div>
       <label className="flex flex-wrap items-center gap-2">
         <span className="font-medium">Sortowanie</span>
@@ -162,15 +159,22 @@ export function CollectionScreen() {
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Kolekcja</h1>
-        {state.status === 'ready' && state.recipes.length > 0 ? (
-          <button
-            type="button"
-            aria-expanded={adding}
-            onClick={() => setAdding((open) => !open)}
-            className={`${buttonClass} bg-neutral-900 text-white`}
-          >
-            Dodaj przepis
-          </button>
+        {state.status === 'ready' ? (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
+              Kolekcje własne
+            </Link>
+            {state.recipes.length > 0 ? (
+              <button
+                type="button"
+                aria-expanded={adding}
+                onClick={() => setAdding((open) => !open)}
+                className={`${buttonClass} bg-neutral-900 text-white`}
+              >
+                Dodaj przepis
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </div>
       {adding ? <AddRecipeChoices /> : null}

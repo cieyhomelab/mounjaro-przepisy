@@ -32,9 +32,8 @@ describe('S8–S11: cookings, ratings, tolerance, tag and own collections', () =
     });
 
   const createRecipe = async (jar: CookieJar, title?: string) =>
-    recipeResponseSchema.parse(
-      await send(jar, 'POST', '/api/recipes', recipeBody(title)).then((r) => r.json()),
-    ).recipe;
+    recipeResponseSchema.parse((await send(jar, 'POST', '/api/recipes', recipeBody(title))).json())
+      .recipe;
 
   const createCollection = async (jar: CookieJar, name: string) =>
     collectionResponseSchema.parse((await send(jar, 'POST', '/api/collections', { name })).json())

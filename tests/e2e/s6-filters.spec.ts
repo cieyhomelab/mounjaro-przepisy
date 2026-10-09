@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { logIn, resetServer, seedRecipe, type RecipeSeed } from './helpers';
+import { apiCall, logIn, resetServer, seedRecipe, type RecipeSeed } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -200,7 +200,6 @@ test.describe('S6: sortowanie', () => {
   test('S6: własna ocena malejąco ustawia przepisy bez oceny w kolejności od ostatnio dodanego', async ({
     page,
   }) => {
-    // Rating a recipe arrives with the next slice; the ordering by rating is covered by unit tests.
     await openCollection(page, [
       { title: 'Starszy', ...nutrition(100, 50) },
       { title: 'Nowszy', ...nutrition(100, 10) },
@@ -209,6 +208,30 @@ test.describe('S6: sortowanie', () => {
     await sortSelect(page).selectOption({ label: 'Własna ocena malejąco' });
 
     await expect.poll(() => titles(page)).toEqual(['Nowszy', 'Starszy']);
+  });
+
+  test('S6: własna ocena malejąco ustawia ocenione przepisy od najwyżej ocenionego, a nieocenione na końcu', async ({
+    page,
+  }) => {
+    await logIn(page);
+    await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
+    const ids: Record<string, string> = {};
+    for (const title of ['Bez oceny', 'Trójka', 'Piątka', 'Czwórka']) {
+      ids[title] = await seedRecipe(page, { title, ...nutrition(100, 10) });
+    }
+    for (const [title, rating] of [
+      ['Trójka', 3],
+      ['Piątka', 5],
+      ['Czwórka', 4],
+    ] as const) {
+      await apiCall(page, 'PUT', `/api/recipes/${ids[title]}/rating`, { rating });
+    }
+    await page.reload();
+    await expect(items(page).first()).toBeVisible();
+
+    await sortSelect(page).selectOption({ label: 'Własna ocena malejąco' });
+
+    await expect.poll(() => titles(page)).toEqual(['Piątka', 'Czwórka', 'Trójka', 'Bez oceny']);
   });
 
   test('S6: ostatnio dodane ustawia najnowszy przepis na górze', async ({ page }) => {

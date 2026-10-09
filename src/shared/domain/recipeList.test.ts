@@ -126,14 +126,11 @@ describe('sortRecipes', () => {
 });
 
 describe('tolerance, worse-days and own-collection filters', () => {
-  const flags = (tolerance: Recipe['tolerance'], worseDays = false, collectionIds: string[] = []) =>
-    ({
-      id: 'x',
-      tolerance,
-      worseDays,
-      collectionIds,
-      ...recipe('x', '2026-01-01T00:00:00.000Z'),
-    }) as Recipe;
+  const flags = (
+    tolerance: Recipe['tolerance'],
+    worseDays = false,
+    collectionIds: string[] = [],
+  ) => ({ ...recipe('x', '2026-01-01T00:00:00.000Z'), tolerance, worseDays, collectionIds });
 
   it('"Dobrze toleruję" passes only the tolerance "good"', () => {
     expect(matchesFilter(flags('good'), 'toleratedWell', DEFAULT_THRESHOLDS)).toBe(true);

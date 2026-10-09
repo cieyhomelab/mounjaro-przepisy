@@ -6,6 +6,7 @@ import { CollectionProvider } from './data/collection';
 import { CollectionViewProvider } from './data/collectionView';
 import { SessionProvider } from './data/session';
 import { AccountScreen } from './screens/AccountScreen';
+import { CookScreen } from './screens/CookScreen';
 import { CollectionScreen } from './screens/CollectionScreen';
 import { ImportScreen } from './screens/ImportScreen';
 import { LoginScreen } from './screens/LoginScreen';
@@ -47,6 +48,7 @@ export function App() {
               <Route path="konto" element={<AccountScreen />} />
               <Route path="*" element={<NotFoundScreen />} />
             </Route>
+            <Route path="przepisy/:id/gotuj" element={<CookScreen />} />
           </Route>
         </Route>
       </Routes>

@@ -110,3 +110,30 @@ export const TINY_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
   'base64',
 );
+
+/** A search site played by the "fixtures" service; the host name picks its behaviour. */
+export type TestSite = { name: string; host: string; active?: boolean };
+
+export const FIXTURE_SITES = {
+  searchable: { name: 'Przeszukiwalny', host: 'przeszukiwalny.test' },
+  scaleTen: { name: 'Skala dziesięć', host: 'skala10.test' },
+  unavailable: { name: 'Niedostępny', host: 'niedostepny.test' },
+} satisfies Record<string, TestSite>;
+
+/** Replaces the trusted sites of the (logged in) account with test sites from the fixtures service. */
+export async function useTestSites(request: APIRequestContext, sites: TestSite[]) {
+  const response = await request.put('/api/__test/trusted-sites', {
+    data: {
+      sites: sites.map((site) => ({
+        host: site.host,
+        name: site.name,
+        active: site.active ?? true,
+        searchConfig: {
+          searchUrl: `http://${site.host}:8080/szukaj?q={q}`,
+          linkPattern: '^/przepisy?/[^/]+$',
+        },
+      })),
+    },
+  });
+  expect(response.status()).toBe(204);
+}

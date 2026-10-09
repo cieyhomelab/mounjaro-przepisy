@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
 import { recipeSchema } from './recipe';
+import { trustedSiteSchema } from './trustedSite';
 import { API_VERSION } from './session';
 
 export const settingsSchema = z.object({
@@ -24,6 +25,7 @@ export const snapshotSchema = z.object({
   recipes: z.array(recipeSchema),
   collections: z.array(collectionSchema),
   cookEvents: z.array(cookEventSchema),
+  trustedSites: z.array(trustedSiteSchema),
 });
 export type Snapshot = z.infer<typeof snapshotSchema>;
 

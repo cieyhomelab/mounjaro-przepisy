@@ -32,6 +32,10 @@ services:
       default:
         aliases:
           - fixtures.test
+          # Search sites played by the same server (S17, S18); the host name picks the behaviour.
+          - przeszukiwalny.test
+          - skala10.test
+          - niedostepny.test
     restart: 'no'
 
   e2e:

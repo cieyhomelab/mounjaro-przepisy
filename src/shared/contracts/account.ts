@@ -3,6 +3,7 @@ import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
 import { recipeSchema } from './recipe';
 import { settingsSchema } from './snapshot';
+import { trustedSiteSchema } from './trustedSite';
 
 /** The word the user types to confirm deleting the account (S16). */
 export const DELETE_CONFIRMATION = 'USUŃ';
@@ -39,5 +40,7 @@ export const accountExportSchema = z.object({
   photos: z.array(z.object({ recipeId: z.uuid(), photoId: z.uuid(), file: z.string() })),
   collections: z.array(collectionSchema),
   cookEvents: z.array(cookEventSchema),
+  /** The trusted sites with their state (active or not). */
+  trustedSites: z.array(trustedSiteSchema),
 });
 export type AccountExport = z.infer<typeof accountExportSchema>;

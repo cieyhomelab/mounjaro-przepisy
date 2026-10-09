@@ -3,6 +3,7 @@ import type { OwnCollection } from '../../shared/contracts/collection';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings, Snapshot } from '../../shared/contracts/snapshot';
+import type { TrustedSite } from '../../shared/contracts/trustedSite';
 import { DEFAULT_THRESHOLDS, buildSearchText } from '../../shared/domain/recipeList';
 import { PHOTO_CACHE } from './offlineCache';
 
@@ -13,6 +14,9 @@ const withSearchText = (recipe: Recipe): StoredRecipe => ({
   ...recipe,
   searchText: buildSearchText(recipe),
 });
+
+/** A trusted site with its place in the list, so the list keeps the order the server gave. */
+export type StoredSite = TrustedSite & { position: number };
 
 type SettingsRow = Settings & { key: 'settings' };
 type MetaRow = { key: string; value: number | string };
@@ -28,6 +32,7 @@ class LocalDatabase extends Dexie {
   recipes!: EntityTable<StoredRecipe, 'id'>;
   collections!: EntityTable<OwnCollection, 'id'>;
   cookEvents!: EntityTable<CookEvent, 'id'>;
+  trustedSites!: EntityTable<StoredSite, 'id'>;
   settings!: EntityTable<SettingsRow, 'key'>;
   meta!: EntityTable<MetaRow, 'key'>;
 
@@ -45,6 +50,14 @@ class LocalDatabase extends Dexie {
       settings: 'key',
       meta: 'key',
     });
+    this.version(3).stores({
+      recipes: 'id',
+      collections: 'id',
+      cookEvents: 'id',
+      trustedSites: 'id',
+      settings: 'key',
+      meta: 'key',
+    });
   }
 }
 
@@ -54,15 +67,17 @@ export type LocalData = {
   recipes: StoredRecipe[];
   collections: OwnCollection[];
   cookEvents: CookEvent[];
+  trustedSites: TrustedSite[];
   settings: Settings;
   dataVersion: number | null;
 };
 
 export async function readLocalData(): Promise<LocalData> {
-  const [rows, collections, cookEvents, settingsRow, version] = await Promise.all([
+  const [rows, collections, cookEvents, siteRows, settingsRow, version] = await Promise.all([
     localDb.recipes.toArray(),
     localDb.collections.toArray(),
     localDb.cookEvents.toArray(),
+    localDb.trustedSites.toArray(),
     localDb.settings.get('settings'),
     localDb.meta.get(META_DATA_VERSION),
   ]);
@@ -75,6 +90,9 @@ export async function readLocalData(): Promise<LocalData> {
     recipes,
     collections: collections.sort((a, b) => a.name.localeCompare(b.name, 'pl')),
     cookEvents,
+    trustedSites: siteRows
+      .sort((a, b) => a.position - b.position)
+      .map(({ id, host, name, active }) => ({ id, host, name, active })),
     settings: {
       thresholdProteinG: settings.thresholdProteinG,
       thresholdFatG: settings.thresholdFatG,
@@ -92,9 +110,13 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
     await localDb.recipes.clear();
     await localDb.collections.clear();
     await localDb.cookEvents.clear();
+    await localDb.trustedSites.clear();
     await localDb.recipes.bulkPut(snapshot.recipes.map(withSearchText));
     await localDb.collections.bulkPut(snapshot.collections);
     await localDb.cookEvents.bulkPut(snapshot.cookEvents);
+    await localDb.trustedSites.bulkPut(
+      snapshot.trustedSites.map((site, position) => ({ ...site, position })),
+    );
     await localDb.settings.put({ key: 'settings', ...snapshot.settings });
     await localDb.meta.bulkPut([
       { key: META_DATA_VERSION, value: snapshot.dataVersion },
@@ -125,6 +147,8 @@ export type LocalChange = {
   removeCollectionId?: string;
   cookEvent?: CookEvent;
   removeCookEventId?: string;
+  trustedSite?: TrustedSite;
+  removeTrustedSiteId?: string;
 };
 
 /** Stores a confirmed change of own collections or cookings together with the new data version. */
@@ -142,6 +166,13 @@ export async function storeChange(change: LocalChange, dataVersion: number): Pro
     }
     if (change.cookEvent) await localDb.cookEvents.put(change.cookEvent);
     if (change.removeCookEventId) await localDb.cookEvents.delete(change.removeCookEventId);
+    if (change.trustedSite) {
+      const { id } = change.trustedSite;
+      const known = await localDb.trustedSites.get(id);
+      const position = known?.position ?? (await localDb.trustedSites.count());
+      await localDb.trustedSites.put({ ...change.trustedSite, position });
+    }
+    if (change.removeTrustedSiteId) await localDb.trustedSites.delete(change.removeTrustedSiteId);
     await localDb.meta.put({ key: META_DATA_VERSION, value: dataVersion });
   });
 }

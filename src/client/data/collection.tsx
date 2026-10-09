@@ -12,6 +12,7 @@ import type { OwnCollection } from '../../shared/contracts/collection';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings } from '../../shared/contracts/snapshot';
+import type { TrustedSite } from '../../shared/contracts/trustedSite';
 import { snapshotEtag, snapshotSchema } from '../../shared/contracts/snapshot';
 import { reloadOnVersionMismatch } from './clientVersion';
 import { ApiError, NOT_MODIFIED, apiRequest } from './api';
@@ -35,6 +36,7 @@ export type CollectionState =
       recipes: StoredRecipe[];
       collections: OwnCollection[];
       cookEvents: CookEvent[];
+      trustedSites: TrustedSite[];
       settings: Settings;
     }
   | { status: 'error'; code: string };
@@ -76,6 +78,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         recipes: local.recipes,
         collections: local.collections,
         cookEvents: local.cookEvents,
+        trustedSites: local.trustedSites,
         settings: local.settings,
       });
     return local.dataVersion !== null;

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import type { Database } from '../db/client';
 import { accounts, settings } from '../db/schema';
+import { insertStarterSites } from './trustedSites';
 
 /** Returns the id of the account for `email`, creating it (with default settings) on first login. */
 export async function findOrCreateAccount(
@@ -18,6 +19,7 @@ export async function findOrCreateAccount(
     const id = randomUUID();
     await tx.insert(accounts).values({ id, email, createdAt: now });
     await tx.insert(settings).values({ accountId: id });
+    await insertStarterSites(tx, id, now);
     return id;
   });
 }

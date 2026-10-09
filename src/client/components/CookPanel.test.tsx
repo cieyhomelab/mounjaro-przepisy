@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Recipe } from '../../shared/contracts/recipe';
 import { ApiError } from '../data/api';
@@ -90,5 +90,30 @@ describe('CookPanel retry', () => {
     expect(apiRequest).toHaveBeenCalledWith(`/api/recipes/${RECIPE_ID}/cook-events/last`, {
       method: 'DELETE',
     });
+  });
+});
+
+describe('CookPanel double tap', () => {
+  it('sends one request when "Ugotowane" is tapped twice in the same frame', async () => {
+    apiRequest.mockResolvedValue({
+      cookEvent: {
+        id: EVENT_ID,
+        recipeId: RECIPE_ID,
+        cookedOn: '2026-10-09',
+        createdAt: '2026-10-09T10:00:00.000Z',
+      },
+      dataVersion: 4,
+    });
+    render(<CookPanel recipe={{ id: RECIPE_ID } as Recipe} />);
+
+    const button = screen.getByRole('button', { name: 'Ugotowane' });
+    // One act() batches both clicks, so React does not re-render between them (same frame).
+    act(() => {
+      button.click();
+      button.click();
+    });
+
+    await waitFor(() => expect(changeSaved).toHaveBeenCalledTimes(1));
+    expect(apiRequest).toHaveBeenCalledTimes(1);
   });
 });

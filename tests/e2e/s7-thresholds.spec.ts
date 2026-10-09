@@ -117,4 +117,50 @@ test.describe('S7: progi filtrów', () => {
       await context.close();
     }
   });
+
+  for (const [action, expectedSaved] of [
+    ['Zapisz', 'Zapisano progi.'],
+    ['Przywróć domyślne', 'Zapisano progi.'],
+  ] as const) {
+    test(`S7: „${action}” bez połączenia pokazuje komunikat, zachowuje pola i da się ponowić`, async ({
+      page,
+      context,
+    }) => {
+      await loggedInWithThresholds(page);
+      await page.getByLabel(FIELD_LABELS.protein).fill('30');
+      await page.getByRole('button', { name: 'Zapisz' }).click();
+      await expect(page.getByText(expectedSaved)).toBeVisible();
+
+      await page.getByLabel(FIELD_LABELS.fat).fill('12');
+      await context.setOffline(true);
+      await page.getByRole('button', { name: action }).click();
+
+      await expect(page.getByRole('alert')).toContainText(
+        /Ta akcja wymaga połączenia z internetem|Nie udało się połączyć z serwerem/,
+      );
+      await expect(page.getByText(expectedSaved)).toHaveCount(0);
+      await expect(page.getByLabel(FIELD_LABELS.protein)).toHaveValue('30');
+      await expect(page.getByLabel(FIELD_LABELS.fat)).toHaveValue('12');
+
+      await context.setOffline(false);
+      await page.getByRole('button', { name: 'Spróbuj ponownie' }).click();
+      await expect(page.getByText(expectedSaved)).toBeVisible();
+    });
+  }
+
+  test('S7: progi zmienione na drugim urządzeniu pojawiają się w polach po synchronizacji', async ({
+    page,
+  }) => {
+    await loggedInWithThresholds(page);
+    await expect(page.getByLabel(FIELD_LABELS.protein)).toHaveValue('25');
+
+    const response = await page.request.put('/api/settings/thresholds', {
+      headers: { Origin: 'http://localhost:3000' },
+      data: { proteinG: 41, fatG: 15, fiberG: 5, kcal: 400, smallPortionKcal: 300 },
+    });
+    expect(response.ok()).toBe(true);
+    await page.reload();
+
+    await expect(page.getByLabel(FIELD_LABELS.protein)).toHaveValue('41');
+  });
 });

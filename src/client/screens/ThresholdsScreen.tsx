@@ -44,6 +44,15 @@ const toText = (settings: Settings): ThresholdsFormValues =>
 function ThresholdsForm({ settings }: { settings: Settings }) {
   const { settingsSaved } = useCollection();
   const [values, setValues] = useState(() => toText(settings));
+  // The thresholds the fields were last filled from; a sync that brings other thresholds
+  // (changed on another device) replaces the fields unless the user has unsaved edits.
+  const [loaded, setLoaded] = useState(() => toText(settings));
+  const incoming = toText(settings);
+  if (THRESHOLD_FIELDS.some((field) => incoming[field] !== loaded[field])) {
+    const untouched = THRESHOLD_FIELDS.every((field) => values[field] === loaded[field]);
+    setLoaded(incoming);
+    if (untouched) setValues(incoming);
+  }
   const [invalid, setInvalid] = useState<Partial<Record<ThresholdField, string>>>({});
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -57,9 +66,9 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
     body?: unknown,
     onDone?: (s: Settings) => void,
   ) => {
+    setSaved(false);
     if (!navigator.onLine) return setErrorCode('offline');
     setErrorCode(null);
-    setSaved(false);
     setBusy(true);
     try {
       const response = settingsResponseSchema.parse(await apiRequest(path, { method, body }));

@@ -361,7 +361,9 @@ test.describe('S6: wydajność przy 1000 przepisów', () => {
     await expect(items(page).first()).toHaveAttribute('aria-setsize', '500');
 
     const sortMs = await page.evaluate(async () => {
-      const select = document.querySelector('select');
+      const select = [...document.querySelectorAll('label')]
+        .find((label) => label.textContent?.startsWith('Sortowanie'))
+        ?.querySelector('select');
       const started = performance.now();
       if (select) {
         select.value = 'kcalAsc';

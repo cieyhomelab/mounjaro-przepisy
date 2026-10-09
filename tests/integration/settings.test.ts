@@ -68,6 +68,15 @@ describe('filter thresholds', () => {
     expect((await snapshot(jar)).settings).toEqual(body.settings);
   });
 
+  it('saves the smallest threshold 0.1', async () => {
+    const jar = await login();
+
+    const response = await put(jar, { ...thresholds, proteinG: 0.1 });
+
+    expect(response.statusCode).toBe(200);
+    expect(settingsResponseSchema.parse(response.json()).settings.thresholdProteinG).toBe(0.1);
+  });
+
   it('puts the defaults back', async () => {
     const jar = await login();
     await put(jar, thresholds);
@@ -93,6 +102,8 @@ describe('filter thresholds', () => {
   it.each([
     ['negative', { ...thresholds, proteinG: -1 }, 'proteinG'],
     ['zero', { ...thresholds, fatG: 0 }, 'fatG'],
+    ['below 0.1', { ...thresholds, proteinG: 0.04 }, 'proteinG'],
+    ['too precise', { ...thresholds, fatG: 25.55 }, 'fatG'],
     ['text', { ...thresholds, kcal: 'dużo' }, 'kcal'],
     ['missing', { proteinG: 30 }, 'fatG'],
   ])('rejects a %s value without saving anything', async (_name, payload, field) => {

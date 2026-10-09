@@ -76,6 +76,8 @@ test.describe('S7: progi filtrów', () => {
   for (const [name, value] of [
     ['wartość ujemna', '-5'],
     ['zero', '0'],
+    ['wartość mniejsza niż 0,1', '0,04'],
+    ['wartość z dwoma miejscami po przecinku', '25,55'],
     ['tekst', 'dużo'],
   ] as const) {
     test(`S7: ${name} nie zostaje zapisana i widać komunikat o błędzie`, async ({ page }) => {

@@ -1,4 +1,10 @@
-import { THRESHOLD_MAX, thresholdsInputSchema, type ThresholdsInput } from '../contracts/settings';
+import {
+  THRESHOLD_MAX,
+  THRESHOLD_MIN,
+  hasAtMostOneDecimal,
+  thresholdsInputSchema,
+  type ThresholdsInput,
+} from '../contracts/settings';
 import { parseDecimalText } from './recipeForm';
 
 export const THRESHOLD_FIELDS = ['proteinG', 'fatG', 'fiberG', 'kcal', 'smallPortionKcal'] as const;
@@ -10,14 +16,16 @@ export type ThresholdsFormResult =
   | { ok: true; input: ThresholdsInput }
   | { ok: false; errors: Partial<Record<ThresholdField, string>> };
 
-/** Checks the five texts typed in "Progi filtrów": each must be a number greater than zero. */
+/** Checks the five texts typed in "Progi filtrów": each must be a number of at least 0.1 with one decimal place at most. */
 export function validateThresholdsForm(values: ThresholdsFormValues): ThresholdsFormResult {
   const errors: Partial<Record<ThresholdField, string>> = {};
   const numbers: Partial<Record<ThresholdField, number>> = {};
   for (const field of THRESHOLD_FIELDS) {
     const parsed = parseDecimalText(values[field]);
     if (parsed === undefined || !Number.isFinite(parsed)) errors[field] = 'Podaj liczbę.';
-    else if (parsed <= 0) errors[field] = 'Podaj liczbę większą od zera.';
+    else if (parsed < THRESHOLD_MIN) errors[field] = 'Podaj liczbę co najmniej 0,1.';
+    else if (!hasAtMostOneDecimal(parsed))
+      errors[field] = 'Podaj liczbę z jednym miejscem po przecinku.';
     else if (parsed > THRESHOLD_MAX) errors[field] = 'Ta liczba jest za duża.';
     else numbers[field] = parsed;
   }

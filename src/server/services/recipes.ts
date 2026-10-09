@@ -101,6 +101,52 @@ function nutritionColumns(
   };
 }
 
+const NUTRITION_KEYS = ['kcal', 'proteinG', 'fatG', 'fiberG'] as const;
+const ORIGIN_KEYS = {
+  kcal: 'kcalOrigin',
+  proteinG: 'proteinOrigin',
+  fatG: 'fatOrigin',
+  fiberG: 'fiberOrigin',
+} as const;
+
+/**
+ * Recomputes the nutrition columns of every stored recipe, e.g. those saved before nutrition
+ * was computed. Values with origin "manual" stay as they are. Idempotent: only recipes whose
+ * columns change are written, and the data version of an account grows (once) only when one of
+ * its recipes changed, so clients fetch a new snapshot. Returns the number of recipes updated.
+ */
+export async function refreshStoredNutrition({ db }: Database): Promise<number> {
+  return db.transaction(async (tx) => {
+    const rows = await tx.select().from(recipes).for('update');
+    const touched = new Set<string>();
+    let updated = 0;
+    for (const row of rows) {
+      const manual: Partial<Record<(typeof NUTRITION_KEYS)[number], number>> = {};
+      for (const key of NUTRITION_KEYS) {
+        const value = row[key];
+        if (row[ORIGIN_KEYS[key]] === 'manual' && value !== null) manual[key] = value;
+      }
+      const columns = nutritionColumns(
+        { servings: row.servings, nutritionManual: manual } as RecipeInput,
+        row.ingredients,
+        sourceNutritionSchema.nullable().catch(null).parse(row.sourceNutrition),
+      );
+      const changed =
+        NUTRITION_KEYS.some(
+          (key) => columns[key] !== row[key] || columns[ORIGIN_KEYS[key]] !== row[ORIGIN_KEYS[key]],
+        ) ||
+        JSON.stringify(columns.unrecognizedIngredients) !==
+          JSON.stringify(row.unrecognizedIngredients);
+      if (!changed) continue;
+      await tx.update(recipes).set(columns).where(eq(recipes.id, row.id));
+      touched.add(row.accountId);
+      updated += 1;
+    }
+    for (const accountId of touched) await bumpDataVersion(tx, accountId);
+    return updated;
+  });
+}
+
 /** The source columns for an address: the address itself, its normalized key and the site name. */
 function sourceColumns(sourceUrl: string | null | undefined, siteName?: string | null) {
   const parsed = sourceUrl ? parseSourceUrl(sourceUrl) : null;

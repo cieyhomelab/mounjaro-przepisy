@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { sessionResponseSchema } from '../../shared/contracts/session';
 import { ApiError, apiRequest, setUnauthenticatedHandler } from './api';
+import { reloadOnVersionMismatch } from './clientVersion';
 import { discardLocalData, isOffline } from './offline';
 import { readContact, touchContact } from './localDb';
 import { isOfflineSessionExpired } from '../../shared/domain/offlineSession';
@@ -34,7 +35,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const session = sessionResponseSchema.parse(await apiRequest('/api/session'));
+      const payload = await apiRequest('/api/session');
+      // A client from before the deploy is replaced; until the reload the state stays "loading".
+      if (reloadOnVersionMismatch(payload)) return;
+      const session = sessionResponseSchema.parse(payload);
       await touchContact(session.email);
       setState({ status: 'authenticated', email: session.email });
     } catch (error) {

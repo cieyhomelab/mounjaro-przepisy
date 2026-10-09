@@ -241,6 +241,9 @@ test.describe('S2: dodanie przepisu z linku', () => {
 });
 
 test.describe('S3: link, którego nie da się odczytać', () => {
+  // WebKit's page.route does not see requests of a page controlled by a service worker.
+  test.use({ serviceWorkers: 'block' });
+
   for (const [name, title] of [
     ['bez-skladnikow', 'Ryba w sosie'],
     ['nie-przepis', 'Nasz blog o gotowaniu'],

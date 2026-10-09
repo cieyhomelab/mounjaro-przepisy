@@ -99,6 +99,9 @@ test.describe('S6: lista kolekcji', () => {
 });
 
 test.describe('S4: ręczne dodanie przepisu', () => {
+  // WebKit's page.route does not see requests of a page controlled by a service worker.
+  test.use({ serviceWorkers: 'block' });
+
   test('S4: wypełniony przepis pojawia się w kolekcji oznaczony jako „ręczny”, z grafiką zastępczą', async ({
     page,
   }) => {

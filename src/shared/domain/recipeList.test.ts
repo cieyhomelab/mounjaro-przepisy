@@ -3,6 +3,7 @@ import type { Recipe } from '../contracts/recipe';
 import {
   DEFAULT_THRESHOLDS,
   applyFilters,
+  inOwnCollection,
   buildSearchText,
   formatKcal,
   formatProtein,
@@ -121,6 +122,48 @@ describe('sortRecipes', () => {
     sortRecipes(input, 'newest');
 
     expect(ids(input)).toEqual(['a', 'b']);
+  });
+});
+
+describe('tolerance, worse-days and own-collection filters', () => {
+  const flags = (
+    tolerance: Recipe['tolerance'],
+    worseDays = false,
+    collectionIds: string[] = [],
+  ) => ({ ...recipe('x', '2026-01-01T00:00:00.000Z'), tolerance, worseDays, collectionIds });
+
+  it('"Dobrze toleruję" passes only the tolerance "good"', () => {
+    expect(matchesFilter(flags('good'), 'toleratedWell', DEFAULT_THRESHOLDS)).toBe(true);
+    expect(matchesFilter(flags('medium'), 'toleratedWell', DEFAULT_THRESHOLDS)).toBe(false);
+    expect(matchesFilter(flags('bad'), 'toleratedWell', DEFAULT_THRESHOLDS)).toBe(false);
+    expect(matchesFilter(flags(null), 'toleratedWell', DEFAULT_THRESHOLDS)).toBe(false);
+  });
+
+  it('"Na gorsze dni" passes only tagged recipes', () => {
+    expect(matchesFilter(flags(null, true), 'worseDays', DEFAULT_THRESHOLDS)).toBe(true);
+    expect(matchesFilter(flags(null, false), 'worseDays', DEFAULT_THRESHOLDS)).toBe(false);
+  });
+
+  it('the new filters combine with the nutrition ones', () => {
+    const both = { ...recipe('a', '2026-01-01T00:00:00.000Z', { protein: 30 }), tolerance: 'good' };
+    const weak = { ...recipe('b', '2026-01-01T00:00:00.000Z', { protein: 5 }), tolerance: 'good' };
+
+    expect(
+      ids(
+        applyFilters(
+          [both, weak] as unknown as Recipe[],
+          ['highProtein', 'toleratedWell'],
+          DEFAULT_THRESHOLDS,
+        ),
+      ),
+    ).toEqual(['a']);
+  });
+
+  it('inOwnCollection keeps the recipes of one collection, or all when none is chosen', () => {
+    const list = [flags(null, false, ['c1']), flags(null, false, ['c2']), flags(null)];
+
+    expect(inOwnCollection(list, 'c1')).toHaveLength(1);
+    expect(inOwnCollection(list, null)).toHaveLength(3);
   });
 });
 

@@ -11,6 +11,7 @@ const messages: Record<string, string> = {
   invalid_url: 'To nie jest poprawny link',
   source_unavailable: 'Strona nie odpowiada',
   duplicate_source: 'Przepis z tego adresu już jest w Twojej kolekcji.',
+  duplicate_name: 'Kolekcja o takiej nazwie już istnieje.',
   unsupported_image: 'Nie udało się odczytać zdjęcia. Wybierz plik JPEG, PNG lub WebP.',
 };
 

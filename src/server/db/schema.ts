@@ -4,10 +4,12 @@ import {
   bigint,
   boolean,
   customType,
+  date,
   integer,
   jsonb,
   numeric,
   pgTable,
+  primaryKey,
   smallint,
   text,
   timestamp,
@@ -127,3 +129,42 @@ export const recipePhotos = pgTable('recipe_photos', {
   byteSize: integer('byte_size').notNull(),
   createdAt: timestamptz('created_at').notNull(),
 });
+
+/** One cooking of a recipe. Deleting the recipe keeps the event: the weekly history is a success measure. */
+export const cookEvents = pgTable('cook_events', {
+  id: uuid('id').primaryKey(),
+  accountId: uuid('account_id')
+    .notNull()
+    .references(() => accounts.id, { onDelete: 'cascade' }),
+  recipeId: uuid('recipe_id').references(() => recipes.id, { onDelete: 'set null' }),
+  cookedOn: date('cooked_on', { mode: 'string' }).notNull(),
+  createdAt: timestamptz('created_at').notNull(),
+});
+
+/** An own collection. `name_key` is the lower-cased name, unique within the account. */
+export const collections = pgTable(
+  'collections',
+  {
+    id: uuid('id').primaryKey(),
+    accountId: uuid('account_id')
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    nameKey: text('name_key').notNull(),
+    createdAt: timestamptz('created_at').notNull(),
+  },
+  (table) => [uniqueIndex('collections_account_name_key').on(table.accountId, table.nameKey)],
+);
+
+export const recipeCollections = pgTable(
+  'recipe_collections',
+  {
+    recipeId: uuid('recipe_id')
+      .notNull()
+      .references(() => recipes.id, { onDelete: 'cascade' }),
+    collectionId: uuid('collection_id')
+      .notNull()
+      .references(() => collections.id, { onDelete: 'cascade' }),
+  },
+  (table) => [primaryKey({ columns: [table.recipeId, table.collectionId] })],
+);

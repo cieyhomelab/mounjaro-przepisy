@@ -34,7 +34,15 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   thresholdSmallPortionKcal: 300,
 };
 
-export const FILTER_IDS = ['highProtein', 'smallPortion', 'light', 'highFiber', 'lowKcal'] as const;
+export const FILTER_IDS = [
+  'highProtein',
+  'smallPortion',
+  'light',
+  'highFiber',
+  'lowKcal',
+  'toleratedWell',
+  'worseDays',
+] as const;
 export type FilterId = (typeof FILTER_IDS)[number];
 
 export const FILTER_LABELS: Record<FilterId, string> = {
@@ -43,11 +51,15 @@ export const FILTER_LABELS: Record<FilterId, string> = {
   light: 'Lekkostrawne (mało tłuszczu)',
   highFiber: 'Dużo błonnika',
   lowKcal: 'Mało kalorii',
+  toleratedWell: 'Dobrze toleruję',
+  worseDays: 'Na gorsze dni',
 };
+
+type FilterRecipe = Pick<Recipe, 'nutrition' | 'tolerance' | 'worseDays'>;
 
 /** A recipe without the value a filter looks at ("brak danych") never passes that filter. */
 export function matchesFilter(
-  recipe: Pick<Recipe, 'nutrition'>,
+  recipe: FilterRecipe,
   filter: FilterId,
   thresholds: Thresholds,
 ): boolean {
@@ -71,11 +83,15 @@ export function matchesFilter(
       );
     case 'lowKcal':
       return nutrition.kcal.value !== null && nutrition.kcal.value <= thresholds.thresholdKcal;
+    case 'toleratedWell':
+      return recipe.tolerance === 'good';
+    case 'worseDays':
+      return recipe.worseDays;
   }
 }
 
 /** Keeps the recipes that pass every active filter at once. */
-export function applyFilters<T extends Pick<Recipe, 'nutrition'>>(
+export function applyFilters<T extends FilterRecipe>(
   recipes: readonly T[],
   active: readonly FilterId[],
   thresholds: Thresholds,
@@ -85,6 +101,25 @@ export function applyFilters<T extends Pick<Recipe, 'nutrition'>>(
     active.every((filter) => matchesFilter(recipe, filter, thresholds)),
   );
 }
+
+/** Keeps the recipes assigned to the own collection; no collection chosen keeps them all. */
+export function inOwnCollection<T extends Pick<Recipe, 'collectionIds'>>(
+  recipes: readonly T[],
+  collectionId: string | null,
+): T[] {
+  if (collectionId === null) return [...recipes];
+  return recipes.filter((recipe) => recipe.collectionIds.includes(collectionId));
+}
+
+/** Polish names of the tolerance levels as shown on a recipe. */
+export const TOLERANCE_LABELS = { good: 'dobrze', medium: 'średnio', bad: 'źle' } as const;
+
+export const SYMPTOM_LABELS = {
+  nausea: 'nudności',
+  heartburn: 'zgaga',
+  bloating: 'wzdęcia',
+  other: 'inne',
+} as const;
 
 export const SORT_KEYS = [
   'proteinDesc',

@@ -8,6 +8,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import type { OwnCollection } from '../../shared/contracts/collection';
+import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings } from '../../shared/contracts/snapshot';
 import { snapshotEtag, snapshotSchema } from '../../shared/contracts/snapshot';
@@ -15,6 +17,8 @@ import { ApiError, NOT_MODIFIED, apiRequest } from './api';
 import {
   readLocalData,
   removeRecipe,
+  storeChange,
+  type LocalChange,
   storeRecipe,
   storeSettings,
   storeSnapshot,
@@ -23,7 +27,13 @@ import {
 
 export type CollectionState =
   | { status: 'loading' }
-  | { status: 'ready'; recipes: StoredRecipe[]; settings: Settings }
+  | {
+      status: 'ready';
+      recipes: StoredRecipe[];
+      collections: OwnCollection[];
+      cookEvents: CookEvent[];
+      settings: Settings;
+    }
   | { status: 'error'; code: string };
 
 type CollectionContextValue = {
@@ -36,6 +46,8 @@ type CollectionContextValue = {
   recipeDeleted: (recipeId: string, dataVersion: number) => Promise<void>;
   /** Records settings the server has just saved; pulls the whole snapshot if another device changed data meanwhile. */
   settingsSaved: (settings: Settings, dataVersion: number) => Promise<void>;
+  /** Records a confirmed change of own collections or cookings; pulls the whole snapshot if another device changed data meanwhile. */
+  changeSaved: (change: LocalChange, dataVersion: number) => Promise<void>;
 };
 
 const CollectionContext = createContext<CollectionContextValue | null>(null);
@@ -54,7 +66,13 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     const local = await readLocalData();
     knownVersion.current = local.dataVersion;
     if (local.dataVersion !== null)
-      setState({ status: 'ready', recipes: local.recipes, settings: local.settings });
+      setState({
+        status: 'ready',
+        recipes: local.recipes,
+        collections: local.collections,
+        cookEvents: local.cookEvents,
+        settings: local.settings,
+      });
     return local.dataVersion !== null;
   }, []);
 
@@ -119,6 +137,18 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     [reload, sync],
   );
 
+  const changeSaved = useCallback(
+    async (change: LocalChange, dataVersion: number) => {
+      if (knownVersion.current !== null && dataVersion === knownVersion.current + 1) {
+        await storeChange(change, dataVersion);
+        await reload();
+        return;
+      }
+      await sync();
+    },
+    [reload, sync],
+  );
+
   useEffect(() => {
     let active = true;
     const start = async () => {
@@ -145,8 +175,8 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   }, [sync]);
 
   const value = useMemo(
-    () => ({ state, sync: retry, recipeSaved, recipeDeleted, settingsSaved }),
-    [state, retry, recipeSaved, recipeDeleted, settingsSaved],
+    () => ({ state, sync: retry, recipeSaved, recipeDeleted, settingsSaved, changeSaved }),
+    [state, retry, recipeSaved, recipeDeleted, settingsSaved, changeSaved],
   );
   return <CollectionContext.Provider value={value}>{children}</CollectionContext.Provider>;
 }

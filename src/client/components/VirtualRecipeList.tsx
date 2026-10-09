@@ -42,6 +42,12 @@ function RecipeListItem({
             {recipe.kind === 'manual' ? (
               <span className="shrink-0 rounded-full bg-neutral-200 px-2 text-sm">ręczny</span>
             ) : null}
+            {recipe.worseDays ? (
+              <span className="shrink-0 rounded-full bg-amber-100 px-2 text-sm">Na gorsze dni</span>
+            ) : null}
+            {recipe.tolerance === 'bad' ? (
+              <span className="shrink-0 rounded-full bg-red-100 px-2 text-sm">źle toleruję</span>
+            ) : null}
           </span>
           <span className="flex flex-wrap gap-x-4 text-neutral-700">
             <span>Białko: {formatProtein(recipe)}</span>
@@ -52,7 +58,7 @@ function RecipeListItem({
               {recipe.kind === 'link' || sourceRating !== null ? (
                 <span>Ocena ze źródła: {formatSourceRating(recipe)}</span>
               ) : null}
-              {ownRating !== null ? <span>Twoja ocena: {ownRating}/5</span> : null}
+              {ownRating !== null ? <span>Moja ocena: {ownRating}/5</span> : null}
             </span>
           ) : null}
         </span>

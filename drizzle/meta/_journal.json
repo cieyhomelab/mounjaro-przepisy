@@ -22,6 +22,13 @@
       "when": 1791464840274,
       "tag": "0002_recipes_and_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791539254364,
+      "tag": "0003_cook_events_collections",
+      "breakpoints": true
     }
   ]
 }

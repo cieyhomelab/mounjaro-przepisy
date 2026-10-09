@@ -16,6 +16,12 @@ export async function setServerClockAhead(request: APIRequestContext, days: numb
   expect(response.ok()).toBe(true);
 }
 
+/** Sets the server clock to the given instant (ISO 8601). */
+export async function setServerClock(request: APIRequestContext, now: string) {
+  const response = await request.put('/api/__test/clock', { data: { now } });
+  expect(response.ok()).toBe(true);
+}
+
 /**
  * Logs in through the user interface: opens `path`, taps "Zaloguj przez Google" and submits the
  * mock account chooser with `email`.
@@ -66,6 +72,22 @@ export async function seedRecipe(page: Page, seed: RecipeSeed): Promise<string> 
   expect(response.status()).toBe(201);
   const body = (await response.json()) as { recipe: { id: string } };
   return body.recipe.id;
+}
+
+/** Calls a state-changing API route as the user logged in on `page`; returns the parsed body. */
+export async function apiCall(
+  page: Page,
+  method: 'POST' | 'PUT' | 'DELETE',
+  path: string,
+  data?: unknown,
+): Promise<Record<string, unknown>> {
+  const response = await page.request.fetch(path, {
+    method,
+    headers: { Origin: APP_ORIGIN },
+    ...(data === undefined ? {} : { data }),
+  });
+  expect(response.ok(), `${method} ${path}`).toBe(true);
+  return (await response.json()) as Record<string, unknown>;
 }
 
 /** Fills the manual recipe form with a complete, valid recipe (everything the criteria require). */

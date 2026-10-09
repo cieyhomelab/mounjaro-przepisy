@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { isValidServings, parseServingsInput } from '../../shared/domain/portions';
 import { ErrorNotice } from '../components/ErrorNotice';
+import { OfflineBadge } from '../components/OfflineBadge';
 import { ScaledIngredients } from '../components/ScaledIngredients';
 import { useCollection } from '../data/collection';
 import { useWakeLock } from '../data/useWakeLock';
@@ -66,6 +67,7 @@ export function CookScreen() {
     <div className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-4 p-4 text-2xl">
       <header className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{recipe.title}</h1>
+        <OfflineBadge />
         <Link
           to={recipePath}
           replace

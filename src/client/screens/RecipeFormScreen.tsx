@@ -18,6 +18,7 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { RecipeImage } from '../components/RecipeImage';
 import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
+import { isOffline } from '../data/offline';
 
 type FieldErrors = Partial<Record<RecipeField, RecipeFieldCode>>;
 
@@ -214,7 +215,7 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
       );
       setFieldErrors(result.ok ? {} : result.fields);
       if (!result.ok) return;
-      if (!navigator.onLine) return setErrorCode('offline');
+      if (isOffline()) return setErrorCode('offline');
       setSaving(true);
       try {
         const created = recipeResponseSchema.parse(
@@ -233,7 +234,7 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
         }
         return setErrorCode(error instanceof ApiError ? error.code : 'internal');
       }
-    } else if (!navigator.onLine && photo) {
+    } else if (isOffline() && photo) {
       return setErrorCode('offline');
     }
     const recipe = saved.current;

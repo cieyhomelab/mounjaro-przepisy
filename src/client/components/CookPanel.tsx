@@ -3,6 +3,7 @@ import { cookEventResponseSchema } from '../../shared/contracts/cookEvent';
 import { formatCookedOn, recipeCookStats } from '../../shared/domain/cookStats';
 import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
+import { useOnline } from '../data/offline';
 import { useAction } from '../data/useAction';
 import { ErrorNotice } from './ErrorNotice';
 
@@ -13,6 +14,7 @@ const buttonClass =
 export function CookPanel({ recipe }: { recipe: Recipe }) {
   const { state, changeSaved } = useCollection();
   const { run, retry, busy, errorCode } = useAction();
+  const online = useOnline();
   const events = state.status === 'ready' ? state.cookEvents : [];
   const stats = recipeCookStats(events, recipe.id);
 
@@ -44,12 +46,17 @@ export function CookPanel({ recipe }: { recipe: Recipe }) {
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || !online}
           onClick={() => void mark()}
           className={`${buttonClass} bg-neutral-900 text-white`}
         >
           Ugotowane
         </button>
+        {online ? null : (
+          <span className="inline-flex min-h-11 items-center text-neutral-700">
+            Oznacz po odzyskaniu połączenia
+          </span>
+        )}
         {stats.count > 0 ? (
           <button
             type="button"

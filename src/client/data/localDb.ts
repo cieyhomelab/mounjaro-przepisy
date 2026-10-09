@@ -4,6 +4,7 @@ import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings, Snapshot } from '../../shared/contracts/snapshot';
 import { DEFAULT_THRESHOLDS, buildSearchText } from '../../shared/domain/recipeList';
+import { PHOTO_CACHE } from './offlineCache';
 
 /** A recipe as held locally: with the text the collection search looks in, worked out when it is stored. */
 export type StoredRecipe = Recipe & { searchText: string };
@@ -18,6 +19,9 @@ type MetaRow = { key: string; value: number | string };
 
 const META_DATA_VERSION = 'dataVersion';
 const META_LAST_CONTACT = 'lastContactAt';
+const META_EMAIL = 'email';
+const META_OFFLINE_STATUS = 'offlineStatus';
+const META_OFFLINE_SYNCED_AT = 'offlineSyncedAt';
 
 /** The local copy of the account's data. Every screen reads from here, online or not. */
 class LocalDatabase extends Dexie {
@@ -94,7 +98,7 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
     await localDb.settings.put({ key: 'settings', ...snapshot.settings });
     await localDb.meta.bulkPut([
       { key: META_DATA_VERSION, value: snapshot.dataVersion },
-      { key: META_LAST_CONTACT, value: snapshot.generatedAt },
+      { key: META_LAST_CONTACT, value: Date.now() },
     ]);
   });
 }
@@ -154,9 +158,57 @@ export async function removeRecipe(recipeId: string, dataVersion: number): Promi
   });
 }
 
-/** Removes everything held for the user (logout, expired session). */
+/** Records a successful contact with the server (client clock) and who is logged in. */
+export async function touchContact(email?: string): Promise<void> {
+  await localDb.meta.put({ key: META_LAST_CONTACT, value: Date.now() });
+  if (email !== undefined) await localDb.meta.put({ key: META_EMAIL, value: email });
+}
+
+/** When the server was last reached and as whom, or nulls on a device without local data. */
+export async function readContact(): Promise<{
+  lastContactAt: number | null;
+  email: string | null;
+}> {
+  const [contact, email] = await Promise.all([
+    localDb.meta.get(META_LAST_CONTACT),
+    localDb.meta.get(META_EMAIL),
+  ]);
+  return {
+    lastContactAt: typeof contact?.value === 'number' ? contact.value : null,
+    email: typeof email?.value === 'string' ? email.value : null,
+  };
+}
+
+export type StoredOfflineStatus =
+  { state: 'pending' } | { state: 'current'; at: number } | { state: 'incomplete' };
+
+export async function readOfflineStatus(): Promise<StoredOfflineStatus> {
+  const [status, at] = await Promise.all([
+    localDb.meta.get(META_OFFLINE_STATUS),
+    localDb.meta.get(META_OFFLINE_SYNCED_AT),
+  ]);
+  if (status?.value === 'current' && typeof at?.value === 'number')
+    return { state: 'current', at: at.value };
+  if (status?.value === 'incomplete') return { state: 'incomplete' };
+  return { state: 'pending' };
+}
+
+export async function writeOfflineStatus(status: StoredOfflineStatus): Promise<void> {
+  await localDb.meta.bulkPut([
+    { key: META_OFFLINE_STATUS, value: status.state },
+    ...(status.state === 'current' ? [{ key: META_OFFLINE_SYNCED_AT, value: status.at }] : []),
+  ]);
+}
+
+let clearCount = 0;
+/** Changes whenever the local data is removed, so a download that was running can tell it must stop. */
+export const clearGeneration = () => clearCount;
+
+/** Removes everything held for the user on this device: local copy, photos, offline status. */
 export async function clearLocalData(): Promise<void> {
+  clearCount += 1;
   await localDb.transaction('rw', localDb.tables, async () => {
     await Promise.all(localDb.tables.map((table) => table.clear()));
   });
+  if (typeof caches !== 'undefined') await caches.delete(PHOTO_CACHE);
 }

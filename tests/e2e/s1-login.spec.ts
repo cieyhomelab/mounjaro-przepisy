@@ -126,3 +126,22 @@ test.describe('S1: logowanie kontem Google', () => {
     await expect(loginLink(page)).toBeVisible();
   });
 });
+
+test.describe('S1: wariant offline', () => {
+  test('S1: zegar przeglądarki przesunięty o ponad 30 dni pokazuje offline ekran logowania i żadnych danych', async ({
+    page,
+    context,
+  }) => {
+    await logIn(page);
+    await expect(collection(page)).toBeVisible();
+    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
+
+    await context.setOffline(true);
+    await page.clock.setFixedTime(new Date(Date.now() + 31 * 24 * 60 * 60 * 1000));
+    await page.goto('/');
+
+    await expect(loginLink(page)).toBeVisible();
+    await expect(collection(page)).toHaveCount(0);
+  });
+});

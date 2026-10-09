@@ -9,7 +9,9 @@ import {
 } from 'react';
 import { sessionResponseSchema } from '../../shared/contracts/session';
 import { ApiError, apiRequest, setUnauthenticatedHandler } from './api';
-import { clearLocalData } from './localDb';
+import { discardLocalData, isOffline } from './offline';
+import { readContact, touchContact } from './localDb';
+import { isOfflineSessionExpired } from '../../shared/domain/offlineSession';
 
 export type SessionState =
   | { status: 'loading' }
@@ -33,10 +35,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const session = sessionResponseSchema.parse(await apiRequest('/api/session'));
+      await touchContact(session.email);
       setState({ status: 'authenticated', email: session.email });
     } catch (error) {
       if (error instanceof ApiError && error.code === 'unauthenticated') {
         setState({ status: 'anonymous' });
+      } else if (error instanceof ApiError && error.code === 'network') {
+        // No connection: a device that reached the server within 30 days stays logged in with its
+        // local copy; otherwise only the login screen is shown (S1, S14).
+        const { lastContactAt, email } = await readContact();
+        if (
+          lastContactAt !== null &&
+          email !== null &&
+          !isOfflineSessionExpired(lastContactAt, Date.now())
+        ) {
+          setState({ status: 'authenticated', email });
+        } else {
+          await discardLocalData();
+          setState({ status: 'anonymous' });
+        }
       } else {
         setState({ status: 'error', code: error instanceof ApiError ? error.code : 'internal' });
       }
@@ -52,16 +69,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setUnauthenticatedHandler(() => {
       // The data on the device is for the logged-in user only.
-      void clearLocalData();
+      void discardLocalData();
       setState({ status: 'anonymous' });
     });
     return () => setUnauthenticatedHandler(undefined);
   }, []);
 
   const logout = useCallback(async () => {
-    if (!navigator.onLine) throw new ApiError('offline', 0);
+    if (isOffline()) throw new ApiError('offline', 0);
     await apiRequest('/api/auth/logout', { method: 'POST' });
-    await clearLocalData();
+    await discardLocalData();
     setState({ status: 'anonymous' });
   }, []);
 

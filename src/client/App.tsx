@@ -1,6 +1,7 @@
 import { Outlet, Route, Routes } from 'react-router';
 import { AppShell } from './components/AppShell';
 import { RequireSession } from './components/RequireSession';
+import { ScrollToTop } from './components/ScrollToTop';
 import { CollectionProvider } from './data/collection';
 import { CollectionViewProvider } from './data/collectionView';
 import { SessionProvider } from './data/session';
@@ -29,6 +30,7 @@ function DataLayout() {
 export function App() {
   return (
     <SessionProvider>
+      <ScrollToTop />
       <Routes>
         <Route path="/logowanie" element={<LoginScreen />} />
         <Route element={<RequireSession />}>

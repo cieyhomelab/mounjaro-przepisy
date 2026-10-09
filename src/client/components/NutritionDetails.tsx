@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { recipeResponseSchema, type Recipe } from '../../shared/contracts/recipe';
 import { NO_DATA } from '../../shared/domain/recipeList';
 import { NUTRITION_KEYS, ORIGIN_LABELS, type NutritionKey } from '../../shared/domain/nutrition';
@@ -34,7 +34,11 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // The last attempted change (a typed value or null for "restore"), so a retry repeats exactly that.
+  const lastChange = useRef<number | null>(null);
+
   const save = async (change: number | null) => {
+    lastChange.current = change;
     const result = buildNutritionChange(recipe, nutritionKey, change);
     if (!result.ok) {
       setInvalid('Podaj liczbę nieujemną.');
@@ -143,7 +147,7 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
         </div>
       )}
       {errorCode ? (
-        <ErrorNotice code={errorCode} onRetry={() => void save(parseDecimalText(text) ?? null)} />
+        <ErrorNotice code={errorCode} onRetry={() => void save(lastChange.current)} />
       ) : null}
     </li>
   );

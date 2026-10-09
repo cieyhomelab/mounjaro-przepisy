@@ -243,6 +243,32 @@ test.describe('S5: pochodzenie wartości odżywczych', () => {
     await expect(values(page).getByText('Kalorie: 240 kcal (szacunkowe)')).toBeVisible();
   });
 
+  test('S5: ponowienie po nieudanym „Przywróć wyliczenie” przywraca wyliczenie, a nie starą wartość ręczną', async ({
+    page,
+    context,
+  }) => {
+    await logInToCollection(page);
+    const id = await seedRecipe(page, {
+      title: 'Kurczak',
+      servings: 2,
+      ingredients: ['400 g piersi z kurczaka'],
+      nutritionManual: { kcal: 500 },
+    });
+    await openRecipe(page, id);
+    await openDetails(page);
+
+    await page.getByRole('button', { name: 'Zmień: kalorie' }).click();
+    await page.getByRole('button', { name: 'Anuluj' }).click();
+
+    await context.setOffline(true);
+    await page.getByRole('button', { name: 'Przywróć wyliczenie: kalorie' }).click();
+    await expect(page.getByRole('alert')).toBeVisible();
+
+    await context.setOffline(false);
+    await page.getByRole('button', { name: 'Spróbuj ponownie' }).click();
+    await expect(values(page).getByText('Kalorie: 240 kcal (szacunkowe)')).toBeVisible();
+  });
+
   for (const [name, text] of [
     ['liczba ujemna', '-5'],
     ['tekst', 'dużo'],

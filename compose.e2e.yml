@@ -18,6 +18,11 @@ services:
   db:
     restart: 'no'
 
+  # Backups are not part of the E2E stack (scripts/restore-drill.sh covers them).
+  backup:
+    profiles:
+      - production-only
+
   # Test pages standing in for recipe sites; reachable as http://fixtures.test:8080.
   fixtures:
     build:

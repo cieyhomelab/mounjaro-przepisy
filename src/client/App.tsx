@@ -11,6 +11,7 @@ import { CollectionScreen } from './screens/CollectionScreen';
 import { ImportScreen } from './screens/ImportScreen';
 import { LoginScreen } from './screens/LoginScreen';
 import { OwnCollectionsScreen } from './screens/OwnCollectionsScreen';
+import { MyDataScreen } from './screens/MyDataScreen';
 import { NotFoundScreen } from './screens/NotFoundScreen';
 import { RecipeEditScreen, RecipeFormScreen } from './screens/RecipeFormScreen';
 import { RecipeScreen } from './screens/RecipeScreen';
@@ -45,6 +46,7 @@ export function App() {
               <Route path="kolekcje" element={<OwnCollectionsScreen />} />
               <Route path="ustawienia" element={<SettingsScreen />} />
               <Route path="ustawienia/progi-filtrow" element={<ThresholdsScreen />} />
+              <Route path="ustawienia/moje-dane" element={<MyDataScreen />} />
               <Route path="konto" element={<AccountScreen />} />
               <Route path="*" element={<NotFoundScreen />} />
             </Route>

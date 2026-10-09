@@ -3,6 +3,7 @@ export const OFFLINE_MESSAGE = 'Ta akcja wymaga połączenia z internetem';
 const messages: Record<string, string> = {
   offline: OFFLINE_MESSAGE,
   network: 'Nie udało się połączyć z serwerem. Sprawdź połączenie z internetem.',
+  confirmation_mismatch: 'Wpisz słowo „USUŃ”, aby potwierdzić usunięcie konta.',
   validation: 'Dane są niepoprawne. Sprawdź je i spróbuj ponownie.',
   forbidden_origin: 'Nie udało się wykonać tej akcji. Odśwież aplikację i spróbuj ponownie.',
   not_found: 'Nie znaleziono tych danych.',

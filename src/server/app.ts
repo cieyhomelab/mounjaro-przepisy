@@ -10,6 +10,7 @@ import type { Database } from './db/client';
 import { sendError } from './errors';
 import { createAuthProvider, type AuthProvider } from './integrations/auth';
 import { createPageFetcher, type PageFetcher } from './integrations/pageFetcher';
+import { registerAccountRoutes } from './routes/account';
 import { SESSION_COOKIE, registerAuthRoutes, sessionCookieOptions } from './routes/auth';
 import { registerCollectionRoutes } from './routes/collections';
 import { registerHealthRoutes } from './routes/health';
@@ -120,6 +121,7 @@ export async function buildApp({
   registerSessionRoutes(app);
   registerSnapshotRoutes(app, { database, clock: appClock });
   registerSettingsRoutes(app, { database });
+  registerAccountRoutes(app, { config, database, clock: appClock });
   registerRecipeRoutes(app, {
     database,
     clock: appClock,

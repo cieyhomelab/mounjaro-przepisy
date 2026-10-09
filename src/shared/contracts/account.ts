@@ -1,0 +1,43 @@
+import { z } from 'zod';
+import { collectionSchema } from './collection';
+import { cookEventSchema } from './cookEvent';
+import { recipeSchema } from './recipe';
+import { settingsSchema } from './snapshot';
+
+/** The word the user types to confirm deleting the account (S16). */
+export const DELETE_CONFIRMATION = 'USUŃ';
+
+/** Request body of DELETE /api/account. The word is compared after Unicode normalisation (NFC). */
+export const deleteAccountInputSchema = z.object({
+  confirmation: z
+    .string()
+    .transform((value) => value.normalize('NFC'))
+    .pipe(z.literal(DELETE_CONFIRMATION)),
+});
+export type DeleteAccountInput = z.infer<typeof deleteAccountInputSchema>;
+
+/** Version of the `dane.json` layout; bumped on incompatible changes. */
+export const EXPORT_FORMAT_VERSION = 1;
+
+/** Directory of the photos inside the export archive. */
+export const EXPORT_PHOTO_DIR = 'zdjecia';
+
+/** Path of a recipe photo inside the export archive. */
+export const exportPhotoPath = (photoId: string) => `${EXPORT_PHOTO_DIR}/${photoId}.webp`;
+
+/**
+ * `dane.json` of the export archive (GET /api/account/export): every object of the account.
+ * Each stage adds its own collections here when it adds data.
+ */
+export const accountExportSchema = z.object({
+  formatVersion: z.literal(EXPORT_FORMAT_VERSION),
+  exportedAt: z.iso.datetime(),
+  account: z.object({ email: z.string(), createdAt: z.iso.datetime() }),
+  settings: settingsSchema,
+  recipes: z.array(recipeSchema),
+  /** Which file of the archive holds the photo of which recipe. */
+  photos: z.array(z.object({ recipeId: z.uuid(), photoId: z.uuid(), file: z.string() })),
+  collections: z.array(collectionSchema),
+  cookEvents: z.array(cookEventSchema),
+});
+export type AccountExport = z.infer<typeof accountExportSchema>;

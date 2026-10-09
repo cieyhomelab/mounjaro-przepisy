@@ -27,6 +27,8 @@ jobs:
         run: scripts/test-integration.sh
       - name: Build
         run: scripts/build.sh
+      - name: Restore drill (backup, encryption, pruning, restore)
+        run: scripts/restore-drill.sh
       - name: Compose file with the tls profile
         env:
           POSTGRES_PASSWORD: ci-only-placeholder

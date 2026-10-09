@@ -26,6 +26,8 @@ type SessionContextValue = {
   refresh: () => Promise<void>;
   /** Ends the session on the server; throws ApiError (code "offline" without a connection). */
   logout: () => Promise<void>;
+  /** Deletes the account with all its data and ends the session (S16); throws ApiError. */
+  deleteAccount: (confirmation: string) => Promise<void>;
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -86,7 +88,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setState({ status: 'anonymous' });
   }, []);
 
-  const value = useMemo(() => ({ state, refresh, logout }), [state, refresh, logout]);
+  const deleteAccount = useCallback(async (confirmation: string) => {
+    if (isOffline()) throw new ApiError('offline', 0);
+    await apiRequest('/api/account', { method: 'DELETE', body: { confirmation } });
+    await discardLocalData();
+    setState({ status: 'anonymous' });
+  }, []);
+
+  const value = useMemo(
+    () => ({ state, refresh, logout, deleteAccount }),
+    [state, refresh, logout, deleteAccount],
+  );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 

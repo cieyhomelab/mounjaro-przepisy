@@ -79,3 +79,24 @@ export async function apiRequest(path: string, options: RequestOptions = {}): Pr
   }
   return payload;
 }
+
+/** A file received from the API. */
+export type Download = { blob: Blob; filename: string };
+
+/** Downloads a file (GET) with the session cookie; throws ApiError like `apiRequest`. */
+export async function apiDownload(path: string): Promise<Download> {
+  let response: Response;
+  try {
+    response = await fetch(path, { credentials: 'same-origin', cache: 'no-store' });
+  } catch {
+    throw new ApiError('network', 0);
+  }
+  if (!response.ok) {
+    if (response.status === 401) onUnauthenticated?.();
+    const parsed = errorResponseSchema.safeParse(await response.json().catch(() => undefined));
+    throw new ApiError(parsed.success ? parsed.data.error.code : 'internal', response.status);
+  }
+  const disposition = response.headers.get('Content-Disposition') ?? '';
+  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? 'dane.zip';
+  return { blob: await response.blob(), filename };
+}

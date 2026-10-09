@@ -1,0 +1,35 @@
+# Used only by scripts/restore-drill.sh: a throwaway PostgreSQL and the backup image in one
+# Compose network. No host ports are published and no data outlives the run.
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: drill
+      POSTGRES_DB: app
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U app -d app']
+      interval: 1s
+      timeout: 3s
+      retries: 60
+
+  drill:
+    build:
+      context: backup
+    environment:
+      PGHOST: db
+      PGUSER: app
+      PGPASSWORD: drill
+      PGDATABASE: app
+    volumes:
+      - ./drizzle:/drizzle:ro
+    tmpfs:
+      - /backups
+    entrypoint: ['/usr/local/bin/restore-drill.sh']
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - runner

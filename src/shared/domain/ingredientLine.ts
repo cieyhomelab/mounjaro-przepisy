@@ -81,6 +81,11 @@ function readQuantity(text: string): { quantity: number; rest: string } | null {
   return { quantity: round(quantity), rest: text.slice(match[0].length) };
 }
 
+/** The quantity a line starts with and the text after it, or null when it starts with none. */
+export function splitLeadingQuantity(text: string): { quantity: number; rest: string } | null {
+  return readQuantity(text.trim());
+}
+
 /**
  * Splits one ingredient line into quantity, unit and name. A line without a leading quantity
  * ("sól do smaku") is a name only. A line that cannot be split reliably (a range such as

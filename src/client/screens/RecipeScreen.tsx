@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { recipeDeletedResponseSchema, type Recipe } from '../../shared/contracts/recipe';
+import { isValidServings, parseServingsInput } from '../../shared/domain/portions';
 import { formatSourceRating } from '../../shared/domain/sourceRating';
 import { CookPanel } from '../components/CookPanel';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { NutritionDetails } from '../components/NutritionDetails';
 import { OwnRating } from '../components/OwnRating';
 import { RecipeImage } from '../components/RecipeImage';
+import { ScaledIngredients } from '../components/ScaledIngredients';
+import { ServingsControl } from '../components/ServingsControl';
 import { ApiError, apiRequest } from '../data/api';
 import { RecipeOrganizer } from '../components/RecipeOrganizer';
 import { ToleranceEditor } from '../components/ToleranceEditor';
@@ -90,7 +93,28 @@ function DeleteRecipe({ recipe }: { recipe: Recipe }) {
   );
 }
 
+/** Servings the ingredients are scaled to; kept in the address only, never saved (S12). */
+export const SERVINGS_PARAM = 'porcje';
+
 function RecipeDetails({ recipe }: { recipe: Recipe }) {
+  const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  const finishedCooking =
+    (location.state as { finishedCooking?: boolean } | null)?.finishedCooking === true;
+  const requested = parseServingsInput(params.get(SERVINGS_PARAM) ?? '');
+  const servings = requested !== null && isValidServings(requested) ? requested : recipe.servings;
+  const setServings = (value: number) =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (value === recipe.servings) next.delete(SERVINGS_PARAM);
+        else next.set(SERVINGS_PARAM, String(value));
+        return next;
+      },
+      { replace: true, state: location.state as unknown },
+    );
+  const cookPath = `/przepisy/${recipe.id}/gotuj${servings === recipe.servings ? '' : `?${SERVINGS_PARAM}=${servings}`}`;
+
   return (
     <article className="flex flex-col gap-4">
       <RecipeImage
@@ -115,6 +139,14 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
       ) : null}
       <p>Liczba porcji: {recipe.servings.toLocaleString('pl-PL')}</p>
       <NutritionDetails recipe={recipe} />
+      <Link to={cookPath} className={`${actionClass} bg-neutral-900 self-start text-white`}>
+        Gotuj
+      </Link>
+      {finishedCooking ? (
+        <p role="status" className="rounded-lg bg-green-50 p-3">
+          Koniec gotowania. Oceń smak i tolerancję tego przepisu poniżej.
+        </p>
+      ) : null}
       <CookPanel recipe={recipe} />
       <OwnRating recipe={recipe} />
       <ToleranceEditor recipe={recipe} />
@@ -123,11 +155,13 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
         <h2 id="ingredients-heading" className="text-lg font-semibold">
           Składniki
         </h2>
-        <ul className="list-disc pl-5">
-          {recipe.ingredients.map((ingredient, index) => (
-            <li key={index}>{ingredient.originalText}</li>
-          ))}
-        </ul>
+        <ServingsControl servings={servings} onChange={setServings} />
+        <ScaledIngredients
+          ingredients={recipe.ingredients}
+          baseServings={recipe.servings}
+          servings={servings}
+          className="list-disc pl-5"
+        />
       </section>
       <section aria-labelledby="steps-heading" className="flex flex-col gap-1">
         <h2 id="steps-heading" className="text-lg font-semibold">

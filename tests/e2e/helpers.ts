@@ -24,13 +24,17 @@ export async function setServerClock(request: APIRequestContext, now: string) {
 
 /**
  * Logs in through the user interface: opens `path`, taps "Zaloguj przez Google" and submits the
- * mock account chooser with `email`.
+ * mock account chooser with `email`. For the allowed address it returns once the session is active.
  */
 export async function logIn(page: Page, email: string = OWNER_EMAIL, path = '/') {
   await page.goto(path);
   await page.getByRole('link', { name: 'Zaloguj przez Google' }).click();
   await page.getByLabel('Adres e-mail').fill(email);
   await page.getByRole('button', { name: 'Zaloguj' }).click();
+  if (email === OWNER_EMAIL) {
+    // The login redirect is asynchronous; API calls made before the session cookie is set get 401.
+    await expect.poll(async () => (await page.request.get('/api/session')).status()).toBe(200);
+  }
 }
 
 /** Origin the API accepts for state-changing requests (APP_BASE_URL of the e2e stack). */

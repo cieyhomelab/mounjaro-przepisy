@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
 import { recipeSchema } from './recipe';
+import { API_VERSION } from './session';
 
 export const settingsSchema = z.object({
   thresholdProteinG: z.number(),
@@ -26,5 +27,10 @@ export const snapshotSchema = z.object({
 });
 export type Snapshot = z.infer<typeof snapshotSchema>;
 
-/** The ETag of a snapshot is its data version, quoted as HTTP requires. */
-export const snapshotEtag = (dataVersion: number) => `"${dataVersion}"`;
+/**
+ * The ETag of a snapshot is the API version and the data version, quoted as HTTP requires. The API
+ * version is part of it so that a client built for another API version never gets a 304 (which
+ * carries no `apiVersion`) and learns about the new server from the full response.
+ */
+export const snapshotEtag = (dataVersion: number, apiVersion: number = API_VERSION) =>
+  `"${apiVersion}.${dataVersion}"`;

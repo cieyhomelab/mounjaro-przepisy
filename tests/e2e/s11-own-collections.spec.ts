@@ -118,9 +118,9 @@ test.describe('S11: kolekcje własne', () => {
     await createViaApi(page, 'Szybkie');
     await page.goto(`/przepisy/${recipe}`);
 
-    await page.getByRole('checkbox', { name: 'Obiady' }).check();
+    await page.getByRole('checkbox', { name: 'Obiady' }).click();
     await expect(page.getByRole('checkbox', { name: 'Obiady' })).toBeChecked();
-    await page.getByRole('checkbox', { name: 'Szybkie' }).check();
+    await page.getByRole('checkbox', { name: 'Szybkie' }).click();
     await expect(page.getByRole('checkbox', { name: 'Szybkie' })).toBeChecked();
     await page.getByRole('link', { name: 'Wróć do kolekcji' }).click();
 

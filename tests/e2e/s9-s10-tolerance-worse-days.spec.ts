@@ -146,8 +146,9 @@ test.describe('S10: tag „Na gorsze dni”', () => {
     await openRecipe(page, id);
     await expect(badge(page)).toHaveCount(0);
 
-    await page.getByRole('checkbox', { name: 'Na gorsze dni' }).check();
+    await page.getByRole('checkbox', { name: 'Na gorsze dni' }).click();
 
+    await expect(page.getByRole('checkbox', { name: 'Na gorsze dni' })).toBeChecked();
     await expect(badge(page)).toBeVisible();
     await backToList(page);
     await expect(items(page).first()).toContainText('Na gorsze dni');
@@ -176,7 +177,8 @@ test.describe('S10: tag „Na gorsze dni”', () => {
     await expect.poll(() => titles(page)).toEqual(['Z tagiem']);
 
     await items(page).first().getByRole('link').click();
-    await page.getByRole('checkbox', { name: 'Na gorsze dni' }).uncheck();
+    await page.getByRole('checkbox', { name: 'Na gorsze dni' }).click();
+    await expect(page.getByRole('checkbox', { name: 'Na gorsze dni' })).not.toBeChecked();
     await expect(badge(page)).toHaveCount(0);
     await page.getByRole('link', { name: 'Wróć do kolekcji' }).click();
 

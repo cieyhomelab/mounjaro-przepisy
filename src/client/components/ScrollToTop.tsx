@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router';
+import { NavigationType, useLocation, useNavigationType } from 'react-router';
 
-/** A new screen starts at the top, as after a full page load. */
+/** A new screen starts at the top, as after a full page load; going back keeps the position. */
 export function ScrollToTop() {
   const { pathname } = useLocation();
+  const navigationType = useNavigationType();
   useEffect(() => {
+    if (navigationType === NavigationType.Pop) return;
     window.scrollTo(0, 0);
-  }, [pathname]);
+  }, [pathname, navigationType]);
   return null;
 }

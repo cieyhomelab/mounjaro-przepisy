@@ -36,6 +36,8 @@ export type RecipeSeed = {
   ingredients?: string[];
   steps?: string[];
   nutritionManual?: { kcal?: number; proteinG?: number; fatG?: number; fiberG?: number };
+  /** Makes it a recipe saved from a link, with the rating the source gave (scale 0–5). */
+  source?: { url: string; rating: number };
 };
 
 /** Adds a recipe through the API as the user logged in on `page`; returns its id. */
@@ -48,6 +50,17 @@ export async function seedRecipe(page: Page, seed: RecipeSeed): Promise<string> 
       ingredients: (seed.ingredients ?? ['sól do smaku']).map((originalText) => ({ originalText })),
       steps: seed.steps ?? ['Wymieszaj.'],
       nutritionManual: seed.nutritionManual ?? {},
+      ...(seed.source
+        ? {
+            sourceUrl: seed.source.url,
+            sourceImport: {
+              rating: seed.source.rating,
+              ratingCount: 10,
+              siteName: 'Testowy serwis',
+              nutrition: null,
+            },
+          }
+        : {}),
     },
   });
   expect(response.status()).toBe(201);

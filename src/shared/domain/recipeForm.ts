@@ -1,5 +1,6 @@
 import type { Recipe, SourceImport } from '../contracts/recipe';
 import type { ImportDraft } from '../contracts/recipeImport';
+import { NUTRITION_KEYS, type NutritionKey } from './nutrition';
 import { validateRecipeInput, type RecipeValidation } from './recipeValidation';
 
 export type RecipeFormValues = {
@@ -24,7 +25,15 @@ export const emptyRecipeForm = (): RecipeFormValues => ({
 
 const toText = (value: number | null) => (value === null ? '' : String(value).replace('.', ','));
 
-/** The form filled with the stored values of a recipe, for editing. */
+/** The text of a nutrition field: only a value typed by the user is kept in the field. */
+const manualText = (value: Recipe['nutrition'][NutritionKey]) =>
+  value.origin === 'manual' ? toText(value.value) : '';
+
+/**
+ * The form filled with the stored values of a recipe, for editing. A value from the source or
+ * estimated from the ingredients is not copied into its field: an empty field means "use the
+ * source or the estimate", and a filled one is a value the user chose.
+ */
 export const recipeToForm = (recipe: Recipe): RecipeFormValues => ({
   title: recipe.title,
   servings: toText(recipe.servings),
@@ -32,12 +41,38 @@ export const recipeToForm = (recipe: Recipe): RecipeFormValues => ({
   steps: recipe.steps.length > 0 ? recipe.steps : [''],
   sourceUrl: recipe.sourceUrl ?? '',
   nutrition: {
-    kcal: toText(recipe.nutrition.kcal.value),
-    proteinG: toText(recipe.nutrition.proteinG.value),
-    fatG: toText(recipe.nutrition.fatG.value),
-    fiberG: toText(recipe.nutrition.fiberG.value),
+    kcal: manualText(recipe.nutrition.kcal),
+    proteinG: manualText(recipe.nutrition.proteinG),
+    fatG: manualText(recipe.nutrition.fatG),
+    fiberG: manualText(recipe.nutrition.fiberG),
   },
 });
+
+/**
+ * Validates the request that saves `recipe` again with one nutrition value changed: a number
+ * sets it by hand, null takes it back to the source or the estimate ("Przywróć wyliczenie").
+ * The other values keep their state: the typed ones stay, the rest stay computed.
+ */
+export function buildNutritionChange(
+  recipe: Recipe,
+  key: NutritionKey,
+  change: number | null | undefined,
+): RecipeValidation {
+  const manual = Object.fromEntries(
+    NUTRITION_KEYS.map((name) => {
+      const current = recipe.nutrition[name];
+      return [name, current.origin === 'manual' ? current.value : null];
+    }),
+  );
+  return validateRecipeInput({
+    title: recipe.title,
+    servings: recipe.servings,
+    ingredients: recipe.ingredients.map(({ originalText }) => ({ originalText })),
+    steps: recipe.steps,
+    sourceUrl: recipe.sourceUrl,
+    nutritionManual: { ...manual, [key]: change ?? null },
+  });
+}
 
 /** The form filled with what was read from a recipe page; fields the page did not give stay empty. */
 export const importDraftToForm = (draft: ImportDraft): RecipeFormValues => ({

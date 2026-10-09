@@ -1,0 +1,2558 @@
+[
+  {
+    "name": "pierś z kurczaka",
+    "synonyms": [
+      "piersi z kurczaka",
+      "piersi kurczaka",
+      "filet z kurczaka",
+      "filety z kurczaka",
+      "pierś kurczaka",
+      "filet z piersi kurczaka",
+      "piersi z kurczaka bez skóry",
+      "filet kurczaka"
+    ],
+    "fdcId": 171077,
+    "fdcDescription": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",
+    "unitGrams": {
+      "sztuka": 200.0
+    }
+  },
+  {
+    "name": "udko z kurczaka",
+    "synonyms": [
+      "udka z kurczaka",
+      "udko kurczaka",
+      "udka kurczaka",
+      "podudzie z kurczaka",
+      "podudzia z kurczaka"
+    ],
+    "fdcId": 173627,
+    "fdcDescription": "Chicken, broilers or fryers, dark meat, thigh, meat only, raw",
+    "unitGrams": {
+      "sztuka": 120.0
+    }
+  },
+  {
+    "name": "mięso mielone z indyka",
+    "synonyms": ["mielony indyk", "indyk mielony", "mięso z indyka mielone"],
+    "fdcId": 171505,
+    "fdcDescription": "Turkey, Ground, raw"
+  },
+  {
+    "name": "pierś z indyka",
+    "synonyms": ["piersi z indyka", "filet z indyka", "filety z indyka", "pierś indyka"],
+    "fdcId": 171098,
+    "fdcDescription": "Turkey, whole, breast, meat only, raw"
+  },
+  {
+    "name": "wołowina mielona",
+    "synonyms": ["mięso mielone wołowe", "mielona wołowina", "mięso mielone z wołowiny"],
+    "fdcId": 174030,
+    "fdcDescription": "Beef, ground, 90% lean meat / 10% fat, raw"
+  },
+  {
+    "name": "wołowina",
+    "synonyms": ["mięso wołowe", "polędwica wołowa", "antrykot", "rostbef"],
+    "fdcId": 171757,
+    "fdcDescription": "Beef, round, top round steak, boneless, separable lean only, trimmed to 0\" fat, all grades, raw"
+  },
+  {
+    "name": "schab",
+    "synonyms": [
+      "schab wieprzowy",
+      "polędwiczka wieprzowa",
+      "polędwiczki wieprzowe",
+      "polędwiczka",
+      "karkówka"
+    ],
+    "fdcId": 168249,
+    "fdcDescription": "Pork, fresh, loin, tenderloin, separable lean only, raw"
+  },
+  {
+    "name": "mięso mielone wieprzowe",
+    "synonyms": ["mielona wieprzowina", "mięso mielone", "wieprzowina mielona"],
+    "fdcId": 168372,
+    "fdcDescription": "Pork, ground, 84% lean / 16% fat, raw"
+  },
+  {
+    "name": "boczek",
+    "synonyms": ["boczek wędzony", "boczek surowy", "plastry boczku"],
+    "fdcId": 168277,
+    "fdcDescription": "Pork, cured, bacon, unprepared",
+    "unitGrams": {
+      "plaster": 25.0
+    }
+  },
+  {
+    "name": "szynka",
+    "synonyms": ["szynka gotowana", "szynka wieprzowa", "szynka drobiowa", "plastry szynki"],
+    "fdcId": 173864,
+    "fdcDescription": "Ham, sliced, regular (approximately 11% fat)",
+    "unitGrams": {
+      "plaster": 20.0
+    }
+  },
+  {
+    "name": "kiełbasa",
+    "synonyms": ["kiełbasa wieprzowa", "kiełbasa śląska", "kiełbaski"],
+    "fdcId": 172954,
+    "fdcDescription": "Sausage, Polish, pork and beef, smoked",
+    "unitGrams": {
+      "sztuka": 100.0
+    }
+  },
+  {
+    "name": "łosoś",
+    "synonyms": [
+      "filet z łososia",
+      "łosoś świeży",
+      "fileta z łososia",
+      "filety z łososia",
+      "stek z łososia"
+    ],
+    "fdcId": 175167,
+    "fdcDescription": "Fish, salmon, Atlantic, farmed, raw",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "dorsz",
+    "synonyms": ["filet z dorsza", "filety z dorsza"],
+    "fdcId": 171955,
+    "fdcDescription": "Fish, cod, Atlantic, raw",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "tuńczyk w wodzie",
+    "synonyms": [
+      "tuńczyk z puszki",
+      "tuńczyk w puszce",
+      "tuńczyk konserwowy",
+      "tuńczyk w sosie własnym",
+      "tuńczyk",
+      "tuńczyka"
+    ],
+    "fdcId": 173709,
+    "fdcDescription": "Fish, tuna, light, canned in water, drained solids (Includes foods for USDA's Food Distribution Program)",
+    "unitGrams": {
+      "puszka": 120.0,
+      "sztuka": 120.0
+    }
+  },
+  {
+    "name": "śledź",
+    "synonyms": ["filet ze śledzia", "filety ze śledzia", "śledzie", "śledź w oleju"],
+    "fdcId": 175116,
+    "fdcDescription": "Fish, herring, Atlantic, raw",
+    "unitGrams": {
+      "sztuka": 80.0
+    }
+  },
+  {
+    "name": "pstrąg",
+    "synonyms": ["filet z pstrąga", "pstrąg tęczowy"],
+    "fdcId": 173717,
+    "fdcDescription": "Fish, trout, rainbow, farmed, raw",
+    "unitGrams": {
+      "sztuka": 200.0
+    }
+  },
+  {
+    "name": "makrela",
+    "synonyms": ["makrela wędzona", "filet z makreli"],
+    "fdcId": 175119,
+    "fdcDescription": "Fish, mackerel, Atlantic, raw",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "krewetki",
+    "synonyms": ["krewetka", "krewetki obrane"],
+    "fdcId": 174210,
+    "fdcDescription": "Crustaceans, shrimp, mixed species, raw (may contain additives to retain moisture)"
+  },
+  {
+    "name": "jajko",
+    "synonyms": ["jajka", "jajek", "jaja", "jajo", "jajko kurze", "jajka kurze"],
+    "fdcId": 171287,
+    "fdcDescription": "Egg, whole, raw, fresh",
+    "unitGrams": {
+      "sztuka": 55.0
+    }
+  },
+  {
+    "name": "białko jajka",
+    "synonyms": ["białka jaj", "białko jaja", "białka"],
+    "fdcId": 172183,
+    "fdcDescription": "Egg, white, raw, fresh",
+    "unitGrams": {
+      "sztuka": 33.0
+    }
+  },
+  {
+    "name": "żółtko",
+    "synonyms": ["żółtka", "żółtko jaja", "żółtka jaj"],
+    "fdcId": 172184,
+    "fdcDescription": "Egg, yolk, raw, fresh",
+    "unitGrams": {
+      "sztuka": 17.0
+    }
+  },
+  {
+    "name": "mleko",
+    "synonyms": ["mleko 2%", "mleko krowie", "mleka"],
+    "fdcId": 171267,
+    "fdcDescription": "Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D",
+    "density": 1.03
+  },
+  {
+    "name": "mleko odtłuszczone",
+    "synonyms": ["mleko 0%", "mleko chude"],
+    "fdcId": 171269,
+    "fdcDescription": "Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)",
+    "density": 1.03
+  },
+  {
+    "name": "mleko pełne",
+    "synonyms": ["mleko tłuste"],
+    "fdcId": 171265,
+    "fdcDescription": "Milk, whole, 3.25% milkfat, with added vitamin D",
+    "density": 1.03
+  },
+  {
+    "name": "mleko w proszku",
+    "synonyms": ["mleko suche"],
+    "fdcId": 173454,
+    "fdcDescription": "Milk, dry, whole, without added vitamin D",
+    "density": 0.5
+  },
+  {
+    "name": "jogurt naturalny",
+    "synonyms": ["jogurt", "jogurtu naturalnego"],
+    "fdcId": 170886,
+    "fdcDescription": "Yogurt, plain, low fat",
+    "density": 1.03
+  },
+  {
+    "name": "jogurt grecki",
+    "synonyms": ["jogurt typu grecki", "jogurt typu greckiego", "jogurtu greckiego"],
+    "fdcId": 170894,
+    "fdcDescription": "Yogurt, Greek, plain, nonfat (Includes foods for USDA's Food Distribution Program)",
+    "density": 1.05
+  },
+  {
+    "name": "kefir",
+    "synonyms": ["kefiru"],
+    "fdcId": 170886,
+    "fdcDescription": "Yogurt, plain, low fat",
+    "density": 1.03
+  },
+  {
+    "name": "śmietana 18%",
+    "synonyms": ["śmietana", "śmietany", "śmietana kwaśna", "śmietana 12%"],
+    "fdcId": 171256,
+    "fdcDescription": "Cream, sour, reduced fat, cultured",
+    "density": 1.0
+  },
+  {
+    "name": "śmietana 30%",
+    "synonyms": [
+      "śmietanka 30%",
+      "śmietanka",
+      "śmietana kremówka",
+      "śmietana do ubijania",
+      "śmietanka kremówka"
+    ],
+    "fdcId": 170859,
+    "fdcDescription": "Cream, fluid, heavy whipping",
+    "density": 1.0
+  },
+  {
+    "name": "masło",
+    "synonyms": ["masła", "masło ekstra"],
+    "fdcId": 173430,
+    "fdcDescription": "Butter, without salt",
+    "density": 0.95,
+    "unitGrams": {
+      "kostka": 200.0
+    }
+  },
+  {
+    "name": "twaróg",
+    "synonyms": ["twarożek", "twaróg półtłusty", "ser twarogowy", "twarogu"],
+    "fdcId": 172182,
+    "fdcDescription": "Cheese, cottage, lowfat, 2% milkfat",
+    "density": 1.0,
+    "unitGrams": {
+      "kostka": 250.0
+    }
+  },
+  {
+    "name": "twaróg chudy",
+    "synonyms": ["twaróg odtłuszczony"],
+    "fdcId": 172181,
+    "fdcDescription": "Cheese, cottage, nonfat, uncreamed, dry, large or small curd",
+    "density": 1.0
+  },
+  {
+    "name": "serek wiejski",
+    "synonyms": ["ser wiejski"],
+    "fdcId": 172182,
+    "fdcDescription": "Cheese, cottage, lowfat, 2% milkfat",
+    "density": 1.0
+  },
+  {
+    "name": "ser żółty",
+    "synonyms": [
+      "ser gouda",
+      "gouda",
+      "ser edamski",
+      "edam",
+      "ser cheddar",
+      "cheddar",
+      "ser żółty tarty"
+    ],
+    "fdcId": 173414,
+    "fdcDescription": "Cheese, cheddar (Includes foods for USDA's Food Distribution Program)",
+    "density": 0.4,
+    "unitGrams": {
+      "plaster": 20.0
+    }
+  },
+  {
+    "name": "ser mozzarella",
+    "synonyms": ["mozzarella", "mozzarelli", "kulka mozzarelli"],
+    "fdcId": 170845,
+    "fdcDescription": "Cheese, mozzarella, whole milk",
+    "density": 1.0,
+    "unitGrams": {
+      "sztuka": 125.0
+    }
+  },
+  {
+    "name": "parmezan",
+    "synonyms": ["ser parmezan", "parmezanu", "ser grana padano"],
+    "fdcId": 170848,
+    "fdcDescription": "Cheese, parmesan, hard",
+    "density": 0.4
+  },
+  {
+    "name": "feta",
+    "synonyms": ["ser feta", "fety"],
+    "fdcId": 173420,
+    "fdcDescription": "Cheese, feta",
+    "density": 0.9
+  },
+  {
+    "name": "ser pleśniowy",
+    "synonyms": ["ser błękitny", "gorgonzola", "ser lazur"],
+    "fdcId": 172175,
+    "fdcDescription": "Cheese, blue",
+    "density": 0.9
+  },
+  {
+    "name": "serek śmietankowy",
+    "synonyms": ["serek homogenizowany", "serek kremowy", "serek philadelphia"],
+    "fdcId": 173418,
+    "fdcDescription": "Cheese, cream",
+    "density": 1.0
+  },
+  {
+    "name": "ricotta",
+    "synonyms": ["ser ricotta"],
+    "fdcId": 171248,
+    "fdcDescription": "Cheese, ricotta, part skim milk",
+    "density": 1.0
+  },
+  {
+    "name": "oliwa z oliwek",
+    "synonyms": ["oliwa", "oliwy z oliwek", "oliwa extra virgin"],
+    "fdcId": 171413,
+    "fdcDescription": "Oil, olive, salad or cooking",
+    "density": 0.92
+  },
+  {
+    "name": "olej rzepakowy",
+    "synonyms": ["olej", "oleju", "olej roślinny", "oleju rzepakowego"],
+    "fdcId": 172336,
+    "fdcDescription": "Oil, canola",
+    "density": 0.92
+  },
+  {
+    "name": "olej słonecznikowy",
+    "synonyms": ["oleju słonecznikowego"],
+    "fdcId": 171025,
+    "fdcDescription": "Oil, sunflower, linoleic, (approx. 65%)",
+    "density": 0.92
+  },
+  {
+    "name": "olej kokosowy",
+    "synonyms": ["oleju kokosowego"],
+    "fdcId": 171412,
+    "fdcDescription": "Oil, coconut",
+    "density": 0.92
+  },
+  {
+    "name": "smalec",
+    "synonyms": ["smalcu"],
+    "fdcId": 171401,
+    "fdcDescription": "Lard",
+    "density": 0.92
+  },
+  {
+    "name": "margaryna",
+    "synonyms": ["margaryny"],
+    "fdcId": 172346,
+    "fdcDescription": "Margarine, regular, 80% fat, composite, stick, with salt",
+    "density": 0.95
+  },
+  {
+    "name": "majonez",
+    "synonyms": ["majonezu"],
+    "fdcId": 171009,
+    "fdcDescription": "Salad dressing, mayonnaise, regular",
+    "density": 0.95
+  },
+  {
+    "name": "musztarda",
+    "synonyms": ["musztardy"],
+    "fdcId": 172234,
+    "fdcDescription": "Mustard, prepared, yellow",
+    "density": 1.05
+  },
+  {
+    "name": "ketchup",
+    "synonyms": ["keczup"],
+    "fdcId": 168556,
+    "fdcDescription": "Catsup",
+    "density": 1.15
+  },
+  {
+    "name": "koncentrat pomidorowy",
+    "synonyms": ["przecier pomidorowy", "passata", "koncentratu pomidorowego"],
+    "fdcId": 170459,
+    "fdcDescription": "Tomato products, canned, paste, without salt added (Includes foods for USDA's Food Distribution Program)",
+    "density": 1.1
+  },
+  {
+    "name": "pomidory w puszce",
+    "synonyms": [
+      "pomidory krojone",
+      "pomidory z puszki",
+      "pomidory krojone w puszce",
+      "pomidory pelati"
+    ],
+    "fdcId": 170051,
+    "fdcDescription": "Tomatoes, red, ripe, canned, packed in tomato juice",
+    "density": 1.0,
+    "unitGrams": {
+      "puszka": 400.0
+    }
+  },
+  {
+    "name": "sos sojowy",
+    "synonyms": ["sos sojowy ciemny", "sosu sojowego"],
+    "fdcId": 174277,
+    "fdcDescription": "Soy sauce made from soy and wheat (shoyu)",
+    "density": 1.15
+  },
+  {
+    "name": "ocet",
+    "synonyms": ["octu", "ocet winny", "ocet jabłkowy", "ocet balsamiczny"],
+    "fdcId": 172237,
+    "fdcDescription": "Vinegar, distilled",
+    "density": 1.0
+  },
+  {
+    "name": "miód",
+    "synonyms": ["miodu"],
+    "fdcId": 169640,
+    "fdcDescription": "Honey",
+    "density": 1.4
+  },
+  {
+    "name": "cukier",
+    "synonyms": ["cukru", "cukier biały", "cukier kryształ"],
+    "fdcId": 169655,
+    "fdcDescription": "Sugars, granulated",
+    "density": 0.85
+  },
+  {
+    "name": "cukier puder",
+    "synonyms": ["cukru pudru", "cukier w proszku"],
+    "fdcId": 169656,
+    "fdcDescription": "Sugars, powdered",
+    "density": 0.55
+  },
+  {
+    "name": "cukier brązowy",
+    "synonyms": ["cukru brązowego", "cukier trzcinowy"],
+    "fdcId": 168833,
+    "fdcDescription": "Sugars, brown",
+    "density": 0.9
+  },
+  {
+    "name": "syrop klonowy",
+    "synonyms": ["syropu klonowego"],
+    "fdcId": 169661,
+    "fdcDescription": "Syrups, maple",
+    "density": 1.3
+  },
+  {
+    "name": "dżem",
+    "synonyms": ["dżemu", "konfitura", "konfitury"],
+    "fdcId": 169641,
+    "fdcDescription": "Jams and preserves",
+    "density": 1.3
+  },
+  {
+    "name": "czekolada gorzka",
+    "synonyms": ["czekolada", "czekolady", "gorzka czekolada"],
+    "fdcId": 170273,
+    "fdcDescription": "Chocolate, dark, 70-85% cacao solids",
+    "unitGrams": {
+      "kostka": 5.0
+    }
+  },
+  {
+    "name": "kakao",
+    "synonyms": ["kakao ciemne", "kakao naturalne", "kakao w proszku"],
+    "fdcId": 169593,
+    "fdcDescription": "Cocoa, dry powder, unsweetened",
+    "density": 0.45
+  },
+  {
+    "name": "mąka pszenna",
+    "synonyms": ["mąka", "mąki", "mąka tortowa", "mąka wrocławska", "mąka typ 500"],
+    "fdcId": 168894,
+    "fdcDescription": "Wheat flour, white, all-purpose, enriched, bleached",
+    "density": 0.55
+  },
+  {
+    "name": "mąka pełnoziarnista",
+    "synonyms": ["mąka razowa", "mąka pszenna pełnoziarnista"],
+    "fdcId": 168893,
+    "fdcDescription": "Wheat flour, whole-grain (Includes foods for USDA's Food Distribution Program)",
+    "density": 0.55
+  },
+  {
+    "name": "mąka ziemniaczana",
+    "synonyms": ["skrobia ziemniaczana", "mąki ziemniaczanej"],
+    "fdcId": 168446,
+    "fdcDescription": "Potato flour",
+    "density": 0.65
+  },
+  {
+    "name": "skrobia kukurydziana",
+    "synonyms": ["maizena"],
+    "fdcId": 169698,
+    "fdcDescription": "Cornstarch",
+    "density": 0.55
+  },
+  {
+    "name": "mąka żytnia",
+    "synonyms": ["mąki żytniej"],
+    "fdcId": 168886,
+    "fdcDescription": "Rye flour, medium",
+    "density": 0.55
+  },
+  {
+    "name": "mąka migdałowa",
+    "synonyms": ["mąki migdałowej"],
+    "fdcId": 170567,
+    "fdcDescription": "Nuts, almonds",
+    "density": 0.5
+  },
+  {
+    "name": "bułka tarta",
+    "synonyms": ["bułki tartej", "panierka"],
+    "fdcId": 174928,
+    "fdcDescription": "Bread, crumbs, dry, grated, plain",
+    "density": 0.45
+  },
+  {
+    "name": "chleb",
+    "synonyms": [
+      "chleb pszenny",
+      "chleb razowy",
+      "kromka chleba",
+      "kromki chleba",
+      "chleb żytni",
+      "pieczywo"
+    ],
+    "fdcId": 172688,
+    "fdcDescription": "Bread, whole-wheat, commercially prepared",
+    "unitGrams": {
+      "plaster": 30.0,
+      "sztuka": 30.0
+    }
+  },
+  {
+    "name": "bułka",
+    "synonyms": ["bułki", "bułka pszenna", "bułka kajzerka", "kajzerka"],
+    "fdcId": 172796,
+    "fdcDescription": "Rolls, hamburger or hotdog, plain",
+    "unitGrams": {
+      "sztuka": 50.0
+    }
+  },
+  {
+    "name": "tortilla",
+    "synonyms": ["tortille", "placek tortilla", "tortilla pszenna"],
+    "fdcId": 167535,
+    "fdcDescription": "Tortillas, ready-to-bake or -fry, flour, shelf stable",
+    "unitGrams": {
+      "sztuka": 45.0
+    }
+  },
+  {
+    "name": "ryż biały",
+    "synonyms": ["ryż", "ryżu", "ryż długoziarnisty", "ryż jaśminowy", "ryż basmati"],
+    "fdcId": 168877,
+    "fdcDescription": "Rice, white, long-grain, regular, raw, enriched",
+    "density": 0.8
+  },
+  {
+    "name": "ryż brązowy",
+    "synonyms": ["ryż pełnoziarnisty", "ryżu brązowego"],
+    "fdcId": 169703,
+    "fdcDescription": "Rice, brown, long-grain, raw (Includes foods for USDA's Food Distribution Program)",
+    "density": 0.8
+  },
+  {
+    "name": "makaron",
+    "synonyms": [
+      "makaron pszenny",
+      "makaron spaghetti",
+      "spaghetti",
+      "makaron penne",
+      "penne",
+      "makaron świderki",
+      "makaron rurki",
+      "makaronu",
+      "makaron tagliatelle",
+      "tagliatelle"
+    ],
+    "fdcId": 169736,
+    "fdcDescription": "Pasta, dry, enriched",
+    "density": 0.4
+  },
+  {
+    "name": "makaron pełnoziarnisty",
+    "synonyms": ["makaron razowy"],
+    "fdcId": 169738,
+    "fdcDescription": "Pasta, whole-wheat, dry (Includes foods for USDA's Food Distribution Program)",
+    "density": 0.4
+  },
+  {
+    "name": "kasza gryczana",
+    "synonyms": ["kaszy gryczanej", "kasza gryczana biała", "kasza gryczana prażona"],
+    "fdcId": 170685,
+    "fdcDescription": "Buckwheat groats, roasted, dry",
+    "density": 0.75
+  },
+  {
+    "name": "kasza jaglana",
+    "synonyms": ["kaszy jaglanej", "jaglanka"],
+    "fdcId": 169702,
+    "fdcDescription": "Millet, raw",
+    "density": 0.8
+  },
+  {
+    "name": "kasza jęczmienna",
+    "synonyms": ["kaszy jęczmiennej", "kasza pęczak", "pęczak", "kasza perłowa"],
+    "fdcId": 170284,
+    "fdcDescription": "Barley, pearled, raw",
+    "density": 0.75
+  },
+  {
+    "name": "kasza manna",
+    "synonyms": ["kaszy manny", "manna"],
+    "fdcId": 169715,
+    "fdcDescription": "Semolina, enriched",
+    "density": 0.7
+  },
+  {
+    "name": "kuskus",
+    "synonyms": ["kuskus pszenny", "kuskusu"],
+    "fdcId": 169699,
+    "fdcDescription": "Couscous, dry",
+    "density": 0.7
+  },
+  {
+    "name": "quinoa",
+    "synonyms": ["komosa ryżowa", "komosy ryżowej"],
+    "fdcId": 168874,
+    "fdcDescription": "Quinoa, uncooked",
+    "density": 0.75
+  },
+  {
+    "name": "bulgur",
+    "synonyms": ["kasza bulgur", "kaszy bulgur"],
+    "fdcId": 170688,
+    "fdcDescription": "Bulgur, dry",
+    "density": 0.7
+  },
+  {
+    "name": "płatki owsiane",
+    "synonyms": ["płatków owsianych", "płatki owsiane górskie", "płatki owsiane błyskawiczne"],
+    "fdcId": 173904,
+    "fdcDescription": "Cereals, oats, regular and quick, not fortified, dry",
+    "density": 0.35
+  },
+  {
+    "name": "musli",
+    "synonyms": [],
+    "fdcId": 171646,
+    "fdcDescription": "Cereals ready-to-eat, granola, homemade",
+    "density": 0.4
+  },
+  {
+    "name": "otręby owsiane",
+    "synonyms": ["otręby", "otręby pszenne", "otrębów"],
+    "fdcId": 168872,
+    "fdcDescription": "Oat bran, raw",
+    "density": 0.4
+  },
+  {
+    "name": "ziemniaki",
+    "synonyms": ["ziemniak", "ziemniaków", "ziemniaki młode", "młode ziemniaki"],
+    "fdcId": 170026,
+    "fdcDescription": "Potatoes, flesh and skin, raw",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "bataty",
+    "synonyms": ["batat", "słodkie ziemniaki", "słodki ziemniak"],
+    "fdcId": 168482,
+    "fdcDescription": "Sweet potato, raw, unprepared (Includes foods for USDA's Food Distribution Program)",
+    "unitGrams": {
+      "sztuka": 200.0
+    }
+  },
+  {
+    "name": "cebula",
+    "synonyms": ["cebule", "cebuli", "cebula biała", "cebula żółta"],
+    "fdcId": 170000,
+    "fdcDescription": "Onions, raw",
+    "density": 0.55,
+    "unitGrams": {
+      "sztuka": 110.0
+    }
+  },
+  {
+    "name": "szalotka",
+    "synonyms": ["szalotki"],
+    "fdcId": 170499,
+    "fdcDescription": "Shallots, raw",
+    "unitGrams": {
+      "sztuka": 30.0
+    }
+  },
+  {
+    "name": "czosnek",
+    "synonyms": ["ząbek czosnku", "ząbki czosnku", "czosnku", "główka czosnku"],
+    "fdcId": 169230,
+    "fdcDescription": "Garlic, raw",
+    "density": 0.6,
+    "unitGrams": {
+      "ząbek": 4.0,
+      "sztuka": 4.0
+    }
+  },
+  {
+    "name": "por",
+    "synonyms": ["pora", "pory", "porów"],
+    "fdcId": 169246,
+    "fdcDescription": "Leeks, (bulb and lower leaf-portion), raw",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "marchew",
+    "synonyms": ["marchewka", "marchewki", "marchwi", "marchew surowa"],
+    "fdcId": 170393,
+    "fdcDescription": "Carrots, raw",
+    "unitGrams": {
+      "sztuka": 70.0
+    }
+  },
+  {
+    "name": "pietruszka korzeń",
+    "synonyms": ["korzeń pietruszki", "pietruszki"],
+    "fdcId": 170417,
+    "fdcDescription": "Parsnips, raw",
+    "unitGrams": {
+      "sztuka": 80.0
+    }
+  },
+  {
+    "name": "seler",
+    "synonyms": ["seler korzeń", "korzeń selera", "selera"],
+    "fdcId": 170400,
+    "fdcDescription": "Celeriac, raw",
+    "unitGrams": {
+      "sztuka": 200.0
+    }
+  },
+  {
+    "name": "seler naciowy",
+    "synonyms": ["łodyga selera", "łodygi selera", "selera naciowego"],
+    "fdcId": 169988,
+    "fdcDescription": "Celery, raw",
+    "density": 0.5,
+    "unitGrams": {
+      "sztuka": 40.0
+    }
+  },
+  {
+    "name": "burak",
+    "synonyms": ["buraki", "buraka", "buraczki", "burak czerwony"],
+    "fdcId": 169145,
+    "fdcDescription": "Beets, raw",
+    "unitGrams": {
+      "sztuka": 130.0
+    }
+  },
+  {
+    "name": "rzodkiewka",
+    "synonyms": ["rzodkiewki", "rzodkiewek"],
+    "fdcId": 169276,
+    "fdcDescription": "Radishes, raw",
+    "unitGrams": {
+      "sztuka": 8.0
+    }
+  },
+  {
+    "name": "rzepa",
+    "synonyms": ["rzepa biała"],
+    "fdcId": 170465,
+    "fdcDescription": "Turnips, raw",
+    "unitGrams": {
+      "sztuka": 120.0
+    }
+  },
+  {
+    "name": "pomidor",
+    "synonyms": [
+      "pomidory",
+      "pomidorów",
+      "pomidor malinowy",
+      "pomidor koktajlowy",
+      "pomidorki koktajlowe",
+      "pomidorki"
+    ],
+    "fdcId": 170457,
+    "fdcDescription": "Tomatoes, red, ripe, raw, year round average",
+    "unitGrams": {
+      "sztuka": 120.0
+    }
+  },
+  {
+    "name": "ogórek",
+    "synonyms": ["ogórki", "ogórka", "ogórek zielony", "ogórek świeży"],
+    "fdcId": 168409,
+    "fdcDescription": "Cucumber, with peel, raw",
+    "unitGrams": {
+      "sztuka": 200.0
+    }
+  },
+  {
+    "name": "ogórek kiszony",
+    "synonyms": ["ogórki kiszone", "ogórka kiszonego"],
+    "fdcId": 168558,
+    "fdcDescription": "Pickles, cucumber, dill or kosher dill",
+    "unitGrams": {
+      "sztuka": 70.0
+    }
+  },
+  {
+    "name": "papryka czerwona",
+    "synonyms": ["papryka", "papryki", "papryka żółta", "papryka zielona", "papryka słodka"],
+    "fdcId": 170108,
+    "fdcDescription": "Peppers, sweet, red, raw",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "papryczka chili",
+    "synonyms": ["chili", "papryczki chili", "papryka chili"],
+    "fdcId": 170106,
+    "fdcDescription": "Peppers, hot chili, red, raw",
+    "unitGrams": {
+      "sztuka": 15.0
+    }
+  },
+  {
+    "name": "cukinia",
+    "synonyms": ["cukinii", "cukinie"],
+    "fdcId": 169291,
+    "fdcDescription": "Squash, summer, zucchini, includes skin, raw",
+    "unitGrams": {
+      "sztuka": 250.0
+    }
+  },
+  {
+    "name": "bakłażan",
+    "synonyms": ["bakłażana", "bakłażany"],
+    "fdcId": 169228,
+    "fdcDescription": "Eggplant, raw",
+    "unitGrams": {
+      "sztuka": 300.0
+    }
+  },
+  {
+    "name": "dynia",
+    "synonyms": ["dyni", "dynia hokkaido"],
+    "fdcId": 168448,
+    "fdcDescription": "Pumpkin, raw",
+    "density": 0.5
+  },
+  {
+    "name": "kapusta biała",
+    "synonyms": ["kapusta", "kapusty", "kapusta świeża"],
+    "fdcId": 169975,
+    "fdcDescription": "Cabbage, raw",
+    "density": 0.4
+  },
+  {
+    "name": "kapusta czerwona",
+    "synonyms": ["kapusty czerwonej"],
+    "fdcId": 169977,
+    "fdcDescription": "Cabbage, red, raw",
+    "density": 0.4
+  },
+  {
+    "name": "kapusta pekińska",
+    "synonyms": ["kapusty pekińskiej"],
+    "fdcId": 170390,
+    "fdcDescription": "Cabbage, chinese (pak-choi), raw",
+    "density": 0.4
+  },
+  {
+    "name": "kapusta kiszona",
+    "synonyms": ["kiszona kapusta", "kapusty kiszonej"],
+    "fdcId": 169279,
+    "fdcDescription": "Sauerkraut, canned, solids and liquids",
+    "density": 0.9
+  },
+  {
+    "name": "brokuł",
+    "synonyms": ["brokuły", "brokułów", "brokuły mrożone"],
+    "fdcId": 170379,
+    "fdcDescription": "Broccoli, raw",
+    "density": 0.35,
+    "unitGrams": {
+      "sztuka": 300.0
+    }
+  },
+  {
+    "name": "kalafior",
+    "synonyms": ["kalafiora"],
+    "fdcId": 169986,
+    "fdcDescription": "Cauliflower, raw",
+    "density": 0.4,
+    "unitGrams": {
+      "sztuka": 600.0
+    }
+  },
+  {
+    "name": "brukselka",
+    "synonyms": ["brukselki", "kapusta brukselska"],
+    "fdcId": 170383,
+    "fdcDescription": "Brussels sprouts, raw",
+    "density": 0.4
+  },
+  {
+    "name": "szpinak",
+    "synonyms": ["szpinaku", "szpinak świeży", "liście szpinaku", "szpinak mrożony"],
+    "fdcId": 168462,
+    "fdcDescription": "Spinach, raw",
+    "density": 0.15,
+    "unitGrams": {
+      "garść": 30.0
+    }
+  },
+  {
+    "name": "sałata",
+    "synonyms": [
+      "sałata zielona",
+      "sałata masłowa",
+      "liście sałaty",
+      "sałaty",
+      "mix sałat",
+      "sałata rzymska"
+    ],
+    "fdcId": 169247,
+    "fdcDescription": "Lettuce, cos or romaine, raw",
+    "density": 0.1,
+    "unitGrams": {
+      "garść": 30.0,
+      "sztuka": 300.0
+    }
+  },
+  {
+    "name": "rukola",
+    "synonyms": ["rukoli", "roszponka", "roszponki"],
+    "fdcId": 169387,
+    "fdcDescription": "Arugula, raw",
+    "density": 0.1,
+    "unitGrams": {
+      "garść": 20.0
+    }
+  },
+  {
+    "name": "jarmuż",
+    "synonyms": ["jarmużu"],
+    "fdcId": 168421,
+    "fdcDescription": "Kale, raw",
+    "density": 0.2,
+    "unitGrams": {
+      "garść": 30.0
+    }
+  },
+  {
+    "name": "szparagi",
+    "synonyms": ["szparagów", "szparag"],
+    "fdcId": 168389,
+    "fdcDescription": "Asparagus, raw",
+    "unitGrams": {
+      "sztuka": 20.0
+    }
+  },
+  {
+    "name": "fasolka szparagowa",
+    "synonyms": ["fasolka zielona", "fasolki szparagowej"],
+    "fdcId": 169961,
+    "fdcDescription": "Beans, snap, green, raw",
+    "density": 0.5
+  },
+  {
+    "name": "groszek zielony",
+    "synonyms": ["groszek", "groszku", "groszek mrożony", "groszek konserwowy"],
+    "fdcId": 170419,
+    "fdcDescription": "Peas, green, raw",
+    "density": 0.65
+  },
+  {
+    "name": "kukurydza",
+    "synonyms": ["kukurydzy", "kukurydza konserwowa", "kukurydza z puszki"],
+    "fdcId": 169214,
+    "fdcDescription": "Corn, sweet, yellow, canned, whole kernel, drained solids",
+    "density": 0.7,
+    "unitGrams": {
+      "puszka": 140.0
+    }
+  },
+  {
+    "name": "pieczarki",
+    "synonyms": ["pieczarka", "pieczarek", "pieczarki świeże", "grzyby"],
+    "fdcId": 169251,
+    "fdcDescription": "Mushrooms, white, raw",
+    "density": 0.35,
+    "unitGrams": {
+      "sztuka": 20.0
+    }
+  },
+  {
+    "name": "boczniaki",
+    "synonyms": ["boczniak", "boczniaków"],
+    "fdcId": 168580,
+    "fdcDescription": "Mushrooms, oyster, raw",
+    "density": 0.35
+  },
+  {
+    "name": "suszone grzyby",
+    "synonyms": ["grzyby suszone", "borowiki suszone"],
+    "fdcId": 168436,
+    "fdcDescription": "Mushrooms, shiitake, dried",
+    "density": 0.3
+  },
+  {
+    "name": "awokado",
+    "synonyms": ["awokado dojrzałe"],
+    "fdcId": 171705,
+    "fdcDescription": "Avocados, raw, all commercial varieties",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "cytryna",
+    "synonyms": ["cytryny", "cytryn"],
+    "fdcId": 167746,
+    "fdcDescription": "Lemons, raw, without peel",
+    "unitGrams": {
+      "sztuka": 80.0
+    }
+  },
+  {
+    "name": "sok z cytryny",
+    "synonyms": ["soku z cytryny", "sok cytrynowy"],
+    "fdcId": 167747,
+    "fdcDescription": "Lemon juice, raw",
+    "density": 1.03
+  },
+  {
+    "name": "limonka",
+    "synonyms": ["limonki"],
+    "fdcId": 168155,
+    "fdcDescription": "Limes, raw",
+    "unitGrams": {
+      "sztuka": 70.0
+    }
+  },
+  {
+    "name": "sok z limonki",
+    "synonyms": ["soku z limonki"],
+    "fdcId": 168156,
+    "fdcDescription": "Lime juice, raw",
+    "density": 1.03
+  },
+  {
+    "name": "pomarańcza",
+    "synonyms": ["pomarańcze", "pomarańczy"],
+    "fdcId": 169097,
+    "fdcDescription": "Oranges, raw, all commercial varieties",
+    "unitGrams": {
+      "sztuka": 180.0
+    }
+  },
+  {
+    "name": "sok pomarańczowy",
+    "synonyms": ["soku pomarańczowego"],
+    "fdcId": 169098,
+    "fdcDescription": "Orange juice, raw (Includes foods for USDA's Food Distribution Program)",
+    "density": 1.04
+  },
+  {
+    "name": "jabłko",
+    "synonyms": ["jabłka", "jabłek"],
+    "fdcId": 171688,
+    "fdcDescription": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",
+    "unitGrams": {
+      "sztuka": 180.0
+    }
+  },
+  {
+    "name": "gruszka",
+    "synonyms": ["gruszki", "gruszek"],
+    "fdcId": 169118,
+    "fdcDescription": "Pears, raw",
+    "unitGrams": {
+      "sztuka": 180.0
+    }
+  },
+  {
+    "name": "banan",
+    "synonyms": ["banany", "bananów"],
+    "fdcId": 173944,
+    "fdcDescription": "Bananas, raw",
+    "unitGrams": {
+      "sztuka": 120.0
+    }
+  },
+  {
+    "name": "truskawki",
+    "synonyms": ["truskawka", "truskawek"],
+    "fdcId": 167762,
+    "fdcDescription": "Strawberries, raw",
+    "density": 0.6
+  },
+  {
+    "name": "maliny",
+    "synonyms": ["malina", "malin"],
+    "fdcId": 167755,
+    "fdcDescription": "Raspberries, raw",
+    "density": 0.5
+  },
+  {
+    "name": "borówki",
+    "synonyms": ["borówka", "borówek", "jagody"],
+    "fdcId": 171711,
+    "fdcDescription": "Blueberries, raw",
+    "density": 0.6
+  },
+  {
+    "name": "winogrona",
+    "synonyms": ["winogron"],
+    "fdcId": 174683,
+    "fdcDescription": "Grapes, red or green (European type, such as Thompson seedless), raw",
+    "density": 0.6
+  },
+  {
+    "name": "brzoskwinia",
+    "synonyms": ["brzoskwinie", "brzoskwiń"],
+    "fdcId": 169928,
+    "fdcDescription": "Peaches, yellow, raw",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "śliwki",
+    "synonyms": ["śliwka", "śliwek"],
+    "fdcId": 169949,
+    "fdcDescription": "Plums, raw",
+    "unitGrams": {
+      "sztuka": 60.0
+    }
+  },
+  {
+    "name": "wiśnie",
+    "synonyms": ["wiśnia", "wiśni", "czereśnie"],
+    "fdcId": 173954,
+    "fdcDescription": "Cherries, sour, red, raw",
+    "density": 0.65
+  },
+  {
+    "name": "mango",
+    "synonyms": ["mango dojrzałe"],
+    "fdcId": 169910,
+    "fdcDescription": "Mangos, raw",
+    "unitGrams": {
+      "sztuka": 300.0
+    }
+  },
+  {
+    "name": "ananas",
+    "synonyms": ["ananasa"],
+    "fdcId": 169124,
+    "fdcDescription": "Pineapple, raw, all varieties",
+    "density": 0.65
+  },
+  {
+    "name": "kiwi",
+    "synonyms": ["kiwi dojrzałe"],
+    "fdcId": 168153,
+    "fdcDescription": "Kiwifruit, green, raw",
+    "unitGrams": {
+      "sztuka": 75.0
+    }
+  },
+  {
+    "name": "arbuz",
+    "synonyms": ["arbuza"],
+    "fdcId": 167765,
+    "fdcDescription": "Watermelon, raw",
+    "density": 0.6
+  },
+  {
+    "name": "melon",
+    "synonyms": ["melona"],
+    "fdcId": 169092,
+    "fdcDescription": "Melons, cantaloupe, raw",
+    "density": 0.6
+  },
+  {
+    "name": "rodzynki",
+    "synonyms": ["rodzynek"],
+    "fdcId": 168165,
+    "fdcDescription": "Raisins, dark, seedless (Includes foods for USDA's Food Distribution Program)",
+    "density": 0.65
+  },
+  {
+    "name": "suszone żurawiny",
+    "synonyms": ["żurawina suszona"],
+    "fdcId": 171723,
+    "fdcDescription": "Cranberries, dried, sweetened (Includes foods for USDA's Food Distribution Program)",
+    "density": 0.5
+  },
+  {
+    "name": "suszone morele",
+    "synonyms": ["morele suszone"],
+    "fdcId": 173941,
+    "fdcDescription": "Apricots, dried, sulfured, uncooked",
+    "density": 0.6
+  },
+  {
+    "name": "śliwki suszone",
+    "synonyms": ["suszone śliwki"],
+    "fdcId": 168162,
+    "fdcDescription": "Plums, dried (prunes), uncooked",
+    "density": 0.65
+  },
+  {
+    "name": "daktyle",
+    "synonyms": ["daktyl", "daktyli"],
+    "fdcId": 171726,
+    "fdcDescription": "Dates, deglet noor",
+    "density": 0.65,
+    "unitGrams": {
+      "sztuka": 8.0
+    }
+  },
+  {
+    "name": "figi suszone",
+    "synonyms": ["suszone figi"],
+    "fdcId": 174665,
+    "fdcDescription": "Figs, dried, uncooked",
+    "density": 0.65
+  },
+  {
+    "name": "orzechy włoskie",
+    "synonyms": ["orzech włoski", "orzechów włoskich"],
+    "fdcId": 170187,
+    "fdcDescription": "Nuts, walnuts, english",
+    "density": 0.45
+  },
+  {
+    "name": "migdały",
+    "synonyms": ["migdał", "migdałów", "płatki migdałowe"],
+    "fdcId": 170567,
+    "fdcDescription": "Nuts, almonds",
+    "density": 0.55
+  },
+  {
+    "name": "orzechy laskowe",
+    "synonyms": ["orzech laskowy", "orzechów laskowych"],
+    "fdcId": 170581,
+    "fdcDescription": "Nuts, hazelnuts or filberts",
+    "density": 0.55
+  },
+  {
+    "name": "orzechy nerkowca",
+    "synonyms": ["nerkowce", "orzechy nerkowiec"],
+    "fdcId": 170162,
+    "fdcDescription": "Nuts, cashew nuts, raw",
+    "density": 0.55
+  },
+  {
+    "name": "orzeszki ziemne",
+    "synonyms": ["orzechy ziemne", "orzeszków ziemnych", "arachidy"],
+    "fdcId": 172430,
+    "fdcDescription": "Peanuts, all types, raw",
+    "density": 0.6
+  },
+  {
+    "name": "masło orzechowe",
+    "synonyms": ["masła orzechowego", "masło z orzeszków ziemnych"],
+    "fdcId": 174266,
+    "fdcDescription": "Peanut butter, smooth style, with salt (Includes foods for USDA's Food Distribution Program)",
+    "density": 1.05
+  },
+  {
+    "name": "pistacje",
+    "synonyms": ["pistacji"],
+    "fdcId": 170184,
+    "fdcDescription": "Nuts, pistachio nuts, raw",
+    "density": 0.55
+  },
+  {
+    "name": "pestki dyni",
+    "synonyms": ["pestek dyni"],
+    "fdcId": 170556,
+    "fdcDescription": "Seeds, pumpkin and squash seed kernels, dried",
+    "density": 0.55
+  },
+  {
+    "name": "pestki słonecznika",
+    "synonyms": ["słonecznik", "słonecznika", "ziarna słonecznika"],
+    "fdcId": 170562,
+    "fdcDescription": "Seeds, sunflower seed kernels, dried",
+    "density": 0.55
+  },
+  {
+    "name": "sezam",
+    "synonyms": ["nasiona sezamu", "sezamu"],
+    "fdcId": 170150,
+    "fdcDescription": "Seeds, sesame seeds, whole, dried",
+    "density": 0.6
+  },
+  {
+    "name": "siemię lniane",
+    "synonyms": ["nasiona lnu", "siemienia lnianego", "len mielony"],
+    "fdcId": 169414,
+    "fdcDescription": "Seeds, flaxseed",
+    "density": 0.6
+  },
+  {
+    "name": "nasiona chia",
+    "synonyms": ["chia"],
+    "fdcId": 170554,
+    "fdcDescription": "Seeds, chia seeds, dried",
+    "density": 0.6
+  },
+  {
+    "name": "wiórki kokosowe",
+    "synonyms": ["wiórków kokosowych", "kokos"],
+    "fdcId": 170170,
+    "fdcDescription": "Nuts, coconut meat, dried (desiccated), not sweetened",
+    "density": 0.35
+  },
+  {
+    "name": "mleko kokosowe",
+    "synonyms": ["mleczko kokosowe", "mleka kokosowego"],
+    "fdcId": 170173,
+    "fdcDescription": "Nuts, coconut milk, canned (liquid expressed from grated meat and water)",
+    "density": 1.0
+  },
+  {
+    "name": "soczewica czerwona",
+    "synonyms": ["soczewica", "soczewicy", "soczewica zielona", "soczewica brązowa"],
+    "fdcId": 172420,
+    "fdcDescription": "Lentils, raw",
+    "density": 0.8
+  },
+  {
+    "name": "ciecierzyca",
+    "synonyms": ["ciecierzycy", "ciecierzyca z puszki", "cieciorka"],
+    "fdcId": 173756,
+    "fdcDescription": "Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",
+    "density": 0.8
+  },
+  {
+    "name": "fasola biała",
+    "synonyms": ["fasoli białej", "fasola", "fasoli", "fasola jaś"],
+    "fdcId": 175202,
+    "fdcDescription": "Beans, white, mature seeds, raw",
+    "density": 0.8
+  },
+  {
+    "name": "fasola czerwona",
+    "synonyms": ["fasoli czerwonej", "fasola czerwona z puszki"],
+    "fdcId": 173744,
+    "fdcDescription": "Beans, kidney, red, mature seeds, raw",
+    "density": 0.8
+  },
+  {
+    "name": "fasola czarna",
+    "synonyms": ["fasoli czarnej"],
+    "fdcId": 173734,
+    "fdcDescription": "Beans, black, mature seeds, raw",
+    "density": 0.8
+  },
+  {
+    "name": "groch",
+    "synonyms": ["grochu", "groch łuskany"],
+    "fdcId": 172428,
+    "fdcDescription": "Peas, green, split, mature seeds, raw",
+    "density": 0.8
+  },
+  {
+    "name": "soja",
+    "synonyms": ["nasiona soi", "soi"],
+    "fdcId": 174270,
+    "fdcDescription": "Soybeans, mature seeds, raw",
+    "density": 0.8
+  },
+  {
+    "name": "tofu",
+    "synonyms": ["tofu naturalne", "tofu wędzone"],
+    "fdcId": 172475,
+    "fdcDescription": "Tofu, raw, firm, prepared with calcium sulfate",
+    "density": 1.0
+  },
+  {
+    "name": "hummus",
+    "synonyms": ["hummusu"],
+    "fdcId": 174289,
+    "fdcDescription": "Hummus, commercial",
+    "density": 1.05
+  },
+  {
+    "name": "tahini",
+    "synonyms": ["pasta sezamowa"],
+    "fdcId": 170191,
+    "fdcDescription": "Seeds, sesame butter, paste",
+    "density": 1.0
+  },
+  {
+    "name": "sól",
+    "synonyms": ["soli"],
+    "fdcId": 173468,
+    "fdcDescription": "Salt, table",
+    "density": 1.2,
+    "unitGrams": {
+      "szczypta": 1.0
+    },
+    "negligible": true
+  },
+  {
+    "name": "pieprz",
+    "synonyms": ["pieprzu", "pieprz czarny", "pieprz mielony"],
+    "fdcId": 170931,
+    "fdcDescription": "Spices, pepper, black",
+    "density": 0.5,
+    "unitGrams": {
+      "szczypta": 0.5
+    },
+    "negligible": true
+  },
+  {
+    "name": "papryka słodka mielona",
+    "synonyms": ["papryka mielona", "papryka w proszku", "papryka wędzona"],
+    "fdcId": 171329,
+    "fdcDescription": "Spices, paprika",
+    "density": 0.45
+  },
+  {
+    "name": "papryka ostra mielona",
+    "synonyms": ["papryka ostra", "chilli w proszku", "płatki chili"],
+    "fdcId": 170932,
+    "fdcDescription": "Spices, pepper, red or cayenne",
+    "density": 0.45
+  },
+  {
+    "name": "kurkuma",
+    "synonyms": ["kurkumy"],
+    "fdcId": 172231,
+    "fdcDescription": "Spices, turmeric, ground",
+    "density": 0.55
+  },
+  {
+    "name": "cynamon",
+    "synonyms": ["cynamonu"],
+    "fdcId": 171320,
+    "fdcDescription": "Spices, cinnamon, ground",
+    "density": 0.45
+  },
+  {
+    "name": "kmin rzymski",
+    "synonyms": ["kminek", "kminu rzymskiego", "kmin"],
+    "fdcId": 170923,
+    "fdcDescription": "Spices, cumin seed",
+    "density": 0.45
+  },
+  {
+    "name": "oregano",
+    "synonyms": ["oregano suszone"],
+    "fdcId": 171328,
+    "fdcDescription": "Spices, oregano, dried",
+    "density": 0.2
+  },
+  {
+    "name": "bazylia",
+    "synonyms": ["bazylia świeża", "bazylia suszona", "liście bazylii"],
+    "fdcId": 171317,
+    "fdcDescription": "Spices, basil, dried",
+    "density": 0.1
+  },
+  {
+    "name": "tymianek",
+    "synonyms": ["tymianku"],
+    "fdcId": 170938,
+    "fdcDescription": "Spices, thyme, dried",
+    "density": 0.3
+  },
+  {
+    "name": "rozmaryn",
+    "synonyms": ["rozmarynu"],
+    "fdcId": 171333,
+    "fdcDescription": "Spices, rosemary, dried",
+    "density": 0.2
+  },
+  {
+    "name": "majeranek",
+    "synonyms": ["majeranku"],
+    "fdcId": 170928,
+    "fdcDescription": "Spices, marjoram, dried",
+    "density": 0.15
+  },
+  {
+    "name": "liść laurowy",
+    "synonyms": ["liście laurowe", "liści laurowych"],
+    "fdcId": 170917,
+    "fdcDescription": "Spices, bay leaf",
+    "density": 0.1
+  },
+  {
+    "name": "ziele angielskie",
+    "synonyms": ["ziela angielskiego"],
+    "fdcId": 171315,
+    "fdcDescription": "Spices, allspice, ground",
+    "density": 0.45
+  },
+  {
+    "name": "imbir",
+    "synonyms": ["imbiru", "imbir świeży", "korzeń imbiru"],
+    "fdcId": 169231,
+    "fdcDescription": "Ginger root, raw",
+    "density": 0.5
+  },
+  {
+    "name": "gałka muszkatołowa",
+    "synonyms": ["gałki muszkatołowej"],
+    "fdcId": 171326,
+    "fdcDescription": "Spices, nutmeg, ground",
+    "density": 0.5
+  },
+  {
+    "name": "natka pietruszki",
+    "synonyms": [
+      "pietruszka",
+      "pietruszka natka",
+      "natki pietruszki",
+      "pietruszka zielona",
+      "świeża pietruszka"
+    ],
+    "fdcId": 170416,
+    "fdcDescription": "Parsley, fresh",
+    "density": 0.2,
+    "unitGrams": {
+      "pęczek": 50.0,
+      "garść": 15.0
+    }
+  },
+  {
+    "name": "koperek",
+    "synonyms": ["koperku", "koper", "kopru", "koper świeży"],
+    "fdcId": 172233,
+    "fdcDescription": "Dill weed, fresh",
+    "density": 0.15,
+    "unitGrams": {
+      "pęczek": 40.0,
+      "garść": 10.0
+    }
+  },
+  {
+    "name": "szczypiorek",
+    "synonyms": ["szczypiorku", "szczypior", "cebula zielona", "zielona cebula", "dymka"],
+    "fdcId": 169994,
+    "fdcDescription": "Chives, raw",
+    "density": 0.2,
+    "unitGrams": {
+      "pęczek": 40.0
+    }
+  },
+  {
+    "name": "mięta",
+    "synonyms": ["mięty"],
+    "fdcId": 173475,
+    "fdcDescription": "Spearmint, fresh",
+    "density": 0.15,
+    "unitGrams": {
+      "garść": 10.0
+    }
+  },
+  {
+    "name": "kolendra",
+    "synonyms": ["kolendry", "kolendra świeża", "świeża kolendra"],
+    "fdcId": 169997,
+    "fdcDescription": "Coriander (cilantro) leaves, raw",
+    "density": 0.15,
+    "unitGrams": {
+      "pęczek": 40.0
+    }
+  },
+  {
+    "name": "woda",
+    "synonyms": ["wody"],
+    "fdcId": 173647,
+    "fdcDescription": "Beverages, water, tap, drinking",
+    "density": 1.0,
+    "negligible": true
+  },
+  {
+    "name": "bulion",
+    "synonyms": ["bulion warzywny", "bulion drobiowy", "bulion mięsny", "rosół"],
+    "fdcId": 174536,
+    "fdcDescription": "Soup, chicken broth, ready-to-serve",
+    "density": 1.0
+  },
+  {
+    "name": "kostka rosołowa",
+    "synonyms": ["kostka bulionowa", "kostki rosołowe"],
+    "fdcId": 171563,
+    "fdcDescription": "Soup, chicken broth cubes, dry",
+    "unitGrams": {
+      "kostka": 10.0
+    }
+  },
+  {
+    "name": "wino białe",
+    "synonyms": ["wina białego", "białe wino"],
+    "fdcId": 174837,
+    "fdcDescription": "Alcoholic beverage, wine, table, white",
+    "density": 0.99
+  },
+  {
+    "name": "wino czerwone",
+    "synonyms": ["wina czerwonego", "czerwone wino"],
+    "fdcId": 173190,
+    "fdcDescription": "Alcoholic beverage, wine, table, red",
+    "density": 0.99
+  },
+  {
+    "name": "piwo",
+    "synonyms": ["piwa"],
+    "fdcId": 168746,
+    "fdcDescription": "Alcoholic beverage, beer, regular, all",
+    "density": 1.0
+  },
+  {
+    "name": "kawa",
+    "synonyms": ["kawy", "kawa rozpuszczalna"],
+    "fdcId": 171890,
+    "fdcDescription": "Beverages, coffee, brewed, prepared with tap water",
+    "density": 1.0
+  },
+  {
+    "name": "herbata",
+    "synonyms": ["herbaty"],
+    "fdcId": 173227,
+    "fdcDescription": "Beverages, tea, black, brewed, prepared with tap water",
+    "density": 1.0
+  },
+  {
+    "name": "proszek do pieczenia",
+    "synonyms": ["proszku do pieczenia"],
+    "fdcId": 172803,
+    "fdcDescription": "Leavening agents, baking powder, double-acting, sodium aluminum sulfate",
+    "density": 0.9
+  },
+  {
+    "name": "soda oczyszczona",
+    "synonyms": ["sody oczyszczonej"],
+    "fdcId": 175040,
+    "fdcDescription": "Leavening agents, baking soda",
+    "density": 1.1
+  },
+  {
+    "name": "drożdże",
+    "synonyms": ["drożdży", "drożdże suche", "drożdże świeże"],
+    "fdcId": 175043,
+    "fdcDescription": "Leavening agents, yeast, baker's, active dry",
+    "density": 0.6,
+    "unitGrams": {
+      "kostka": 100.0
+    }
+  },
+  {
+    "name": "żelatyna",
+    "synonyms": ["żelatyny"],
+    "fdcId": 168775,
+    "fdcDescription": "Gelatin desserts, dry mix",
+    "density": 0.7
+  },
+  {
+    "name": "wanilia",
+    "synonyms": ["ekstrakt waniliowy", "esencja waniliowa"],
+    "fdcId": 173471,
+    "fdcDescription": "Vanilla extract",
+    "density": 0.9
+  },
+  {
+    "name": "kurczak mielony",
+    "synonyms": ["mięso mielone z kurczaka", "mielony kurczak"],
+    "fdcId": 171116,
+    "fdcDescription": "Chicken, ground, raw"
+  },
+  {
+    "name": "wątróbka drobiowa",
+    "synonyms": ["wątróbka z kurczaka", "wątróbki drobiowej", "wątróbka"],
+    "fdcId": 171060,
+    "fdcDescription": "Chicken, liver, all classes, raw"
+  },
+  {
+    "name": "skrzydełka z kurczaka",
+    "synonyms": ["skrzydełka kurczaka", "skrzydełka"],
+    "fdcId": 172390,
+    "fdcDescription": "Chicken, broilers or fryers, wing, meat and skin, raw",
+    "unitGrams": {
+      "sztuka": 60.0
+    }
+  },
+  {
+    "name": "kaczka",
+    "synonyms": ["pierś z kaczki", "piersi z kaczki", "mięso z kaczki"],
+    "fdcId": 172410,
+    "fdcDescription": "Duck, domesticated, meat only, raw"
+  },
+  {
+    "name": "cielęcina",
+    "synonyms": ["mięso cielęce", "polędwica cielęca"],
+    "fdcId": 175269,
+    "fdcDescription": "Veal, leg (top round), separable lean only, raw"
+  },
+  {
+    "name": "baranina",
+    "synonyms": ["jagnięcina", "mięso jagnięce"],
+    "fdcId": 172486,
+    "fdcDescription": "Lamb, leg, shank half, separable lean only, trimmed to 1/4\" fat, choice, raw"
+  },
+  {
+    "name": "szynka wieprzowa surowa",
+    "synonyms": ["łopatka wieprzowa", "łopatka", "szynka surowa"],
+    "fdcId": 167845,
+    "fdcDescription": "Pork, fresh, shoulder, whole, separable lean only, raw"
+  },
+  {
+    "name": "żeberka",
+    "synonyms": ["żeberka wieprzowe"],
+    "fdcId": 167853,
+    "fdcDescription": "Pork, fresh, spareribs, separable lean and fat, raw"
+  },
+  {
+    "name": "parówki",
+    "synonyms": ["parówka", "parówek", "hot dog"],
+    "fdcId": 173862,
+    "fdcDescription": "Frankfurter, beef, unheated",
+    "unitGrams": {
+      "sztuka": 50.0
+    }
+  },
+  {
+    "name": "salami",
+    "synonyms": ["salami plastry"],
+    "fdcId": 174603,
+    "fdcDescription": "Salami, Italian, pork",
+    "unitGrams": {
+      "plaster": 8.0
+    }
+  },
+  {
+    "name": "pasztet",
+    "synonyms": ["pasztetu", "pasztet drobiowy"],
+    "fdcId": 172928,
+    "fdcDescription": "Pate, chicken liver, canned"
+  },
+  {
+    "name": "sardynki w puszce",
+    "synonyms": ["sardynki", "sardynek"],
+    "fdcId": 175139,
+    "fdcDescription": "Fish, sardine, Atlantic, canned in oil, drained solids with bone",
+    "unitGrams": {
+      "puszka": 90.0
+    }
+  },
+  {
+    "name": "łosoś wędzony",
+    "synonyms": ["wędzony łosoś", "łososia wędzonego"],
+    "fdcId": 173687,
+    "fdcDescription": "Fish, salmon, chinook, smoked",
+    "unitGrams": {
+      "plaster": 25.0
+    }
+  },
+  {
+    "name": "karp",
+    "synonyms": ["filet z karpia"],
+    "fdcId": 171952,
+    "fdcDescription": "Fish, carp, raw"
+  },
+  {
+    "name": "miruna",
+    "synonyms": [
+      "filet z miruny",
+      "mintaj",
+      "filet z mintaja",
+      "pangasius",
+      "filet z pangasiusa",
+      "panga"
+    ],
+    "fdcId": 173725,
+    "fdcDescription": "Fish, pollock, Alaska, raw",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "okoń",
+    "synonyms": ["sandacz", "filet z sandacza"],
+    "fdcId": 173678,
+    "fdcDescription": "Fish, perch, mixed species, raw"
+  },
+  {
+    "name": "małże",
+    "synonyms": ["mule"],
+    "fdcId": 174216,
+    "fdcDescription": "Mollusks, mussel, blue, raw"
+  },
+  {
+    "name": "kalmary",
+    "synonyms": ["kalmar"],
+    "fdcId": 174223,
+    "fdcDescription": "Mollusks, squid, mixed species, raw"
+  },
+  {
+    "name": "mleko skondensowane",
+    "synonyms": ["mleka skondensowanego", "mleko skondensowane słodzone"],
+    "fdcId": 171275,
+    "fdcDescription": "Milk, canned, condensed, sweetened",
+    "density": 1.3
+  },
+  {
+    "name": "mleko sojowe",
+    "synonyms": ["napój sojowy", "mleko roślinne", "napój roślinny"],
+    "fdcId": 172446,
+    "fdcDescription": "Soymilk, original and vanilla, unfortified",
+    "density": 1.03
+  },
+  {
+    "name": "mleko migdałowe",
+    "synonyms": ["napój migdałowy"],
+    "fdcId": 174832,
+    "fdcDescription": "Beverages, almond milk, unsweetened, shelf stable",
+    "density": 1.0
+  },
+  {
+    "name": "śmietanka 12%",
+    "synonyms": ["śmietanka do kawy"],
+    "fdcId": 171255,
+    "fdcDescription": "Cream, fluid, half and half",
+    "density": 1.0
+  },
+  {
+    "name": "jogurt owocowy",
+    "synonyms": ["jogurt z owocami"],
+    "fdcId": 173456,
+    "fdcDescription": "Yogurt, fruit, low fat, 9 grams protein per 8 ounce, fortified with vitamin D",
+    "density": 1.05
+  },
+  {
+    "name": "serek wiejski light",
+    "synonyms": ["serek wiejski lekki"],
+    "fdcId": 173417,
+    "fdcDescription": "Cheese, cottage, lowfat, 1% milkfat",
+    "density": 1.0
+  },
+  {
+    "name": "ser camembert",
+    "synonyms": ["camembert"],
+    "fdcId": 172178,
+    "fdcDescription": "Cheese, camembert"
+  },
+  {
+    "name": "ser brie",
+    "synonyms": ["brie"],
+    "fdcId": 172177,
+    "fdcDescription": "Cheese, brie"
+  },
+  {
+    "name": "ser kozi",
+    "synonyms": ["kozi ser"],
+    "fdcId": 172197,
+    "fdcDescription": "Cheese, goat, hard type"
+  },
+  {
+    "name": "ser topiony",
+    "synonyms": ["serek topiony"],
+    "fdcId": 171254,
+    "fdcDescription": "Cheese spread, pasteurized process, American",
+    "density": 1.0
+  },
+  {
+    "name": "oliwki",
+    "synonyms": ["oliwki zielone", "oliwki czarne"],
+    "fdcId": 169094,
+    "fdcDescription": "Olives, ripe, canned (small-extra large)",
+    "unitGrams": {
+      "sztuka": 4.0
+    }
+  },
+  {
+    "name": "kapary",
+    "synonyms": ["kaparów"],
+    "fdcId": 172238,
+    "fdcDescription": "Capers, canned",
+    "density": 0.9
+  },
+  {
+    "name": "ogórki konserwowe",
+    "synonyms": ["ogórek konserwowy w occie"],
+    "fdcId": 169378,
+    "fdcDescription": "Pickles, cucumber, sweet (includes bread and butter pickles)",
+    "unitGrams": {
+      "sztuka": 70.0
+    }
+  },
+  {
+    "name": "papryka konserwowa",
+    "synonyms": ["papryka marynowana"],
+    "fdcId": 168546,
+    "fdcDescription": "Peppers, sweet, red, canned, solids and liquids"
+  },
+  {
+    "name": "karczochy",
+    "synonyms": ["karczoch"],
+    "fdcId": 169205,
+    "fdcDescription": "Artichokes, (globe or french), raw",
+    "unitGrams": {
+      "sztuka": 120.0
+    }
+  },
+  {
+    "name": "rzodkiew",
+    "synonyms": ["rzodkiew biała"],
+    "fdcId": 170081,
+    "fdcDescription": "Radishes, white icicle, raw"
+  },
+  {
+    "name": "kalarepa",
+    "synonyms": ["kalarepy"],
+    "fdcId": 168424,
+    "fdcDescription": "Kohlrabi, raw",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "kapusta włoska",
+    "synonyms": ["włoszczyzna kapusta"],
+    "fdcId": 170388,
+    "fdcDescription": "Cabbage, savoy, raw",
+    "density": 0.4
+  },
+  {
+    "name": "botwina",
+    "synonyms": ["botwinka"],
+    "fdcId": 170375,
+    "fdcDescription": "Beet greens, raw",
+    "density": 0.2
+  },
+  {
+    "name": "boćwina",
+    "synonyms": ["liście boćwiny"],
+    "fdcId": 169991,
+    "fdcDescription": "Chard, swiss, raw",
+    "density": 0.2
+  },
+  {
+    "name": "fenkuł",
+    "synonyms": ["koper włoski"],
+    "fdcId": 169385,
+    "fdcDescription": "Fennel, bulb, raw",
+    "unitGrams": {
+      "sztuka": 230.0
+    }
+  },
+  {
+    "name": "okra",
+    "synonyms": ["okry"],
+    "fdcId": 169260,
+    "fdcDescription": "Okra, raw"
+  },
+  {
+    "name": "chrzan",
+    "synonyms": ["chrzanu", "tarty chrzan"],
+    "fdcId": 173472,
+    "fdcDescription": "Horseradish, prepared",
+    "density": 1.0
+  },
+  {
+    "name": "cebula czerwona",
+    "synonyms": ["czerwona cebula"],
+    "fdcId": 170000,
+    "fdcDescription": "Onions, raw",
+    "density": 0.55,
+    "unitGrams": {
+      "sztuka": 100.0
+    }
+  },
+  {
+    "name": "mix warzyw",
+    "synonyms": ["mieszanka warzyw", "warzywa mrożone", "mrożonka warzywna", "mieszanka warzywna"],
+    "fdcId": 170471,
+    "fdcDescription": "Vegetables, mixed, frozen, unprepared",
+    "density": 0.6
+  },
+  {
+    "name": "burak gotowany",
+    "synonyms": ["buraki gotowane", "pieczone buraki"],
+    "fdcId": 169146,
+    "fdcDescription": "Beets, cooked, boiled, drained",
+    "unitGrams": {
+      "sztuka": 130.0
+    }
+  },
+  {
+    "name": "ziemniaki gotowane",
+    "synonyms": ["gotowane ziemniaki"],
+    "fdcId": 170438,
+    "fdcDescription": "Potatoes, boiled, cooked in skin, flesh, without salt",
+    "unitGrams": {
+      "sztuka": 150.0
+    }
+  },
+  {
+    "name": "frytki",
+    "synonyms": ["frytki mrożone"],
+    "fdcId": 168442,
+    "fdcDescription": "Potatoes, french fried, all types, salt added in processing, frozen, unprepared"
+  },
+  {
+    "name": "makaron jajeczny",
+    "synonyms": ["makaron jajeczny suchy"],
+    "fdcId": 169731,
+    "fdcDescription": "Noodles, egg, dry, enriched",
+    "density": 0.4
+  },
+  {
+    "name": "makaron ryżowy",
+    "synonyms": ["makaron sojowy", "makaron ryżowy suchy"],
+    "fdcId": 169742,
+    "fdcDescription": "Rice noodles, dry",
+    "density": 0.4
+  },
+  {
+    "name": "lasagne",
+    "synonyms": ["płaty lasagne", "makaron lasagne"],
+    "fdcId": 169736,
+    "fdcDescription": "Pasta, dry, enriched",
+    "density": 0.4
+  },
+  {
+    "name": "ryż dziki",
+    "synonyms": ["ryżu dzikiego"],
+    "fdcId": 169726,
+    "fdcDescription": "Wild rice, raw",
+    "density": 0.75
+  },
+  {
+    "name": "ryż do sushi",
+    "synonyms": ["ryż sushi", "ryż okrągłoziarnisty"],
+    "fdcId": 168931,
+    "fdcDescription": "Rice, white, short-grain, raw, unenriched",
+    "density": 0.85
+  },
+  {
+    "name": "płatki jaglane",
+    "synonyms": ["płatków jaglanych"],
+    "fdcId": 169702,
+    "fdcDescription": "Millet, raw",
+    "density": 0.4
+  },
+  {
+    "name": "płatki żytnie",
+    "synonyms": ["płatków żytnich"],
+    "fdcId": 168884,
+    "fdcDescription": "Rye grain",
+    "density": 0.4
+  },
+  {
+    "name": "amarantus",
+    "synonyms": ["amarantus ziarno"],
+    "fdcId": 170682,
+    "fdcDescription": "Amaranth grain, uncooked",
+    "density": 0.75
+  },
+  {
+    "name": "kasza kukurydziana",
+    "synonyms": ["kaszy kukurydzianej"],
+    "fdcId": 169697,
+    "fdcDescription": "Cornmeal, whole-grain, yellow",
+    "density": 0.6
+  },
+  {
+    "name": "mąka kukurydziana",
+    "synonyms": ["mąki kukurydzianej"],
+    "fdcId": 169697,
+    "fdcDescription": "Cornmeal, whole-grain, yellow",
+    "density": 0.6
+  },
+  {
+    "name": "mąka kokosowa",
+    "synonyms": ["mąki kokosowej"],
+    "fdcId": 170170,
+    "fdcDescription": "Nuts, coconut meat, dried (desiccated), not sweetened",
+    "density": 0.5
+  },
+  {
+    "name": "mąka z ciecierzycy",
+    "synonyms": ["mąka ciecierzycowa"],
+    "fdcId": 174288,
+    "fdcDescription": "Chickpea flour (besan)",
+    "density": 0.55
+  },
+  {
+    "name": "mąka jaglana",
+    "synonyms": ["mąki jaglanej"],
+    "fdcId": 172023,
+    "fdcDescription": "Millet flour",
+    "density": 0.55
+  },
+  {
+    "name": "mąka ryżowa",
+    "synonyms": ["mąki ryżowej"],
+    "fdcId": 169714,
+    "fdcDescription": "Rice flour, white, unenriched",
+    "density": 0.6
+  },
+  {
+    "name": "mąka orkiszowa",
+    "synonyms": ["mąki orkiszowej"],
+    "fdcId": 169745,
+    "fdcDescription": "Spelt, uncooked",
+    "density": 0.55
+  },
+  {
+    "name": "chleb żytni razowy",
+    "synonyms": ["chleb razowy żytni"],
+    "fdcId": 172684,
+    "fdcDescription": "Bread, rye",
+    "unitGrams": {
+      "plaster": 35.0
+    }
+  },
+  {
+    "name": "chleb tostowy",
+    "synonyms": ["tosty", "tost", "kromka tostowa"],
+    "fdcId": 174925,
+    "fdcDescription": "Bread, white, commercially prepared, toasted",
+    "unitGrams": {
+      "plaster": 25.0
+    }
+  },
+  {
+    "name": "bagietka",
+    "synonyms": ["bagietki"],
+    "fdcId": 172675,
+    "fdcDescription": "Bread, french or vienna (includes sourdough)",
+    "unitGrams": {
+      "sztuka": 250.0
+    }
+  },
+  {
+    "name": "wafle ryżowe",
+    "synonyms": ["wafel ryżowy", "wafle"],
+    "fdcId": 170250,
+    "fdcDescription": "Snacks, rice cakes, brown rice, plain, unsalted",
+    "unitGrams": {
+      "sztuka": 9.0
+    }
+  },
+  {
+    "name": "chipsy",
+    "synonyms": ["chipsów"],
+    "fdcId": 169677,
+    "fdcDescription": "Snacks, potato chips, plain, salted"
+  },
+  {
+    "name": "herbatniki",
+    "synonyms": ["ciastka", "ciastka maślane"],
+    "fdcId": 174950,
+    "fdcDescription": "Cookies, butter, commercially prepared, enriched",
+    "unitGrams": {
+      "sztuka": 8.0
+    }
+  },
+  {
+    "name": "biszkopty",
+    "synonyms": ["biszkopt", "podłużne biszkopty"],
+    "fdcId": 172706,
+    "fdcDescription": "Cake, sponge, commercially prepared",
+    "unitGrams": {
+      "sztuka": 10.0
+    }
+  },
+  {
+    "name": "ciasto francuskie",
+    "synonyms": ["ciasta francuskiego"],
+    "fdcId": 172738,
+    "fdcDescription": "Puff pastry, frozen, ready-to-bake, baked"
+  },
+  {
+    "name": "ciasto kruche",
+    "synonyms": ["kruche ciasto"],
+    "fdcId": 175023,
+    "fdcDescription": "Pie crust, standard-type, dry mix, prepared, baked"
+  },
+  {
+    "name": "pizza",
+    "synonyms": ["ciasto na pizzę"],
+    "fdcId": 170317,
+    "fdcDescription": "Pizza, cheese topping, regular crust, frozen, cooked"
+  },
+  {
+    "name": "galaretka",
+    "synonyms": ["galaretki"],
+    "fdcId": 169691,
+    "fdcDescription": "Gelatin desserts, dry mix, with added ascorbic acid, sodium-citrate and salt",
+    "density": 0.7
+  },
+  {
+    "name": "budyń",
+    "synonyms": ["budyniu"],
+    "fdcId": 169609,
+    "fdcDescription": "Puddings, vanilla, dry mix, regular",
+    "density": 0.7
+  },
+  {
+    "name": "lody",
+    "synonyms": ["lodów"],
+    "fdcId": 167575,
+    "fdcDescription": "Ice creams, vanilla",
+    "density": 0.55
+  },
+  {
+    "name": "żurawina",
+    "synonyms": ["żurawiny świeżej"],
+    "fdcId": 171722,
+    "fdcDescription": "Cranberries, raw",
+    "density": 0.5
+  },
+  {
+    "name": "agrest",
+    "synonyms": ["agrestu"],
+    "fdcId": 173030,
+    "fdcDescription": "Gooseberries, raw",
+    "density": 0.6
+  },
+  {
+    "name": "porzeczki",
+    "synonyms": ["porzeczka", "porzeczek", "czarne porzeczki"],
+    "fdcId": 173963,
+    "fdcDescription": "Currants, european black, raw",
+    "density": 0.6
+  },
+  {
+    "name": "jeżyny",
+    "synonyms": ["jeżyna"],
+    "fdcId": 173946,
+    "fdcDescription": "Blackberries, raw",
+    "density": 0.6
+  },
+  {
+    "name": "granat",
+    "synonyms": ["granatu"],
+    "fdcId": 169134,
+    "fdcDescription": "Pomegranates, raw",
+    "unitGrams": {
+      "sztuka": 280.0
+    }
+  },
+  {
+    "name": "grejpfrut",
+    "synonyms": ["grejpfruta"],
+    "fdcId": 174673,
+    "fdcDescription": "Grapefruit, raw, pink and red, all areas",
+    "unitGrams": {
+      "sztuka": 250.0
+    }
+  },
+  {
+    "name": "mandarynka",
+    "synonyms": ["mandarynki"],
+    "fdcId": 169105,
+    "fdcDescription": "Tangerines, (mandarin oranges), raw",
+    "unitGrams": {
+      "sztuka": 75.0
+    }
+  },
+  {
+    "name": "morele",
+    "synonyms": ["morela", "moreli"],
+    "fdcId": 171697,
+    "fdcDescription": "Apricots, raw",
+    "unitGrams": {
+      "sztuka": 35.0
+    }
+  },
+  {
+    "name": "nektarynka",
+    "synonyms": ["nektarynki"],
+    "fdcId": 169914,
+    "fdcDescription": "Nectarines, raw",
+    "unitGrams": {
+      "sztuka": 140.0
+    }
+  },
+  {
+    "name": "figi",
+    "synonyms": ["figa", "fig świeżych"],
+    "fdcId": 173021,
+    "fdcDescription": "Figs, raw",
+    "unitGrams": {
+      "sztuka": 50.0
+    }
+  },
+  {
+    "name": "papaja",
+    "synonyms": ["papai"],
+    "fdcId": 169926,
+    "fdcDescription": "Papayas, raw",
+    "density": 0.6
+  },
+  {
+    "name": "sok jabłkowy",
+    "synonyms": ["soku jabłkowego"],
+    "fdcId": 173933,
+    "fdcDescription": "Apple juice, canned or bottled, unsweetened, without added ascorbic acid",
+    "density": 1.05
+  },
+  {
+    "name": "sok pomidorowy",
+    "synonyms": ["soku pomidorowego"],
+    "fdcId": 170545,
+    "fdcDescription": "Tomato juice, canned, without salt added",
+    "density": 1.03
+  },
+  {
+    "name": "sok z marchwi",
+    "synonyms": ["soku marchwiowego"],
+    "fdcId": 170491,
+    "fdcDescription": "Carrot juice, canned",
+    "density": 1.03
+  },
+  {
+    "name": "cola",
+    "synonyms": ["coca-cola"],
+    "fdcId": 174852,
+    "fdcDescription": "Beverages, carbonated, cola, regular",
+    "density": 1.0
+  },
+  {
+    "name": "cukier waniliowy",
+    "synonyms": ["waniliowy cukier"],
+    "fdcId": 169655,
+    "fdcDescription": "Sugars, granulated",
+    "density": 0.85
+  },
+  {
+    "name": "melasa",
+    "synonyms": ["melasy"],
+    "fdcId": 168820,
+    "fdcDescription": "Molasses",
+    "density": 1.4
+  },
+  {
+    "name": "nutella",
+    "synonyms": ["krem czekoladowo-orzechowy"],
+    "fdcId": 168000,
+    "fdcDescription": "Chocolate-flavored hazelnut spread",
+    "density": 1.1
+  },
+  {
+    "name": "czekolada mleczna",
+    "synonyms": ["mleczna czekolada"],
+    "fdcId": 167587,
+    "fdcDescription": "Candies, milk chocolate",
+    "unitGrams": {
+      "kostka": 5.0
+    }
+  },
+  {
+    "name": "wiórki czekoladowe",
+    "synonyms": ["kropelki czekoladowe", "chipsy czekoladowe"],
+    "fdcId": 167976,
+    "fdcDescription": "Candies, semisweet chocolate",
+    "density": 0.6
+  },
+  {
+    "name": "curry",
+    "synonyms": ["przyprawa curry", "curry w proszku"],
+    "fdcId": 170924,
+    "fdcDescription": "Spices, curry powder",
+    "density": 0.5
+  },
+  {
+    "name": "pieprz cayenne",
+    "synonyms": ["pieprzu cayenne"],
+    "fdcId": 170932,
+    "fdcDescription": "Spices, pepper, red or cayenne",
+    "density": 0.45
+  },
+  {
+    "name": "czosnek granulowany",
+    "synonyms": ["czosnek suszony", "czosnek w proszku"],
+    "fdcId": 171325,
+    "fdcDescription": "Spices, garlic powder",
+    "density": 0.6
+  },
+  {
+    "name": "cebula suszona",
+    "synonyms": ["cebula granulowana", "cebula w proszku"],
+    "fdcId": 171327,
+    "fdcDescription": "Spices, onion powder",
+    "density": 0.5
+  },
+  {
+    "name": "musztarda dijon",
+    "synonyms": ["dijon"],
+    "fdcId": 172234,
+    "fdcDescription": "Mustard, prepared, yellow",
+    "density": 1.05
+  },
+  {
+    "name": "sos worcestershire",
+    "synonyms": ["worcestershire"],
+    "fdcId": 171610,
+    "fdcDescription": "Sauce, worcestershire",
+    "density": 1.1
+  },
+  {
+    "name": "sos rybny",
+    "synonyms": ["sosu rybnego"],
+    "fdcId": 174531,
+    "fdcDescription": "Sauce, fish, ready-to-serve",
+    "density": 1.2
+  },
+  {
+    "name": "sos ostrygowy",
+    "synonyms": ["sosu ostrygowego"],
+    "fdcId": 174529,
+    "fdcDescription": "Sauce, oyster, ready-to-serve",
+    "density": 1.2
+  },
+  {
+    "name": "sos pomidorowy",
+    "synonyms": ["sos do makaronu", "sos pomidorowy z puszki"],
+    "fdcId": 171192,
+    "fdcDescription": "Sauce, pasta, spaghetti/marinara, ready-to-serve",
+    "density": 1.05
+  },
+  {
+    "name": "pesto",
+    "synonyms": ["pesto bazyliowe"],
+    "fdcId": 171579,
+    "fdcDescription": "Sauce, pesto, ready-to-serve, refrigerated",
+    "density": 0.95
+  },
+  {
+    "name": "sos teriyaki",
+    "synonyms": ["teriyaki"],
+    "fdcId": 171167,
+    "fdcDescription": "Sauce, teriyaki, ready-to-serve",
+    "density": 1.1
+  },
+  {
+    "name": "miso",
+    "synonyms": ["pasta miso"],
+    "fdcId": 172442,
+    "fdcDescription": "Miso",
+    "density": 1.1
+  },
+  {
+    "name": "glony nori",
+    "synonyms": ["nori"],
+    "fdcId": 168458,
+    "fdcDescription": "Seaweed, laver, raw",
+    "unitGrams": {
+      "plaster": 3.0
+    }
+  },
+  {
+    "name": "algi wakame",
+    "synonyms": ["wakame"],
+    "fdcId": 170496,
+    "fdcDescription": "Seaweed, wakame, raw"
+  },
+  {
+    "name": "tempeh",
+    "synonyms": ["tempehu"],
+    "fdcId": 174272,
+    "fdcDescription": "Tempeh"
+  },
+  {
+    "name": "seitan",
+    "synonyms": ["seitanu"],
+    "fdcId": 168147,
+    "fdcDescription": "Vital wheat gluten"
+  },
+  {
+    "name": "białko w proszku",
+    "synonyms": ["odżywka białkowa", "proteina serwatkowa"],
+    "fdcId": 171283,
+    "fdcDescription": "Whey, sweet, dried",
+    "density": 0.45
+  }
+]

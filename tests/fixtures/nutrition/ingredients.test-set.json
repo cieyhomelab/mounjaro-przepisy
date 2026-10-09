@@ -1,0 +1,126 @@
+{
+  "description": "Test set for the nutrition estimate (scenario S5): a small ingredient table and the reference recipe. The per100g values are copied from src/shared/nutrition/ingredients.pl.json; a unit test keeps them equal.",
+  "table": [
+    {
+      "name": "pierś z kurczaka",
+      "synonyms": [
+        "piersi z kurczaka",
+        "piersi kurczaka",
+        "filet z kurczaka",
+        "filety z kurczaka",
+        "pierś kurczaka",
+        "filet z piersi kurczaka",
+        "piersi z kurczaka bez skóry",
+        "filet kurczaka"
+      ],
+      "per100g": {
+        "kcal": 120,
+        "proteinG": 22.5,
+        "fatG": 2.62,
+        "fiberG": 0
+      },
+      "unitGrams": {
+        "sztuka": 200
+      }
+    },
+    {
+      "name": "oliwa z oliwek",
+      "synonyms": ["oliwa", "oliwy z oliwek", "oliwa extra virgin"],
+      "per100g": {
+        "kcal": 884,
+        "proteinG": 0,
+        "fatG": 100,
+        "fiberG": 0
+      },
+      "density": 0.92
+    },
+    {
+      "name": "ryż biały",
+      "synonyms": ["ryż", "ryżu", "ryż długoziarnisty", "ryż jaśminowy", "ryż basmati"],
+      "per100g": {
+        "kcal": 365,
+        "proteinG": 7.13,
+        "fatG": 0.66,
+        "fiberG": 1.3
+      },
+      "density": 0.8
+    },
+    {
+      "name": "cebula",
+      "synonyms": ["cebule", "cebuli", "cebula biała", "cebula żółta"],
+      "per100g": {
+        "kcal": 40,
+        "proteinG": 1.1,
+        "fatG": 0.1,
+        "fiberG": 1.7
+      },
+      "density": 0.55,
+      "unitGrams": {
+        "sztuka": 110
+      }
+    },
+    {
+      "name": "czosnek",
+      "synonyms": ["ząbek czosnku", "ząbki czosnku", "czosnku", "główka czosnku"],
+      "per100g": {
+        "kcal": 149,
+        "proteinG": 6.36,
+        "fatG": 0.5,
+        "fiberG": 2.1
+      },
+      "density": 0.6,
+      "unitGrams": {
+        "ząbek": 4,
+        "sztuka": 4
+      }
+    },
+    {
+      "name": "brokuł",
+      "synonyms": ["brokuły", "brokułów", "brokuły mrożone"],
+      "per100g": {
+        "kcal": 34,
+        "proteinG": 2.82,
+        "fatG": 0.37,
+        "fiberG": 2.6
+      },
+      "density": 0.35,
+      "unitGrams": {
+        "sztuka": 300
+      }
+    },
+    {
+      "name": "sól",
+      "synonyms": ["soli"],
+      "per100g": {
+        "kcal": 0,
+        "proteinG": 0,
+        "fatG": 0,
+        "fiberG": 0
+      },
+      "density": 1.2,
+      "unitGrams": {
+        "szczypta": 1
+      },
+      "negligible": true
+    }
+  ],
+  "referenceRecipe": {
+    "title": "Kurczak z ryżem i brokułami (przepis referencyjny)",
+    "servings": 4,
+    "ingredients": [
+      "400 g piersi z kurczaka",
+      "200 g ryżu",
+      "300 g brokułów",
+      "2 łyżki oliwy z oliwek",
+      "1 cebula",
+      "2 ząbki czosnku",
+      "sól do smaku"
+    ],
+    "expectedPerServing": {
+      "kcal": 403,
+      "proteinG": 29,
+      "fatG": 10,
+      "fiberG": 3
+    }
+  }
+}

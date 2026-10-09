@@ -265,8 +265,7 @@ describe('POST /api/recipes/import-preview', () => {
         sourceRatingCount: 12,
         photoId: photo.draft.photoId,
       });
-      // The values of the page are kept for later; their origin is decided in a later step.
-      expect(recipe.nutrition.kcal).toEqual({ value: null, origin: 'none' });
+      expect(recipe.nutrition.kcal).toEqual({ value: 310, origin: 'source' });
       const [row] = await harness.database.db
         .select({ sourceNutrition: recipes.sourceNutrition, key: recipes.sourceUrlKey })
         .from(recipes)

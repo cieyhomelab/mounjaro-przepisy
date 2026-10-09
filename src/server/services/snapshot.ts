@@ -2,8 +2,9 @@ import { eq } from 'drizzle-orm';
 import { API_VERSION } from '../../shared/contracts/session';
 import type { Snapshot } from '../../shared/contracts/snapshot';
 import type { Database } from '../db/client';
-import { accounts, settings } from '../db/schema';
+import { accounts } from '../db/schema';
 import { listRecipes, type Executor } from './recipes';
+import { readSettings } from './settings';
 
 /** Current data version of the account; the ETag of the snapshot. */
 export async function readDataVersion(db: Executor, accountId: string): Promise<number> {
@@ -27,18 +28,11 @@ export async function buildSnapshot(
   return db.transaction(
     async (tx) => {
       const dataVersion = await readDataVersion(tx, accountId);
-      const [row] = await tx.select().from(settings).where(eq(settings.accountId, accountId));
       return {
         apiVersion: API_VERSION,
         dataVersion,
         generatedAt: now.toISOString(),
-        settings: {
-          thresholdProteinG: row?.thresholdProteinG ?? 25,
-          thresholdFatG: row?.thresholdFatG ?? 15,
-          thresholdFiberG: row?.thresholdFiberG ?? 5,
-          thresholdKcal: row?.thresholdKcal ?? 400,
-          thresholdSmallPortionKcal: row?.thresholdSmallPortionKcal ?? 300,
-        },
+        settings: await readSettings(tx, accountId),
         recipes: await listRecipes(tx, accountId),
         collections: [],
         cookEvents: [],

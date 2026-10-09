@@ -15,6 +15,7 @@ import { registerHealthRoutes } from './routes/health';
 import { registerPhotoRoutes } from './routes/photos';
 import { registerRecipeRoutes } from './routes/recipes';
 import { registerSessionRoutes } from './routes/session';
+import { registerSettingsRoutes } from './routes/settings';
 import { registerSnapshotRoutes } from './routes/snapshot';
 import { registerTestSupportRoutes } from './routes/testSupport';
 import { resolveSession, type ActiveSession } from './services/sessions';
@@ -117,6 +118,7 @@ export async function buildApp({
   registerHealthRoutes(app, database);
   registerSessionRoutes(app);
   registerSnapshotRoutes(app, { database, clock: appClock });
+  registerSettingsRoutes(app, { database });
   registerRecipeRoutes(app, {
     database,
     clock: appClock,

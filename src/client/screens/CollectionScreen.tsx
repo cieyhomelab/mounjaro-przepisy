@@ -1,11 +1,19 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import type { Recipe } from '../../shared/contracts/recipe';
-import { formatKcal, formatProtein, sortByProteinDesc } from '../../shared/domain/recipeList';
-import { formatSourceRating } from '../../shared/domain/sourceRating';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
+import {
+  FILTER_IDS,
+  FILTER_LABELS,
+  SORT_KEYS,
+  SORT_LABELS,
+  applyFilters,
+  searchMatcher,
+  sortRecipes,
+  type SortKey,
+} from '../../shared/domain/recipeList';
 import { ErrorNotice } from '../components/ErrorNotice';
-import { RecipeImage } from '../components/RecipeImage';
+import { VirtualRecipeList } from '../components/VirtualRecipeList';
 import { useCollection } from '../data/collection';
+import { useCollectionView } from '../data/collectionView';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
@@ -43,48 +51,84 @@ function EmptyCollection() {
   );
 }
 
-function RecipeListItem({ recipe }: { recipe: Recipe }) {
-  const { sourceRating, ownRating } = recipe;
+/** Search field, the five Mounjaro filters and the sorting choice. */
+function ListControls() {
+  const { filters, sort, query, toggleFilter, setSort, setQuery } = useCollectionView();
   return (
-    <li>
-      <Link
-        to={`/przepisy/${recipe.id}`}
-        className="flex min-h-11 items-center gap-3 rounded-lg border border-neutral-200 p-2"
-      >
-        <RecipeImage
-          photoId={recipe.photoId}
-          title={recipe.title}
-          className="size-16 shrink-0 rounded-md"
-        />
-        <span className="flex min-w-0 flex-col gap-1">
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold">{recipe.title}</span>
-            {recipe.kind === 'manual' ? (
-              <span className="rounded-full bg-neutral-200 px-2 text-sm">ręczny</span>
-            ) : null}
-          </span>
-          <span className="flex flex-wrap gap-x-4 text-neutral-700">
-            <span>Białko: {formatProtein(recipe)}</span>
-            <span>Kalorie: {formatKcal(recipe)}</span>
-          </span>
-          {recipe.kind === 'link' || sourceRating !== null || ownRating !== null ? (
-            <span className="flex flex-wrap gap-x-4 text-sm text-neutral-600">
-              {recipe.kind === 'link' || sourceRating !== null ? (
-                <span>Ocena ze źródła: {formatSourceRating(recipe)}</span>
-              ) : null}
-              {ownRating !== null ? <span>Twoja ocena: {ownRating}/5</span> : null}
-            </span>
-          ) : null}
-        </span>
-      </Link>
-    </li>
+    <div className="flex flex-col gap-3">
+      <input
+        type="search"
+        aria-label="Szukaj w kolekcji"
+        placeholder="Szukaj po tytule lub składniku"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        className="min-h-11 rounded-lg border border-neutral-300 px-3"
+      />
+      <div role="group" aria-label="Filtry" className="flex flex-wrap gap-2">
+        {FILTER_IDS.map((id) => {
+          const on = filters.includes(id);
+          return (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={on}
+              onClick={() => toggleFilter(id)}
+              className={`${buttonClass} border border-neutral-900 ${
+                on ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-900'
+              }`}
+            >
+              {FILTER_LABELS[id]}
+            </button>
+          );
+        })}
+      </div>
+      <label className="flex flex-wrap items-center gap-2">
+        <span className="font-medium">Sortowanie</span>
+        <select
+          value={sort}
+          onChange={(event) => setSort(event.target.value as SortKey)}
+          className="min-h-11 rounded-lg border border-neutral-300 bg-white px-3"
+        >
+          {SORT_KEYS.map((key) => (
+            <option key={key} value={key}>
+              {SORT_LABELS[key]}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
   );
 }
 
-/** Home screen of a logged-in user: the collection, highest protein first. */
+function NoMatches({ onClear }: { onClear: () => void }) {
+  return (
+    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-neutral-300 p-4">
+      <p className="text-lg font-medium">Brak przepisów dla tych filtrów</p>
+      <button
+        type="button"
+        onClick={onClear}
+        className={`${buttonClass} bg-neutral-900 text-white`}
+      >
+        Wyczyść filtry
+      </button>
+    </div>
+  );
+}
+
+/** Home screen of a logged-in user: the collection with filters, sorting and search. */
 export function CollectionScreen() {
   const { state, sync } = useCollection();
+  const { filters, sort, query, clearFilters } = useCollectionView();
   const [adding, setAdding] = useState(false);
+  const recipes = state.status === 'ready' ? state.recipes : null;
+  const settings = state.status === 'ready' ? state.settings : null;
+
+  const shown = useMemo(() => {
+    if (!recipes || !settings) return [];
+    const matches = searchMatcher(query);
+    const found = recipes.filter((recipe) => matches(recipe.searchText));
+    return sortRecipes(applyFilters(found, filters, settings), sort);
+  }, [recipes, settings, filters, sort, query]);
 
   return (
     <section className="flex flex-col gap-4">
@@ -111,13 +155,11 @@ export function CollectionScreen() {
         <ErrorNotice code={state.code} onRetry={() => void sync()} />
       ) : null}
       {state.status === 'ready' && state.recipes.length === 0 ? <EmptyCollection /> : null}
-      {state.status === 'ready' && state.recipes.length > 0 ? (
-        <ul aria-label="Przepisy" className="flex flex-col gap-2">
-          {sortByProteinDesc(state.recipes).map((recipe) => (
-            <RecipeListItem key={recipe.id} recipe={recipe} />
-          ))}
-        </ul>
+      {state.status === 'ready' && state.recipes.length > 0 ? <ListControls /> : null}
+      {state.status === 'ready' && state.recipes.length > 0 && shown.length === 0 ? (
+        <NoMatches onClear={clearFilters} />
       ) : null}
+      {shown.length > 0 ? <VirtualRecipeList recipes={shown} /> : null}
     </section>
   );
 }

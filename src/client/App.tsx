@@ -2,6 +2,7 @@ import { Outlet, Route, Routes } from 'react-router';
 import { AppShell } from './components/AppShell';
 import { RequireSession } from './components/RequireSession';
 import { CollectionProvider } from './data/collection';
+import { CollectionViewProvider } from './data/collectionView';
 import { SessionProvider } from './data/session';
 import { AccountScreen } from './screens/AccountScreen';
 import { CollectionScreen } from './screens/CollectionScreen';
@@ -10,12 +11,16 @@ import { LoginScreen } from './screens/LoginScreen';
 import { NotFoundScreen } from './screens/NotFoundScreen';
 import { RecipeEditScreen, RecipeFormScreen } from './screens/RecipeFormScreen';
 import { RecipeScreen } from './screens/RecipeScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
+import { ThresholdsScreen } from './screens/ThresholdsScreen';
 
 /** Local copy of the user's data, kept in step with the server while a session exists. */
 function DataLayout() {
   return (
     <CollectionProvider>
-      <Outlet />
+      <CollectionViewProvider>
+        <Outlet />
+      </CollectionViewProvider>
     </CollectionProvider>
   );
 }
@@ -33,6 +38,8 @@ export function App() {
               <Route path="przepisy/z-linku" element={<ImportScreen />} />
               <Route path="przepisy/:id/edycja" element={<RecipeEditScreen />} />
               <Route path="przepisy/:id" element={<RecipeScreen />} />
+              <Route path="ustawienia" element={<SettingsScreen />} />
+              <Route path="ustawienia/progi-filtrow" element={<ThresholdsScreen />} />
               <Route path="konto" element={<AccountScreen />} />
               <Route path="*" element={<NotFoundScreen />} />
             </Route>

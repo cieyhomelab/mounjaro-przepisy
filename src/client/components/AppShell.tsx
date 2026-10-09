@@ -27,6 +27,9 @@ export function AppShell() {
           Mounjaro Przepisy
         </Link>
         <nav aria-label="Nawigacja główna" className="flex items-center gap-1">
+          <Link to="/ustawienia" className={linkClass}>
+            Ustawienia
+          </Link>
           <Link to="/konto" className={linkClass}>
             Konto
           </Link>

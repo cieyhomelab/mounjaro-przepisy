@@ -13,6 +13,7 @@ import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings } from '../../shared/contracts/snapshot';
 import { snapshotEtag, snapshotSchema } from '../../shared/contracts/snapshot';
+import { reloadOnVersionMismatch } from './clientVersion';
 import { ApiError, NOT_MODIFIED, apiRequest } from './api';
 import { loadOfflineStatus, syncOfflineData } from './offline';
 import {
@@ -86,6 +87,8 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
       const payload = await apiRequest('/api/snapshot', {
         headers: version === null ? {} : { 'If-None-Match': snapshotEtag(version) },
       });
+      // An older client may not understand a newer snapshot: reload before parsing it.
+      if (payload !== NOT_MODIFIED && reloadOnVersionMismatch(payload)) return;
       if (payload === NOT_MODIFIED) await touchContact();
       else {
         await storeSnapshot(snapshotSchema.parse(payload));

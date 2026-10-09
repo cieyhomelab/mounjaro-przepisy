@@ -11,29 +11,31 @@ export function useAction() {
   const [errorCode, setErrorCode] = useState<string | null>(null);
 
   const lastAction = useRef<(() => Promise<void>) | null>(null);
+  // State only changes on the next render, so a second tap in the same frame would still see
+  // `busy === false`; the ref is set synchronously before the first await.
+  const running = useRef(false);
 
-  const run = useCallback(
-    async (action: () => Promise<void>): Promise<boolean> => {
-      if (busy) return false;
-      lastAction.current = action;
-      if (!navigator.onLine) {
-        setErrorCode('offline');
-        return false;
-      }
-      setErrorCode(null);
-      setBusy(true);
-      try {
-        await action();
-        return true;
-      } catch (error) {
-        setErrorCode(error instanceof ApiError ? error.code : 'internal');
-        return false;
-      } finally {
-        setBusy(false);
-      }
-    },
-    [busy],
-  );
+  const run = useCallback(async (action: () => Promise<void>): Promise<boolean> => {
+    if (running.current) return false;
+    lastAction.current = action;
+    if (!navigator.onLine) {
+      setErrorCode('offline');
+      return false;
+    }
+    setErrorCode(null);
+    running.current = true;
+    setBusy(true);
+    try {
+      await action();
+      return true;
+    } catch (error) {
+      setErrorCode(error instanceof ApiError ? error.code : 'internal');
+      return false;
+    } finally {
+      running.current = false;
+      setBusy(false);
+    }
+  }, []);
 
   const retry = useCallback(
     async (): Promise<boolean> => (lastAction.current ? run(lastAction.current) : false),

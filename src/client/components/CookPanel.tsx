@@ -12,7 +12,7 @@ const buttonClass =
 /** "Ugotowane" with the date of the last cooking, the count and the undo of the latest one (S8). */
 export function CookPanel({ recipe }: { recipe: Recipe }) {
   const { state, changeSaved } = useCollection();
-  const { run, busy, errorCode } = useAction();
+  const { run, retry, busy, errorCode } = useAction();
   const events = state.status === 'ready' ? state.cookEvents : [];
   const stats = recipeCookStats(events, recipe.id);
 
@@ -61,7 +61,7 @@ export function CookPanel({ recipe }: { recipe: Recipe }) {
           </button>
         ) : null}
       </div>
-      {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void mark()} /> : null}
+      {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
     </section>
   );
 }

@@ -9,7 +9,7 @@ const STARS = [1, 2, 3, 4, 5];
 /** The user's own 1–5 star rating, kept apart from the rating given by the source (S8). */
 export function OwnRating({ recipe }: { recipe: Recipe }) {
   const { recipeSaved } = useCollection();
-  const { run, busy, errorCode } = useAction();
+  const { run, retry, busy, errorCode } = useAction();
   const rate = (rating: number | null) =>
     run(async () => {
       const result = recipeResponseSchema.parse(
@@ -58,9 +58,7 @@ export function OwnRating({ recipe }: { recipe: Recipe }) {
       ) : (
         <p className="text-neutral-600">Moja ocena: brak</p>
       )}
-      {errorCode ? (
-        <ErrorNotice code={errorCode} onRetry={() => void rate(recipe.ownRating)} />
-      ) : null}
+      {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
     </section>
   );
 }

@@ -96,6 +96,7 @@ test.describe('S8: ugotowania', () => {
 test.describe('S8: licznik tygodniowy', () => {
   async function seededWeek(page: Page, request: Parameters<typeof setServerClock>[0]) {
     await logIn(page);
+    await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
     const id = await seedRecipe(page, { title: 'Zupa' });
     return { id, request };
   }

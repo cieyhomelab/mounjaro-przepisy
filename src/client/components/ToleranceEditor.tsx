@@ -34,7 +34,7 @@ function summary(recipe: Recipe): string | null {
  */
 export function ToleranceEditor({ recipe }: { recipe: Recipe }) {
   const { recipeSaved } = useCollection();
-  const { run, busy, errorCode } = useAction();
+  const { run, retry, busy, errorCode } = useAction();
   const [draft, setDraft] = useState<{ level: Level; symptoms: Symptom[]; note: string } | null>(
     null,
   );
@@ -151,18 +151,7 @@ export function ToleranceEditor({ recipe }: { recipe: Recipe }) {
           </div>
         </fieldset>
       ) : null}
-      {errorCode ? (
-        <ErrorNotice
-          code={errorCode}
-          onRetry={() =>
-            void save(
-              draft
-                ? { level: draft.level, symptoms: draft.symptoms, note: draft.note }
-                : { level: recipe.tolerance, symptoms: recipe.toleranceSymptoms },
-            )
-          }
-        />
-      ) : null}
+      {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
     </section>
   );
 }

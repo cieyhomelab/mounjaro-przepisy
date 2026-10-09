@@ -8,7 +8,7 @@ import { ErrorNotice } from './ErrorNotice';
 /** The "Na gorsze dni" tag (S10) and the own collections the recipe belongs to (S11). */
 export function RecipeOrganizer({ recipe }: { recipe: Recipe }) {
   const { state, recipeSaved } = useCollection();
-  const { run, busy, errorCode } = useAction();
+  const { run, retry, busy, errorCode } = useAction();
   const collections = state.status === 'ready' ? state.collections : [];
 
   const put = (path: string, body: unknown) =>
@@ -61,12 +61,7 @@ export function RecipeOrganizer({ recipe }: { recipe: Recipe }) {
           Zarządzaj kolekcjami własnymi
         </Link>
       </fieldset>
-      {errorCode ? (
-        <ErrorNotice
-          code={errorCode}
-          onRetry={() => void put('worse-days', { enabled: recipe.worseDays })}
-        />
-      ) : null}
+      {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
     </section>
   );
 }

@@ -1,5 +1,8 @@
+import { eq } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 import { recipeResponseSchema, type Recipe } from '../../src/shared/contracts/recipe';
+import { recipes } from '../../src/server/db/schema';
+import { refreshStoredNutrition } from '../../src/server/services/recipes';
 import testSet from '../fixtures/nutrition/ingredients.test-set.json';
 import { CookieJar, OWNER_EMAIL, loginWithMock, originHeaders, useApp } from './helpers';
 
@@ -208,6 +211,77 @@ describe('S5: nutrition values of a recipe', () => {
     expect(response.statusCode).toBe(400);
     expect(response.json()).toMatchObject({
       error: { code: 'validation', fields: { fatG: 'invalid' } },
+    });
+  });
+
+  describe('recipes saved before nutrition was computed', () => {
+    const snapshot = async (jar: CookieJar) => {
+      const response = await harness.app.inject({
+        method: 'GET',
+        url: '/api/snapshot',
+        headers: jar.header(),
+      });
+      return response.json<{ dataVersion: number; recipes: Recipe[] }>();
+    };
+    const blank = (id: string) =>
+      harness.database.db
+        .update(recipes)
+        .set({
+          kcal: null,
+          proteinG: null,
+          fatG: null,
+          fiberG: null,
+          kcalOrigin: 'none',
+          proteinOrigin: 'none',
+          fatOrigin: 'none',
+          fiberOrigin: 'none',
+          unrecognizedIngredients: [],
+        })
+        .where(eq(recipes.id, id));
+
+    it('S5: the one-off refresh fills estimates and source values, keeps manual ones and bumps the data version once', async () => {
+      const jar = await login();
+      const manual = await create(
+        jar,
+        base({
+          title: 'Ręczny',
+          ingredients: [{ originalText: '200 g piersi z kurczaka' }],
+          nutritionManual: { proteinG: 31 },
+        }),
+      );
+      const linked = await create(jar, fromLink({ kcal: 240, proteinG: 26 }));
+      await blank(linked.id);
+      await harness.database.db
+        .update(recipes)
+        .set({ proteinG: 31, proteinOrigin: 'manual' })
+        .where(eq(recipes.id, manual.id));
+      await harness.database.db
+        .update(recipes)
+        .set({ kcal: null, kcalOrigin: 'none', fatG: null, fatOrigin: 'none' })
+        .where(eq(recipes.id, manual.id));
+      const before = await snapshot(jar);
+
+      expect(await refreshStoredNutrition(harness.database)).toBe(2);
+
+      const after = await snapshot(jar);
+      expect(after.dataVersion).toBe(before.dataVersion + 1);
+      const byId = new Map(after.recipes.map((recipe) => [recipe.id, recipe]));
+      expect(byId.get(manual.id)?.nutrition.proteinG).toEqual({ value: 31, origin: 'manual' });
+      expect(byId.get(manual.id)?.nutrition.kcal).toEqual({ value: 120, origin: 'estimated' });
+      expect(byId.get(linked.id)?.nutrition.kcal).toEqual({ value: 240, origin: 'source' });
+      expect(byId.get(linked.id)?.nutrition.fatG.origin).toBe('estimated');
+    });
+
+    it('S5: running the refresh again changes nothing and keeps the data version', async () => {
+      const jar = await login();
+      const recipe = await create(jar, base());
+      await blank(recipe.id);
+      await refreshStoredNutrition(harness.database);
+      const before = await snapshot(jar);
+
+      expect(await refreshStoredNutrition(harness.database)).toBe(0);
+
+      expect((await snapshot(jar)).dataVersion).toBe(before.dataVersion);
     });
   });
 });

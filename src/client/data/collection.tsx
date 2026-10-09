@@ -9,13 +9,21 @@ import {
   type ReactNode,
 } from 'react';
 import type { Recipe } from '../../shared/contracts/recipe';
+import type { Settings } from '../../shared/contracts/snapshot';
 import { snapshotEtag, snapshotSchema } from '../../shared/contracts/snapshot';
 import { ApiError, NOT_MODIFIED, apiRequest } from './api';
-import { readLocalData, removeRecipe, storeRecipe, storeSnapshot } from './localDb';
+import {
+  readLocalData,
+  removeRecipe,
+  storeRecipe,
+  storeSettings,
+  storeSnapshot,
+  type StoredRecipe,
+} from './localDb';
 
 export type CollectionState =
   | { status: 'loading' }
-  | { status: 'ready'; recipes: Recipe[] }
+  | { status: 'ready'; recipes: StoredRecipe[]; settings: Settings }
   | { status: 'error'; code: string };
 
 type CollectionContextValue = {
@@ -26,6 +34,8 @@ type CollectionContextValue = {
   recipeSaved: (recipe: Recipe, dataVersion: number) => Promise<void>;
   /** Records a recipe the server has just deleted; pulls the whole snapshot if another device changed data meanwhile. */
   recipeDeleted: (recipeId: string, dataVersion: number) => Promise<void>;
+  /** Records settings the server has just saved; pulls the whole snapshot if another device changed data meanwhile. */
+  settingsSaved: (settings: Settings, dataVersion: number) => Promise<void>;
 };
 
 const CollectionContext = createContext<CollectionContextValue | null>(null);
@@ -43,7 +53,8 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   const reload = useCallback(async () => {
     const local = await readLocalData();
     knownVersion.current = local.dataVersion;
-    if (local.dataVersion !== null) setState({ status: 'ready', recipes: local.recipes });
+    if (local.dataVersion !== null)
+      setState({ status: 'ready', recipes: local.recipes, settings: local.settings });
     return local.dataVersion !== null;
   }, []);
 
@@ -96,6 +107,18 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     [reload, sync],
   );
 
+  const settingsSaved = useCallback(
+    async (settings: Settings, dataVersion: number) => {
+      if (knownVersion.current !== null && dataVersion === knownVersion.current + 1) {
+        await storeSettings(settings, dataVersion);
+        await reload();
+        return;
+      }
+      await sync();
+    },
+    [reload, sync],
+  );
+
   useEffect(() => {
     let active = true;
     const start = async () => {
@@ -122,8 +145,8 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   }, [sync]);
 
   const value = useMemo(
-    () => ({ state, sync: retry, recipeSaved, recipeDeleted }),
-    [state, retry, recipeSaved, recipeDeleted],
+    () => ({ state, sync: retry, recipeSaved, recipeDeleted, settingsSaved }),
+    [state, retry, recipeSaved, recipeDeleted, settingsSaved],
   );
   return <CollectionContext.Provider value={value}>{children}</CollectionContext.Provider>;
 }

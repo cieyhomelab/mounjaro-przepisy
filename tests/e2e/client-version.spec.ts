@@ -31,14 +31,15 @@ test('Wersja klienta: stary klient na nowszym serwerze przeładowuje się raz', 
     await route.fulfill({ response, json: { ...body, apiVersion: 2 } });
   });
 
+  const snapshotAfterReload = page.waitForResponse('**/api/snapshot');
   await page.reload();
 
   await expect.poll(() => sessionCalls).toBe(2);
+  await snapshotAfterReload;
   await expect(page.getByRole('heading', { level: 1, name: 'Ustawienia' })).toBeVisible();
   // Still ahead of the client after the reload, but no second reload follows.
   await expect
     .poll(() => page.evaluate(() => sessionStorage.getItem('api-version-reload')))
     .toBe('2');
-  await page.waitForTimeout(1500);
   expect(sessionCalls).toBe(2);
 });

@@ -1,88 +1,244 @@
-# Workflow Cezara: od issue do PR gotowego do merge'u.
-# Inżynier -> tester -> bramka testów -> reviewer -> bramka recenzji.
-# Bramki to kroki shellowe; przy porażce wracają do inżyniera
-# z raportem dołączonym do jego promptu.
+# Workflow Cezara (wersja 2, podtaski): od issue do PR gotowego do merge'u, bez limitu 30 minut.
 #
-# Plik kontraktowy między krokami: katalog .ai/sh-run/ w worktree
-# (wykluczony z gita przez inżyniera):
-#   pr            numer PR
-#   test-result   1. linia PASS albo FAIL, dalej raport
-#   review-verdict 1. linia APPROVE albo CHANGES, dalej uwagi
-#   blocked       powód zatrzymania; jego obecność kończy przebieg
-#   test-cycle, review-cycle  liczniki
+# Każda rola to osobny podtask (węzeł dispatch): własny worktree, jeden krok,
+# więc Cezar nie zabija go po 30 minutach. Sam workflow nie ma sesji agenta,
+# tylko czeka na podtaski i po restarcie wznawia się na węźle, na którym stał.
 #
+# Role nie dzielą plików. Przekazują sobie pracę przez GitHub (PR, komentarze
+# z prefiksem 🤖) i przez ostatnią linię raportu podtaska, którą czytają
+# węzły `if`:
+#   STAN: STOP          rola zatrzymała pracę (blocked, czeka na merge itp.)
+#   WYNIK: PASS / FAIL  tester
+#   WERDYKT: APPROVE / CHANGES  reviewer
+#
+# Znacznik [sh-v2] w poleceniu przełącza skille w tryb v2.
 # Uruchamiać z flagą Autonomous.
 
+version: 2
 name: sh-delivery
-description: Issue -> PR. Inżynier, tester i reviewer; poprawki wracają do inżyniera, po 3 nieudanych cyklach etykieta blocked.
-steps:
-  - id: implement
+description: Issue -> PR przez podtaski (dispatch). Inżynier, tester i reviewer bez limitu 30 minut; po 3 nieudanych rundach etykieta blocked.
+
+nodes:
+  - id: start
+    type: start
+
+  # ---------- Inżynier ----------
+  - id: impl
+    type: dispatch
     name: Inżynier
-    prompt: "{{task}}"
-    skill: sh-inzynier
     model: sonnet
+    prompt: |
+      [sh-v2] Wczytaj skill sh-inzynier (narzędzie Skill) i postępuj według niego, w tym według sekcji „Tryb v2”.
 
+      Zadanie: {{task}}
+
+  - id: impl-stop
+    type: if
+    name: Inżynier zatrzymał pracę?
+    condition: { kind: output, ref: impl.summary, op: contains, value: "STAN: STOP" }
+
+  # ---------- Tester ----------
   - id: test
+    type: dispatch
     name: Tester
-    prompt: "Przetestuj PR przygotowany dla zadania: {{task}}"
-    skill: sh-tester
     model: sonnet
+    prompt: |
+      [sh-v2] Wczytaj skill sh-tester (narzędzie Skill) i postępuj według niego, w tym według sekcji „Tryb v2”.
 
-  - id: test-gate
-    name: Bramka testów
-    command: |
-      [ -f .ai/sh-run/blocked ] && exit 0
-      r=$(head -n1 .ai/sh-run/test-result 2>/dev/null)
-      [ "$r" = "PASS" ] && exit 0
-      n=$(( $(cat .ai/sh-run/test-cycle 2>/dev/null || echo 0) + 1 ))
-      echo "$n" > .ai/sh-run/test-cycle
-      if [ "$n" -gt 3 ]; then
-        pr=$(cat .ai/sh-run/pr 2>/dev/null)
-        echo "Testy nie przechodzą po 3 próbach naprawy." > .ai/sh-run/blocked
-        if [ -n "$pr" ]; then
-          gh pr edit "$pr" --add-label blocked
-          gh pr comment "$pr" --body "🤖 Bramka testów: Testy nie przechodzą po 3 próbach naprawy. Ostatni raport testera jest w komentarzach powyżej."
-          sh-notify blocked "$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)" "$pr"
-        fi
-        exit 0
-      fi
-      cat .ai/sh-run/test-result 2>/dev/null || echo "Tester nie zapisał raportu."
-      exit 1
-    onFail:
-      retry: implement
-      max: 3
+      Przetestuj PR przygotowany dla zadania: {{task}}
 
+  - id: test-pass
+    type: if
+    name: Testy zielone?
+    condition: { kind: output, ref: test.summary, op: contains, value: "WYNIK: PASS" }
+
+  - id: test-stop
+    type: if
+    name: Tester zatrzymał pracę?
+    condition: { kind: output, ref: test.summary, op: contains, value: "STAN: STOP" }
+
+  - id: test-rounds
+    type: loop
+    name: Rundy poprawek po testach
+    max: 3
+
+  - id: fix-test
+    type: dispatch
+    name: Inżynier – poprawki po testach
+    model: sonnet
+    prompt: |
+      [sh-v2] Wczytaj skill sh-inzynier (narzędzie Skill) i postępuj według niego, w tym według sekcji „Tryb v2”.
+
+      Runda poprawek po testach {{nodes.test-rounds.iteration}} z {{nodes.test-rounds.max}} (tryb 1).
+      Raport testera: {{nodes.test.summary}}
+      Pełny raport jest w ostatnim komentarzu „🤖 Tester:” w PR.
+
+      Zadanie: {{task}}
+
+  - id: fix-test-stop
+    type: if
+    name: Inżynier zatrzymał pracę?
+    condition: { kind: output, ref: fix-test.summary, op: contains, value: "STAN: STOP" }
+
+  # ---------- Reviewer ----------
   - id: review
+    type: dispatch
     name: Reviewer
-    prompt: "Zrecenzuj PR przygotowany dla zadania: {{task}}"
-    skill: sh-reviewer
     model: opus
+    prompt: |
+      [sh-v2] Wczytaj skill sh-reviewer (narzędzie Skill) i postępuj według niego, w tym według sekcji „Tryb v2”.
 
-  - id: review-gate
-    name: Bramka recenzji
-    command: |
-      [ -f .ai/sh-run/blocked ] && exit 0
-      v=$(head -n1 .ai/sh-run/review-verdict 2>/dev/null)
-      repo=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)
-      if [ "$v" = "APPROVE" ]; then
-        pr=$(cat .ai/sh-run/pr 2>/dev/null)
-        [ -n "$pr" ] && [ -n "$repo" ] && sh-notify merge "$repo" "$pr"
-        exit 0
-      fi
-      n=$(( $(cat .ai/sh-run/review-cycle 2>/dev/null || echo 0) + 1 ))
-      echo "$n" > .ai/sh-run/review-cycle
-      if [ "$n" -gt 3 ]; then
-        pr=$(cat .ai/sh-run/pr 2>/dev/null)
-        echo "Recenzja odrzucona po 3 cyklach poprawek." > .ai/sh-run/blocked
-        if [ -n "$pr" ]; then
-          gh pr edit "$pr" --add-label blocked
-          gh pr comment "$pr" --body "🤖 Bramka recenzji: Recenzja nadal odrzuca PR po 3 cyklach poprawek. Potrzebna decyzja właściciela."
-          sh-notify blocked "$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)" "$pr"
-        fi
-        exit 0
-      fi
-      cat .ai/sh-run/review-verdict 2>/dev/null || echo "Reviewer nie zapisał werdyktu."
-      exit 1
-    onFail:
-      retry: implement
-      max: 3
+      Zrecenzuj PR przygotowany dla zadania: {{task}}
+
+  - id: review-ok
+    type: if
+    name: Recenzja zaakceptowana?
+    condition: { kind: output, ref: review.summary, op: contains, value: "WERDYKT: APPROVE" }
+
+  - id: review-stop
+    type: if
+    name: Reviewer zatrzymał pracę?
+    condition: { kind: output, ref: review.summary, op: contains, value: "STAN: STOP" }
+
+  - id: review-rounds
+    type: loop
+    name: Rundy poprawek po recenzji
+    max: 3
+
+  - id: fix-review
+    type: dispatch
+    name: Inżynier – poprawki po recenzji
+    model: sonnet
+    prompt: |
+      [sh-v2] Wczytaj skill sh-inzynier (narzędzie Skill) i postępuj według niego, w tym według sekcji „Tryb v2”.
+
+      Runda poprawek po recenzji {{nodes.review-rounds.iteration}} z {{nodes.review-rounds.max}} (tryb 1).
+      Werdykt reviewera: {{nodes.review.summary}}
+      Pełny werdykt jest w ostatnim komentarzu „🤖 Reviewer:” w PR.
+
+      Zadanie: {{task}}
+
+  - id: fix-review-stop
+    type: if
+    name: Inżynier zatrzymał pracę?
+    condition: { kind: output, ref: fix-review.summary, op: contains, value: "STAN: STOP" }
+
+  # ---------- Eskalacje do właściciela ----------
+  - id: esc-test
+    type: dispatch
+    name: Eskalacja – testy
+    model: haiku
+    prompt: |
+      [sh-v2] Nie wczytuj żadnego skilla. Jesteś bramką testów software house'u.
+      Testy nie przechodzą po 3 rundach poprawek. Ostatni raport testera: {{nodes.test.summary}}
+
+      1. Ustal repozytorium: `gh repo view --json nameWithOwner -q .nameWithOwner`.
+      2. Ustal numer issue z zadania poniżej i znajdź jego otwarty PR: `gh pr list --repo {repo} --state open --json number,headRefName,body` (gałąź zaczyna się od feat/{issue}- lub fix/{issue}-, albo opis zawiera „Closes #{issue}”).
+      3. Dodaj etykietę `blocked` do PR (gdy PR nie ma, do issue): `gh pr edit {numer} --repo {repo} --add-label blocked`.
+      4. Skomentuj tam: „🤖 Bramka testów: Testy nie przechodzą po 3 rundach poprawek. Ostatni raport testera jest w komentarzach powyżej. Potrzebna decyzja właściciela.”
+      5. Uruchom `sh-notify blocked {repo} {numer}`.
+      6. Zakończ: `node "$CEZ_BIN" task report --status done --result "Eskalowano do właściciela"`, a w ostatniej linii odpowiedzi napisz CEZ:DONE.
+      Nie zmieniasz kodu i niczego nie commitujesz. Nie zadajesz pytań.
+
+      Zadanie: {{task}}
+
+  - id: esc-review
+    type: dispatch
+    name: Eskalacja – recenzja
+    model: haiku
+    prompt: |
+      [sh-v2] Nie wczytuj żadnego skilla. Jesteś bramką recenzji software house'u.
+      Reviewer nadal odrzuca PR po 3 rundach poprawek. Ostatni werdykt: {{nodes.review.summary}}
+
+      1. Ustal repozytorium: `gh repo view --json nameWithOwner -q .nameWithOwner`.
+      2. Ustal numer issue z zadania poniżej i znajdź jego otwarty PR: `gh pr list --repo {repo} --state open --json number,headRefName,body` (gałąź zaczyna się od feat/{issue}- lub fix/{issue}-, albo opis zawiera „Closes #{issue}”).
+      3. Dodaj etykietę `blocked` do PR (gdy PR nie ma, do issue): `gh pr edit {numer} --repo {repo} --add-label blocked`.
+      4. Skomentuj tam: „🤖 Bramka recenzji: Recenzja nadal odrzuca PR po 3 rundach poprawek. Potrzebna decyzja właściciela.”
+      5. Uruchom `sh-notify blocked {repo} {numer}`.
+      6. Zakończ: `node "$CEZ_BIN" task report --status done --result "Eskalowano do właściciela"`, a w ostatniej linii odpowiedzi napisz CEZ:DONE.
+      Nie zmieniasz kodu i niczego nie commitujesz. Nie zadajesz pytań.
+
+      Zadanie: {{task}}
+
+  - id: esc-crash
+    type: dispatch
+    name: Eskalacja – podtask przerwany
+    model: haiku
+    prompt: |
+      [sh-v2] Nie wczytuj żadnego skilla. Jesteś bramką software house'u.
+      Jeden z podtasków workflow sh-delivery zakończył się błędem (awaria, anulowanie albo restart), zanim oddał wynik.
+      Raporty, które dotarły:
+      - Inżynier: {{nodes.impl.summary}}
+      - Tester: {{nodes.test.summary}}
+      - Reviewer: {{nodes.review.summary}}
+      - Poprawki po testach: {{nodes.fix-test.summary}}
+      - Poprawki po recenzji: {{nodes.fix-review.summary}}
+
+      1. Ustal repozytorium: `gh repo view --json nameWithOwner -q .nameWithOwner`.
+      2. Ustal numer issue z zadania poniżej i znajdź jego otwarty PR (gałąź feat/{issue}- lub fix/{issue}-, albo opis z „Closes #{issue}”).
+      3. Dodaj etykietę `blocked` do PR (gdy PR nie ma, do issue).
+      4. Skomentuj tam: „🤖 Bramka: Przebieg przerwany, podtask zakończył się błędem: {jednozdaniowy opis z raportów}. Zdejmij blocked, żeby kierownik wznowił pracę.”
+      5. Uruchom `sh-notify blocked {repo} {numer}`.
+      6. Zakończ: `node "$CEZ_BIN" task report --status done --result "Eskalowano do właściciela"`, a w ostatniej linii odpowiedzi napisz CEZ:DONE.
+      Nie zmieniasz kodu i niczego nie commitujesz. Nie zadajesz pytań.
+
+      Zadanie: {{task}}
+
+  # ---------- Zakończenia ----------
+  - id: approved
+    type: end
+    name: Gotowe do merge'u
+    status: success
+
+  - id: stopped
+    type: end
+    name: Zatrzymane, decyzja właściciela
+    status: success
+
+  - id: escalated
+    type: end
+    name: Eskalowane
+    status: failed
+
+edges:
+  - { from: start, to: impl }
+
+  - { from: impl.done, to: impl-stop }
+  - { from: impl.failed, to: esc-crash }
+  - { from: impl-stop.true, to: stopped }
+  - { from: impl-stop.false, to: test }
+
+  - { from: test.done, to: test-pass }
+  - { from: test.failed, to: esc-crash }
+  - { from: test-pass.true, to: review }
+  - { from: test-pass.false, to: test-stop }
+  - { from: test-stop.true, to: stopped }
+  - { from: test-stop.false, to: test-rounds }
+  - { from: test-rounds.repeat, to: fix-test }
+  - { from: test-rounds.exhausted, to: esc-test }
+
+  - { from: fix-test.done, to: fix-test-stop }
+  - { from: fix-test.failed, to: esc-crash }
+  - { from: fix-test-stop.true, to: stopped }
+  - { from: fix-test-stop.false, to: test }
+
+  - { from: review.done, to: review-ok }
+  - { from: review.failed, to: esc-crash }
+  - { from: review-ok.true, to: approved }
+  - { from: review-ok.false, to: review-stop }
+  - { from: review-stop.true, to: stopped }
+  - { from: review-stop.false, to: review-rounds }
+  - { from: review-rounds.repeat, to: fix-review }
+  - { from: review-rounds.exhausted, to: esc-review }
+
+  - { from: fix-review.done, to: fix-review-stop }
+  - { from: fix-review.failed, to: esc-crash }
+  - { from: fix-review-stop.true, to: stopped }
+  - { from: fix-review-stop.false, to: test }
+
+  - { from: esc-test, to: escalated }
+  - { from: esc-test.failed, to: escalated }
+  - { from: esc-review, to: escalated }
+  - { from: esc-review.failed, to: escalated }
+  - { from: esc-crash, to: escalated }
+  - { from: esc-crash.failed, to: escalated }

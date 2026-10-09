@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
+import { recipeResponseSchema } from '../../shared/contracts/recipe';
+import { importPreviewResponseSchema } from '../../shared/contracts/recipeImport';
+import { importDraftToForm } from '../../shared/domain/recipeForm';
 import {
   SEARCH_QUERY_MAX,
   SEARCH_QUERY_MIN,
@@ -11,6 +14,8 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useOnline } from '../data/offline';
+import { useAction } from '../data/useAction';
+import { RecipeForm, type FormDraft } from './RecipeFormScreen';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:cursor-not-allowed disabled:opacity-60';
@@ -26,7 +31,17 @@ function opinionsLabel(count: number) {
     : `${count} opinii`;
 }
 
-function ResultItem({ result }: { result: SearchResult }) {
+const PARTIAL_NOTICE = 'Nie udało się odczytać całego przepisu';
+
+function ResultItem({
+  result,
+  busy,
+  onSave,
+}: {
+  result: SearchResult;
+  busy: boolean;
+  onSave: (result: SearchResult) => void;
+}) {
   return (
     <li className="flex gap-3 rounded-lg border border-neutral-200 p-3">
       {result.imageToken ? (
@@ -67,7 +82,17 @@ function ResultItem({ result }: { result: SearchResult }) {
           >
             w kolekcji
           </Link>
-        ) : null}
+        ) : (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onSave(result)}
+            aria-label={`Zapisz: ${result.title}`}
+            className={`${buttonClass} self-start bg-neutral-900 text-white`}
+          >
+            Zapisz
+          </button>
+        )}
       </div>
     </li>
   );
@@ -75,13 +100,16 @@ function ResultItem({ result }: { result: SearchResult }) {
 
 /** "Szukaj w serwisach": one list of results from the active trusted sites (S17). */
 export function SearchScreen() {
-  const { state } = useCollection();
+  const { state, recipeSaved } = useCollection();
   const online = useOnline();
   const [phrase, setPhrase] = useState('');
   const [searching, setSearching] = useState(false);
   const [response, setResponse] = useState<SearchResponse | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [searched, setSearched] = useState('');
+  const save = useAction();
+  const [savedIds, setSavedIds] = useState<Record<string, string>>({});
+  const [draft, setDraft] = useState<FormDraft | null>(null);
 
   const noActiveSites = state.status === 'ready' && !state.trustedSites.some((site) => site.active);
   const valid = phrase.trim().length >= SEARCH_QUERY_MIN;
@@ -102,10 +130,35 @@ export function SearchScreen() {
     }
   };
 
+  const saveResult = (result: SearchResult) =>
+    void save.run(async () => {
+      const payload = await apiRequest('/api/search/save', {
+        method: 'POST',
+        body: { url: result.url },
+      });
+      const saved = recipeResponseSchema.safeParse(payload);
+      if (saved.success) {
+        setSavedIds((current) => ({ ...current, [result.url]: saved.data.recipe.id }));
+        await recipeSaved(saved.data.recipe, saved.data.dataVersion);
+        return;
+      }
+      // Not everything was read: the by-hand form opens with what was.
+      const partial = importPreviewResponseSchema.parse(payload);
+      setDraft({
+        mode: 'manual',
+        values: importDraftToForm(partial.draft),
+        photoId: partial.draft.photoId,
+        sourceImport: partial.draft.sourceImport,
+        notice: PARTIAL_NOTICE,
+      });
+    });
+
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (valid && !searching) void search();
   };
+
+  if (draft) return <RecipeForm draft={draft} />;
 
   let body;
   if (!online) {
@@ -171,8 +224,19 @@ export function SearchScreen() {
             ) : (
               <ul className="flex flex-col gap-2">
                 {response.results.map((result) => (
-                  <ResultItem key={result.url} result={result} />
+                  <ResultItem
+                    key={result.url}
+                    result={{
+                      ...result,
+                      recipeId: result.recipeId ?? savedIds[result.url] ?? null,
+                    }}
+                    busy={save.busy}
+                    onSave={saveResult}
+                  />
                 ))}
+                {save.errorCode ? (
+                  <ErrorNotice code={save.errorCode} onRetry={() => void save.retry()} />
+                ) : null}
               </ul>
             )}
           </div>

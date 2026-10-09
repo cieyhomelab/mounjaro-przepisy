@@ -3,7 +3,10 @@ import { and, asc, eq } from 'drizzle-orm';
 import type { TrustedSite } from '../../shared/contracts/trustedSite';
 import type { Database } from '../db/client';
 import { trustedSites } from '../db/schema';
+import { detectSite } from '../integrations/siteDetect';
+import type { PageFetcher } from '../integrations/pageFetcher';
 import type { SearchConfig } from '../integrations/siteSearch';
+import { parseSourceUrl } from '../../shared/domain/sourceUrl';
 import { bumpDataVersion, type Executor } from './recipes';
 
 type Row = typeof trustedSites.$inferSelect;
@@ -99,6 +102,66 @@ export async function listActiveSearchSites(db: Executor, accountId: string) {
     .from(trustedSites)
     .where(and(eq(trustedSites.accountId, accountId), eq(trustedSites.active, true)))
     .orderBy(asc(trustedSites.createdAt), asc(trustedSites.id));
+}
+
+export type AddSiteOutcome =
+  | { kind: 'added'; site: TrustedSite; dataVersion: number }
+  | { kind: 'invalid_url' | 'duplicate' | 'not_searchable' | 'unavailable' };
+
+const isUniqueViolation = (error: unknown) =>
+  (error as { code?: string } | null)?.code === '23505' ||
+  (error as { cause?: { code?: string } } | null)?.cause?.code === '23505';
+
+/**
+ * Adds the site at `address` to the account's list, active (S18). A site already on the list is
+ * not added twice; a site the app cannot search is not added at all.
+ */
+export async function addSite(
+  database: Database,
+  fetcher: PageFetcher,
+  accountId: string,
+  address: string,
+  fetchTimeoutMs: number,
+  now: Date,
+): Promise<AddSiteOutcome> {
+  const source = parseSourceUrl(address);
+  if (!source) return { kind: 'invalid_url' };
+  const { db } = database;
+  const [existing] = await db
+    .select({ id: trustedSites.id })
+    .from(trustedSites)
+    .where(and(eq(trustedSites.accountId, accountId), eq(trustedSites.host, source.host)));
+  if (existing) return { kind: 'duplicate' };
+
+  const detected = await detectSite(fetcher, source.url, { timeoutMs: fetchTimeoutMs });
+  if (detected.kind !== 'detected') return { kind: detected.kind };
+
+  try {
+    return await db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(trustedSites)
+        .values({
+          id: randomUUID(),
+          accountId,
+          host: detected.site.host,
+          name: detected.site.name,
+          active: true,
+          searchConfig: detected.site.searchConfig,
+          createdAt: now,
+        })
+        .returning();
+      if (!row) throw new Error('site not inserted');
+      return {
+        kind: 'added',
+        site: toSite(row),
+        dataVersion: await bumpDataVersion(tx, accountId),
+      };
+    });
+  } catch (error) {
+    // The same site added twice at once: the unique index lets one through.
+    if (isUniqueViolation(error)) return { kind: 'duplicate' };
+    throw error;
+  }
 }
 
 /** Switches a site on or off (S18); null when the account has no such site. */

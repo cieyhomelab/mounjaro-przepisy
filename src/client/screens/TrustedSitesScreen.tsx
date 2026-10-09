@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import {
   trustedSiteDeletedResponseSchema,
@@ -61,6 +61,7 @@ export function TrustedSitesScreen() {
   const { state, changeSaved } = useCollection();
   const { run, retry, busy, errorCode, clear } = useAction();
   const [deleting, setDeleting] = useState<TrustedSite | null>(null);
+  const [address, setAddress] = useState('');
 
   const toggle = (site: TrustedSite) =>
     void run(async () => {
@@ -81,6 +82,20 @@ export function TrustedSitesScreen() {
       setDeleting(null);
       await changeSaved({ removeTrustedSiteId: site.id }, response.dataVersion);
     });
+
+  const add = () =>
+    void run(async () => {
+      const response = trustedSiteResponseSchema.parse(
+        await apiRequest('/api/trusted-sites', { method: 'POST', body: { url: address.trim() } }),
+      );
+      setAddress('');
+      await changeSaved({ trustedSite: response.site }, response.dataVersion);
+    });
+
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    if (address.trim() !== '' && !busy) add();
+  };
 
   const sites = state.status === 'ready' ? state.trustedSites : [];
   return (
@@ -111,6 +126,34 @@ export function TrustedSitesScreen() {
           />
         ))}
       </ul>
+      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-3">
+        <label htmlFor="site-address" className="font-medium">
+          Adres serwisu
+        </label>
+        <input
+          id="site-address"
+          type="text"
+          inputMode="url"
+          autoComplete="off"
+          value={address}
+          onChange={(event) => setAddress(event.target.value)}
+          className="min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2"
+        />
+        <div>
+          <button
+            type="submit"
+            disabled={busy || address.trim() === ''}
+            className={`${buttonClass} bg-neutral-900 text-white`}
+          >
+            Dodaj serwis
+          </button>
+        </div>
+        {busy ? (
+          <p role="status" className="text-neutral-700">
+            Sprawdzam serwis…
+          </p>
+        ) : null}
+      </form>
       {deleting ? (
         <div
           role="alertdialog"

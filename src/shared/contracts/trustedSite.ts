@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { importPreviewResponseSchema } from './recipeImport';
+import { recipeResponseSchema } from './recipe';
 
 /** A trusted recipe site as the client and the export see it; the search recipe stays on the server. */
 export const trustedSiteSchema = z.object({
@@ -50,3 +52,23 @@ export const searchResponseSchema = z.object({
   failedSites: z.array(z.object({ name: z.string() })),
 });
 export type SearchResponse = z.infer<typeof searchResponseSchema>;
+
+/** Request body of POST /api/trusted-sites: the address of the site to add (S18). */
+export const trustedSiteCreateInputSchema = z.object({
+  url: z.string().trim().min(1).max(2000),
+});
+
+/** Request body of POST /api/search/save: the address of a search result (S17). */
+export const searchSaveInputSchema = z.object({
+  url: z.string().trim().min(1).max(2000),
+});
+
+/**
+ * Response of POST /api/search/save: the saved recipe (201), or what could be read when the page
+ * is not complete enough to save without a look (200); the user finishes it in the manual form.
+ */
+export const searchSaveResponseSchema = z.union([
+  recipeResponseSchema,
+  importPreviewResponseSchema.extend({ status: z.literal('partial') }),
+]);
+export type SearchSaveResponse = z.infer<typeof searchSaveResponseSchema>;

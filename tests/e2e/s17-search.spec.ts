@@ -167,4 +167,64 @@ test.describe('S17: wyszukiwanie przepisów w zaufanych serwisach', () => {
     ).toBeVisible();
     await expect(page.getByLabel('Czego szukasz?')).toHaveCount(0);
   });
+
+  test('S17: „Zapisz” dodaje przepis z czytelnej strony do kolekcji bez podglądu i oznacza wynik „w kolekcji”', async ({
+    page,
+    request,
+  }) => {
+    await logIn(page);
+    await useTestSites(request, [FIXTURE_SITES.searchable]);
+    await openSearch(page);
+    await search(page, 'obiad');
+
+    const readable = resultItems(page).filter({ hasText: 'Kurczak pieczony z cukinią' });
+    await readable.getByRole('button', { name: 'Zapisz' }).click();
+
+    await expect(readable.getByRole('link', { name: 'w kolekcji' })).toBeVisible();
+    await expect(readable.getByRole('button', { name: 'Zapisz' })).toHaveCount(0);
+    // Nie otwarto podglądu ani formularza.
+    await expect(searchHeading(page)).toBeVisible();
+
+    // Te same dane co w S2: treść, link do źródła, ocena i liczba opinii.
+    await readable.getByRole('link', { name: 'w kolekcji' }).click();
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Kurczak pieczony z cukinią' }),
+    ).toBeVisible();
+    await expect(page.getByText('Liczba porcji: 4')).toBeVisible();
+    await expect(page.getByText('500 g piersi z kurczaka')).toBeVisible();
+    await expect(page.getByText('Smaczne Testy')).toBeVisible();
+
+    // Przepis jest w kolekcji i podlega filtrom z S6.
+    await page.getByRole('link', { name: 'Wróć do kolekcji' }).click();
+    const list = page.getByRole('list', { name: 'Przepisy' });
+    await expect(list.getByRole('listitem')).toContainText('Kurczak pieczony z cukinią');
+    const filters = page.getByRole('group', { name: 'Filtry' }).getByRole('button');
+    await filters.first().click();
+    await expect(filters.first()).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  for (const [missing, title] of [
+    ['bez składników', 'Ryba w sosie'],
+    ['bez liczby porcji', 'Jajecznica ze szpinakiem'],
+  ] as const) {
+    test(`S17: „Zapisz” przy wyniku „${missing}” otwiera formularz ręczny z odczytanymi polami`, async ({
+      page,
+      request,
+    }) => {
+      await logIn(page);
+      await useTestSites(request, [FIXTURE_SITES.searchable]);
+      await openSearch(page);
+      await search(page, 'braki');
+
+      const item = resultItems(page).filter({ hasText: title });
+      await item.getByRole('button', { name: 'Zapisz' }).click();
+
+      await expect(page.getByText('Nie udało się odczytać całego przepisu')).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1, name: 'Nowy przepis' })).toBeVisible();
+      await expect(page.getByLabel('Tytuł')).toHaveValue(title);
+      await expect(page.getByLabel('Link do źródła (opcjonalnie)')).not.toHaveValue('');
+      const snapshot = await page.request.get('/api/snapshot');
+      expect(((await snapshot.json()) as { recipes: unknown[] }).recipes).toHaveLength(0);
+    });
+  }
 });

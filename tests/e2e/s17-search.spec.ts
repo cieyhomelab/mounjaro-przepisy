@@ -82,13 +82,15 @@ test.describe('S17: wyszukiwanie przepisów w zaufanych serwisach', () => {
     await expect(items.last()).toContainText('Brak oceny');
 
     await search(page, 'kurczak');
-    const ratings = await resultItems(page).evaluateAll((elements) =>
-      elements.map((element) => {
-        const match = /Ocena (\d),(\d)/.exec(element.textContent ?? '');
-        return match ? Number(`${match[1]}.${match[2]}`) : -1;
-      }),
-    );
-    expect(ratings.length).toBeGreaterThan(1);
+    const readRatings = () =>
+      resultItems(page).evaluateAll((elements) =>
+        elements.map((element) => {
+          const match = /Ocena (\d),(\d)/.exec(element.textContent ?? '');
+          return match ? Number(`${match[1]}.${match[2]}`) : -1;
+        }),
+      );
+    await expect.poll(async () => (await readRatings()).length).toBeGreaterThan(1);
+    const ratings = await readRatings();
     expect(ratings).toEqual([...ratings].sort((a, b) => b - a));
   });
 

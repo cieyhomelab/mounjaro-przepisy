@@ -10,6 +10,7 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { ApiError, apiRequest } from '../data/api';
 import { errorMessage } from '../data/errors';
 import { RecipeForm, type FormDraft } from './RecipeFormScreen';
+import { isOffline } from '../data/offline';
 
 const inputClass = 'min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2';
 const buttonClass =
@@ -52,7 +53,7 @@ export function ImportScreen() {
   const read = async () => {
     setFailure(null);
     if (!parseSourceUrl(address)) return setFailure({ kind: 'invalid_url' });
-    if (!navigator.onLine) return setFailure({ kind: 'other', code: 'offline' });
+    if (isOffline()) return setFailure({ kind: 'other', code: 'offline' });
     setReading(true);
     try {
       const response = importPreviewResponseSchema.parse(

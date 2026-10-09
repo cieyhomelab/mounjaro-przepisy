@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { ApiError } from './api';
+import { isOffline } from './offline';
 
 /**
  * Runs one state-changing action: refuses it offline ("Ta akcja wymaga połączenia z internetem"),
@@ -18,7 +19,7 @@ export function useAction() {
   const run = useCallback(async (action: () => Promise<void>): Promise<boolean> => {
     if (running.current) return false;
     lastAction.current = action;
-    if (!navigator.onLine) {
+    if (isOffline()) {
       setErrorCode('offline');
       return false;
     }

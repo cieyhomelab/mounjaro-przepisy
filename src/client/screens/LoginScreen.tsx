@@ -1,6 +1,7 @@
 import { Navigate, useSearchParams } from 'react-router';
 import { sanitizeReturnTo } from '../../shared/domain/returnTo';
 import { ErrorNotice } from '../components/ErrorNotice';
+import { OfflineBadge } from '../components/OfflineBadge';
 import { useSession } from '../data/session';
 
 const loginMessages: Record<string, string> = {
@@ -20,6 +21,7 @@ export function LoginScreen() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 p-6 text-center">
       <h1 className="text-3xl font-semibold">Mounjaro Przepisy</h1>
+      <OfflineBadge />
       {state.status === 'error' ? (
         <ErrorNotice code={state.code} onRetry={() => void refresh()} />
       ) : null}

@@ -3,6 +3,7 @@ import { Link, Outlet } from 'react-router';
 import { ApiError } from '../data/api';
 import { errorMessage } from '../data/errors';
 import { useSession } from '../data/session';
+import { OfflineBadge } from './OfflineBadge';
 
 const linkClass = 'inline-flex min-h-11 min-w-11 items-center rounded-lg px-3 font-medium';
 
@@ -26,6 +27,7 @@ export function AppShell() {
         <Link to="/" className={`${linkClass} text-lg font-semibold`}>
           Mounjaro Przepisy
         </Link>
+        <OfflineBadge />
         <nav aria-label="Nawigacja główna" className="flex items-center gap-1">
           <Link to="/ustawienia" className={linkClass}>
             Ustawienia

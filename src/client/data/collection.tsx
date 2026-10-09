@@ -14,8 +14,10 @@ import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings } from '../../shared/contracts/snapshot';
 import { snapshotEtag, snapshotSchema } from '../../shared/contracts/snapshot';
 import { ApiError, NOT_MODIFIED, apiRequest } from './api';
+import { loadOfflineStatus, syncOfflineData } from './offline';
 import {
   readLocalData,
+  touchContact,
   removeRecipe,
   storeChange,
   type LocalChange,
@@ -61,10 +63,12 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<CollectionState>({ status: 'loading' });
   const knownVersion = useRef<number | null>(null);
   const running = useRef<Promise<void> | null>(null);
+  const photoIds = useRef<string[]>([]);
 
   const reload = useCallback(async () => {
     const local = await readLocalData();
     knownVersion.current = local.dataVersion;
+    photoIds.current = local.recipes.flatMap((recipe) => (recipe.photoId ? [recipe.photoId] : []));
     if (local.dataVersion !== null)
       setState({
         status: 'ready',
@@ -82,9 +86,12 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
       const payload = await apiRequest('/api/snapshot', {
         headers: version === null ? {} : { 'If-None-Match': snapshotEtag(version) },
       });
-      if (payload === NOT_MODIFIED) return;
-      await storeSnapshot(snapshotSchema.parse(payload));
-      await reload();
+      if (payload === NOT_MODIFIED) await touchContact();
+      else {
+        await storeSnapshot(snapshotSchema.parse(payload));
+        await reload();
+      }
+      void syncOfflineData(photoIds.current);
     } catch (error) {
       // Offline or failing server: the screens keep showing the local copy when there is one.
       if (knownVersion.current === null) {
@@ -106,6 +113,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
       if (knownVersion.current !== null && dataVersion === knownVersion.current + 1) {
         await storeRecipe(recipe, dataVersion);
         await reload();
+        void syncOfflineData(photoIds.current);
         return;
       }
       await sync();
@@ -118,6 +126,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
       if (knownVersion.current !== null && dataVersion === knownVersion.current + 1) {
         await removeRecipe(recipeId, dataVersion);
         await reload();
+        void syncOfflineData(photoIds.current);
         return;
       }
       await sync();
@@ -130,6 +139,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
       if (knownVersion.current !== null && dataVersion === knownVersion.current + 1) {
         await storeSettings(settings, dataVersion);
         await reload();
+        void syncOfflineData(photoIds.current);
         return;
       }
       await sync();
@@ -142,6 +152,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
       if (knownVersion.current !== null && dataVersion === knownVersion.current + 1) {
         await storeChange(change, dataVersion);
         await reload();
+        void syncOfflineData(photoIds.current);
         return;
       }
       await sync();
@@ -152,6 +163,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
     const start = async () => {
+      await loadOfflineStatus();
       await reload();
       if (active) await sync();
     };

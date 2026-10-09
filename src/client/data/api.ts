@@ -42,7 +42,14 @@ export async function apiRequest(path: string, options: RequestOptions = {}): Pr
   const { method = 'GET', body, file, headers } = options;
   let response: Response;
   try {
-    const init: RequestInit = { method, credentials: 'same-origin', headers: { ...headers } };
+    // no-store: Firefox answers from its HTTP cache while offline, which would show a stale
+    // session after logout instead of failing like a real lost connection.
+    const init: RequestInit = {
+      method,
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { ...headers },
+    };
     if (file) {
       init.headers = { ...headers, 'Content-Type': file.type };
       init.body = file;

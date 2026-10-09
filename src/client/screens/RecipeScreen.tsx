@@ -14,6 +14,7 @@ import { ApiError, apiRequest } from '../data/api';
 import { RecipeOrganizer } from '../components/RecipeOrganizer';
 import { ToleranceEditor } from '../components/ToleranceEditor';
 import { useCollection } from '../data/collection';
+import { isOffline } from '../data/offline';
 
 const actionClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
@@ -28,7 +29,7 @@ function DeleteRecipe({ recipe }: { recipe: Recipe }) {
 
   const confirm = async () => {
     if (deleting) return;
-    if (!navigator.onLine) return setErrorCode('offline');
+    if (isOffline()) return setErrorCode('offline');
     setErrorCode(null);
     setDeleting(true);
     try {

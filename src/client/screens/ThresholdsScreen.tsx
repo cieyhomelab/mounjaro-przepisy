@@ -11,6 +11,7 @@ import {
 import { ErrorNotice } from '../components/ErrorNotice';
 import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
+import { isOffline } from '../data/offline';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
@@ -67,7 +68,7 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
     onDone?: (s: Settings) => void,
   ) => {
     setSaved(false);
-    if (!navigator.onLine) return setErrorCode('offline');
+    if (isOffline()) return setErrorCode('offline');
     setErrorCode(null);
     setBusy(true);
     try {

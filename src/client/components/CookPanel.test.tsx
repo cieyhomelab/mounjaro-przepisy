@@ -117,3 +117,15 @@ describe('CookPanel double tap', () => {
     expect(apiRequest).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('CookPanel offline', () => {
+  it('disables "Ugotowane" with a hint while there is no connection', () => {
+    const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    render(<CookPanel recipe={{ id: RECIPE_ID } as Recipe} />);
+
+    const button = screen.getByRole<HTMLButtonElement>('button', { name: 'Ugotowane' });
+    expect(button.disabled).toBe(true);
+    expect(screen.getByText('Oznacz po odzyskaniu połączenia')).toBeTruthy();
+    onLine.mockRestore();
+  });
+});

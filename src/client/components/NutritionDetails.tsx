@@ -6,6 +6,7 @@ import { buildNutritionChange, parseDecimalText } from '../../shared/domain/reci
 import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { ErrorNotice } from './ErrorNotice';
+import { isOffline } from '../data/offline';
 
 const LABELS: Record<NutritionKey, { label: string; field: string; unit: string }> = {
   kcal: { label: 'Kalorie', field: 'Kalorie (kcal)', unit: 'kcal' },
@@ -44,7 +45,7 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
       setInvalid('Podaj liczbę nieujemną.');
       return;
     }
-    if (!navigator.onLine) return setErrorCode('offline');
+    if (isOffline()) return setErrorCode('offline');
     setInvalid(null);
     setErrorCode(null);
     setSaving(true);

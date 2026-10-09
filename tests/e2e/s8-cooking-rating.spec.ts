@@ -79,16 +79,16 @@ test.describe('S8: ugotowania', () => {
     await expect(page.getByRole('button', { name: 'Cofnij ostatnie ugotowanie' })).toHaveCount(0);
   });
 
-  test('S8: offline „Ugotowane” pokazuje, że akcja wymaga połączenia, i niczego nie zapisuje', async ({
+  test('S8: offline „Ugotowane” jest nieaktywne z dopiskiem i niczego nie zapisuje', async ({
     page,
     context,
   }) => {
     await loggedInWithRecipe(page, { title: 'Zupa' });
 
     await context.setOffline(true);
-    await page.getByRole('button', { name: 'Ugotowane' }).click();
 
-    await expect(page.getByText('Ta akcja wymaga połączenia z internetem')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Ugotowane' })).toBeDisabled();
+    await expect(page.getByText('Oznacz po odzyskaniu połączenia')).toBeVisible();
     await expect(page.getByText('Liczba ugotowań: 0')).toBeVisible();
   });
 });

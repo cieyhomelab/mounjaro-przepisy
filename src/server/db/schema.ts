@@ -17,6 +17,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import type { Ingredient } from '../../shared/contracts/recipe';
+import type { SearchConfig } from '../integrations/siteSearch';
 
 const timestamptz = (name: string) => timestamp(name, { withTimezone: true });
 
@@ -167,4 +168,24 @@ export const recipeCollections = pgTable(
       .references(() => collections.id, { onDelete: 'cascade' }),
   },
   (table) => [primaryKey({ columns: [table.recipeId, table.collectionId] })],
+);
+
+/**
+ * A trusted recipe site (S18). `host` is the host name without "www.", unique within the account.
+ * `search_config` tells the search how to find recipe links on the site (see integrations/siteSearch.ts).
+ */
+export const trustedSites = pgTable(
+  'trusted_sites',
+  {
+    id: uuid('id').primaryKey(),
+    accountId: uuid('account_id')
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'cascade' }),
+    host: text('host').notNull(),
+    name: text('name').notNull(),
+    active: boolean('active').notNull().default(true),
+    searchConfig: jsonb('search_config').$type<SearchConfig>().notNull(),
+    createdAt: timestamptz('created_at').notNull(),
+  },
+  (table) => [uniqueIndex('trusted_sites_account_host_key').on(table.accountId, table.host)],
 );

@@ -29,6 +29,13 @@
       "when": 1791539254364,
       "tag": "0003_cook_events_collections",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791570391779,
+      "tag": "0004_trusted_sites",
+      "breakpoints": true
     }
   ]
 }

@@ -57,6 +57,14 @@ export function SettingsScreen() {
         </li>
         <li>
           <Link
+            to="/ustawienia/zaufane-serwisy"
+            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+          >
+            Zaufane serwisy
+          </Link>
+        </li>
+        <li>
+          <Link
             to="/ustawienia/moje-dane"
             className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
           >

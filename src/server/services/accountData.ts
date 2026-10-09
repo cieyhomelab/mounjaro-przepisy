@@ -10,6 +10,7 @@ import { listCollections } from './collections';
 import { listCookEvents } from './recipeDetails';
 import { listRecipes } from './recipes';
 import { readSettings } from './settings';
+import { listTrustedSites } from './trustedSites';
 
 export type ExportedPhoto = { path: string; content: Buffer };
 
@@ -55,6 +56,7 @@ export async function buildAccountExport(
         })),
         collections: await listCollections(tx, accountId),
         cookEvents: await listCookEvents(tx, accountId),
+        trustedSites: await listTrustedSites(tx, accountId),
       };
       return {
         data,

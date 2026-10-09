@@ -15,8 +15,10 @@ import { MyDataScreen } from './screens/MyDataScreen';
 import { NotFoundScreen } from './screens/NotFoundScreen';
 import { RecipeEditScreen, RecipeFormScreen } from './screens/RecipeFormScreen';
 import { RecipeScreen } from './screens/RecipeScreen';
+import { SearchScreen } from './screens/SearchScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { ThresholdsScreen } from './screens/ThresholdsScreen';
+import { TrustedSitesScreen } from './screens/TrustedSitesScreen';
 
 /** Local copy of the user's data, kept in step with the server while a session exists. */
 function DataLayout() {
@@ -43,9 +45,11 @@ export function App() {
               <Route path="przepisy/z-linku" element={<ImportScreen />} />
               <Route path="przepisy/:id/edycja" element={<RecipeEditScreen />} />
               <Route path="przepisy/:id" element={<RecipeScreen />} />
+              <Route path="szukaj" element={<SearchScreen />} />
               <Route path="kolekcje" element={<OwnCollectionsScreen />} />
               <Route path="ustawienia" element={<SettingsScreen />} />
               <Route path="ustawienia/progi-filtrow" element={<ThresholdsScreen />} />
+              <Route path="ustawienia/zaufane-serwisy" element={<TrustedSitesScreen />} />
               <Route path="ustawienia/moje-dane" element={<MyDataScreen />} />
               <Route path="konto" element={<AccountScreen />} />
               <Route path="*" element={<NotFoundScreen />} />

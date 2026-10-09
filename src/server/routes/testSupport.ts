@@ -1,10 +1,11 @@
 import type { FastifyInstance } from 'fastify';
-import { clockRequestSchema } from '../../shared/contracts/testSupport';
+import { clockRequestSchema, testSitesRequestSchema } from '../../shared/contracts/testSupport';
 import type { Clock } from '../clock';
 import type { Database } from '../db/client';
 import { sendError } from '../errors';
 import { MOCK_LOGIN_PATH } from '../integrations/auth';
-import { deleteAllData } from '../services/testSupport';
+import { deleteAllData, firstAccountId } from '../services/testSupport';
+import { replaceSitesForTests } from '../services/trustedSites';
 
 const escapeHtml = (value: string) =>
   value.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
@@ -25,6 +26,16 @@ export function registerTestSupportRoutes(
     if (!parsed.success) return sendError(reply, 400, 'validation', { now: 'invalid' });
     deps.clock.set(parsed.data.now ? new Date(parsed.data.now) : null);
     return reply.send({ now: deps.clock.now().toISOString() });
+  });
+
+  // The app has one user: the sites replaced are those of the only account (log in first).
+  app.put('/api/__test/trusted-sites', async (request, reply) => {
+    const parsed = testSitesRequestSchema.safeParse(request.body);
+    if (!parsed.success) return sendError(reply, 400, 'validation', { sites: 'invalid' });
+    const accountId = await firstAccountId(deps.database);
+    if (!accountId) return sendError(reply, 404, 'not_found');
+    await replaceSitesForTests(deps.database, accountId, parsed.data.sites, deps.clock.now());
+    return reply.code(204).send();
   });
 
   if (deps.mockLogin) {

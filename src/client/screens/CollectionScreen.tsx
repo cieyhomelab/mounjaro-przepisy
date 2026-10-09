@@ -20,7 +20,7 @@ import { useCollectionView } from '../data/collectionView';
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
 
-/** The two ways to add a recipe: from a link or by hand. */
+/** The ways to add a recipe: from a link, by hand or from a search in the trusted sites. */
 function AddRecipeChoices() {
   const navigate = useNavigate();
   return (
@@ -38,6 +38,13 @@ function AddRecipeChoices() {
         className={`${buttonClass} bg-neutral-900 text-white`}
       >
         Ręcznie
+      </button>
+      <button
+        type="button"
+        onClick={() => void navigate('/szukaj')}
+        className={`${buttonClass} border border-neutral-400`}
+      >
+        Szukaj w serwisach
       </button>
     </div>
   );

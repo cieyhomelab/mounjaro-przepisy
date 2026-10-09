@@ -26,13 +26,72 @@ const PAGES = new Set([
   'z-czescia-wartosci',
 ]);
 
+// Search sites. The same server answers under several host names (aliases in compose.e2e.yml);
+// the host decides which site it plays.
+const KURCZAK_RATINGS = [3.1, 4.9, 4.0, 4.5, 3.8, 4.2, 2.5, 4.7, 3.3, 4.4, 3.0, 4.8];
+
+const link = (href: string) => `<a href="${href}">przepis</a>`;
+const resultsPage = (links: string[]) =>
+  `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Wyniki</title></head><body>${links.map(link).join('\n')}</body></html>`;
+
+function recipePage(title: string, ratingValue: number, bestRating: number, ratingCount: number) {
+  const recipe = {
+    '@context': 'https://schema.org',
+    '@type': 'Recipe',
+    name: title,
+    image: ['/img/danie.png'],
+    recipeYield: '2 porcje',
+    recipeIngredient: ['200 g piersi z kurczaka'],
+    recipeInstructions: [{ '@type': 'HowToStep', text: 'Usmaż kurczaka.' }],
+    aggregateRating: { '@type': 'AggregateRating', ratingValue, ratingCount, bestRating },
+  };
+  return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${title}</title><script type="application/ld+json">${JSON.stringify(recipe)}</script></head><body><h1>${title}</h1></body></html>`;
+}
+
+/** Answers for the search sites; null when the request is not for one of them. */
+function searchSiteAnswer(host: string, url: URL): string | null {
+  const query = (url.searchParams.get('q') ?? '').toLowerCase();
+  const searching = url.pathname === '/szukaj';
+  const number = Number(/^\/przepis\/[a-z]+-(\d+)$/.exec(url.pathname)?.[1]);
+  if (host === 'przeszukiwalny.test') {
+    if (searching) {
+      if (query.includes('kurczak')) {
+        return resultsPage(Array.from({ length: 12 }, (_, i) => `/przepis/kurczak-${i + 1}`));
+      }
+      if (query.includes('obiad')) {
+        return resultsPage(['/przepisy/czytelna', '/przepisy/bez-oceny', '/przepisy/nie-przepis']);
+      }
+      return resultsPage([]);
+    }
+    const rating = KURCZAK_RATINGS[number - 1];
+    if (url.pathname.startsWith('/przepis/kurczak-') && rating !== undefined) {
+      return recipePage(`Kurczak ${number}`, rating, 5, number * 10);
+    }
+  }
+  if (host === 'skala10.test') {
+    if (searching) return resultsPage(['/przepis/skala-1', '/przepis/skala-2']);
+    if (number === 1) return recipePage('Danie z oceną z dziesięciu 1', 8, 10, 40);
+    if (number === 2) return recipePage('Danie z oceną z dziesięciu 2', 9.5, 10, 12);
+  }
+  return null;
+}
+
 function send(response: ServerResponse, status: number, type: string, body: string | Buffer) {
   response.writeHead(status, { 'content-type': type });
   response.end(body);
 }
 
 const server = createServer((request, response) => {
-  const pathname = new URL(request.url ?? '/', 'http://fixtures.test').pathname;
+  const host = (request.headers.host ?? '').split(':')[0] ?? '';
+  const url = new URL(request.url ?? '/', 'http://fixtures.test');
+  const pathname = url.pathname;
+  if (host === 'niedostepny.test') {
+    // "niedostępny": the site never answers.
+    request.on('close', () => response.destroy());
+    return;
+  }
+  const searchAnswer = searchSiteAnswer(host, url);
+  if (searchAnswer !== null) return send(response, 200, 'text/html; charset=utf-8', searchAnswer);
   const page = /^\/przepisy\/([a-z-]+)\/?$/.exec(pathname)?.[1];
 
   if (page && PAGES.has(page)) {

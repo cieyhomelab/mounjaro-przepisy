@@ -16,10 +16,12 @@ import { registerCollectionRoutes } from './routes/collections';
 import { registerHealthRoutes } from './routes/health';
 import { registerPhotoRoutes } from './routes/photos';
 import { registerRecipeRoutes } from './routes/recipes';
+import { registerSearchRoutes } from './routes/search';
 import { registerSessionRoutes } from './routes/session';
 import { registerSettingsRoutes } from './routes/settings';
 import { registerSnapshotRoutes } from './routes/snapshot';
 import { registerTestSupportRoutes } from './routes/testSupport';
+import { registerTrustedSiteRoutes } from './routes/trustedSites';
 import { resolveSession, type ActiveSession } from './services/sessions';
 
 declare module 'fastify' {
@@ -122,17 +124,20 @@ export async function buildApp({
   registerSnapshotRoutes(app, { database, clock: appClock });
   registerSettingsRoutes(app, { database });
   registerAccountRoutes(app, { config, database, clock: appClock });
+  const fetcher =
+    pageFetcher ??
+    createPageFetcher({
+      timeoutMs: config.fetchTimeoutMs,
+      allowPrivateNetwork: config.fetchAllowPrivateNetwork,
+    });
   registerRecipeRoutes(app, {
     database,
     clock: appClock,
-    fetcher:
-      pageFetcher ??
-      createPageFetcher({
-        timeoutMs: config.fetchTimeoutMs,
-        allowPrivateNetwork: config.fetchAllowPrivateNetwork,
-      }),
+    fetcher,
     fetchTimeoutMs: config.fetchTimeoutMs,
   });
+  registerSearchRoutes(app, { database, fetcher, fetchTimeoutMs: config.fetchTimeoutMs });
+  registerTrustedSiteRoutes(app, { database });
   registerCollectionRoutes(app, { database, clock: appClock });
   await registerPhotoRoutes(app, { database, clock: appClock });
   registerAuthRoutes(app, {

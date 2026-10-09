@@ -7,6 +7,7 @@ import { listCollections } from './collections';
 import { listCookEvents } from './recipeDetails';
 import { listRecipes, type Executor } from './recipes';
 import { readSettings } from './settings';
+import { listTrustedSites } from './trustedSites';
 
 /** Current data version of the account; the ETag of the snapshot. */
 export async function readDataVersion(db: Executor, accountId: string): Promise<number> {
@@ -38,6 +39,7 @@ export async function buildSnapshot(
         recipes: await listRecipes(tx, accountId),
         collections: await listCollections(tx, accountId),
         cookEvents: await listCookEvents(tx, accountId),
+        trustedSites: await listTrustedSites(tx, accountId),
       };
     },
     { isolationLevel: 'repeatable read', accessMode: 'read only' },

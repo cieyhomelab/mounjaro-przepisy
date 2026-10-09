@@ -42,6 +42,40 @@ Dane (baza PostgreSQL w wolumenie `db-data`, zdjęcia w bazie) leżą na dysku s
 
 Kopie zapasowe (etap 1.5) są szyfrowane osobno kluczem `age`; klucz prywatny trzymaj poza serwerem.
 
+## Kopie zapasowe
+
+Usługa `backup` (w `compose.yml`) co 6 godzin robi `pg_dump`, szyfruje go kluczem publicznym `age` i zapisuje plik `app-<data>.dump.age` w katalogu `BACKUP_DIR` (domyślnie `./backups` obok `compose.yml`). Pliki starsze niż 29 dni są usuwane, więc dane usuniętego konta znikają z kopii przed upływem 30 dni obiecanych w aplikacji. Awaria serwera nie powinna kosztować danych starszych niż 6 godzin (cel: 24 godziny).
+
+### Klucze (jednorazowo, na swoim komputerze)
+
+1. Zainstaluj `age` (`apt install age`, `brew install age`) i wygeneruj parę kluczy: `age-keygen -o klucz-kopii.txt`.
+2. Wiersz `# public key: age1…` to klucz publiczny. Wpisz go do `.env` jako `BACKUP_AGE_RECIPIENT`.
+3. Plik `klucz-kopii.txt` (klucz prywatny) przechowaj poza serwerem, na przykład w menedżerze haseł. Bez niego kopii nie da się odczytać, a serwer go nigdy nie potrzebuje.
+
+Bez `BACKUP_AGE_RECIPIENT` usługa `backup` kończy się błędem i kopii nie robi; sprawdź to w liście kontrolnej poniżej.
+
+### Kopia poza serwer
+
+Pliki w `BACKUP_DIR` są zaszyfrowane, więc nadaje się dowolny magazyn (inny serwer, dysk zewnętrzny, chmura). Skopiuj je regularnie, na przykład z komputera: `rsync -a serwer:/ścieżka/do/backups/ ~/kopie-mounjaro/`. Kopia poza serwerem też musi wygasać po 29 dniach (`find ~/kopie-mounjaro -name 'app-*.dump.age' -mtime +28 -delete`), inaczej dane usuniętego konta zostaną dłużej niż 30 dni.
+
+### Odtworzenie
+
+1. Zatrzymaj aplikację: `docker compose stop app backup`.
+2. Odszyfruj wybraną kopię (najnowszą wskazuje nazwa pliku): `age --decrypt -i klucz-kopii.txt backups/app-<data>.dump.age > app.dump`.
+3. Wyczyść bazę i wczytaj kopię:
+   `docker compose exec -T db psql -U app -d postgres -c 'drop database app' -c 'create database app owner app'`,
+   potem `docker compose exec -T db pg_restore -U app -d app --no-owner < app.dump`.
+4. Uruchom ponownie: `docker compose up -d` i sprawdź `/api/health` oraz logowanie. Migracje stosują się przy starcie aplikacji, więc kopia ze starszej wersji zostanie zaktualizowana.
+5. Usuń `app.dump` (zawiera dane w postaci jawnej).
+
+### Próba odtworzenia
+
+`scripts/restore-drill.sh` sprawdza cały łańcuch na danych testowych w tymczasowych kontenerach: kopia jest zaszyfrowana (nie da się jej odczytać obcym kluczem), stare pliki są usuwane, a po odtworzeniu do drugiej bazy dane są identyczne. CI uruchamia ją przy każdej zmianie. Uruchom ją też ręcznie po zmianie wersji PostgreSQL albo obrazu `backup`.
+
+## Eksport i usunięcie konta
+
+Użytkownik robi to sam w aplikacji: Ustawienia → „Moje dane”. Eksport to plik ZIP z `dane.json` (wszystkie dane konta) i katalogiem `zdjecia/`. Usunięcie konta kasuje dane z bazy od razu i wylogowuje wszystkie urządzenia; kopie zapasowe wygasają po 29 dniach (patrz wyżej).
+
 ## Lista kontrolna odbioru wdrożenia
 
 - [ ] Strona otwiera się pod `https://<twoja-domena>` z ważnym certyfikatem, a `http://` przekierowuje na HTTPS.
@@ -49,6 +83,9 @@ Kopie zapasowe (etap 1.5) są szyfrowane osobno kluczem `age`; klucz prywatny tr
 - [ ] Przepis dodany na telefonie jest widoczny po zalogowaniu na komputerze.
 - [ ] Przepis można edytować i usunąć (z potwierdzeniem).
 - [ ] Dysk serwera jest zaszyfrowany.
+- [ ] `docker compose logs backup` pokazuje `created app-….dump.age`, a plik jest w `BACKUP_DIR`.
+- [ ] Klucz prywatny `age` jest poza serwerem i da się nim odszyfrować najnowszą kopię.
+- [ ] Ustawienia → „Moje dane” → „Eksportuj dane” pobiera plik ZIP.
 - [ ] `.env` nie jest w repozytorium i ma ograniczone uprawnienia.
 
 ## Aktualizacja

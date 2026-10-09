@@ -26,6 +26,25 @@ services:
       - '127.0.0.1:${APP_PORT:-3000}:3000'
     restart: unless-stopped
 
+  # Encrypted database backups every 6 hours (docs/operations.md). BACKUP_AGE_RECIPIENT is the
+  # public age key; without it the service stops with an error and no backup is made.
+  backup:
+    build:
+      context: backup
+    environment:
+      PGHOST: db
+      PGUSER: app
+      PGDATABASE: app
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:-}
+      BACKUP_DIR: /backups
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   # HTTPS in front of the app with an automatic certificate. Optional: start it with
   # `docker compose --profile tls up -d` when the server has no reverse proxy of its own.
   caddy:

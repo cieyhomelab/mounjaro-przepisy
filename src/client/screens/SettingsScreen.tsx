@@ -55,6 +55,14 @@ export function SettingsScreen() {
             Progi filtrów
           </Link>
         </li>
+        <li>
+          <Link
+            to="/ustawienia/moje-dane"
+            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+          >
+            Moje dane
+          </Link>
+        </li>
       </ul>
       <OfflineData status={status} />
     </section>

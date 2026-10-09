@@ -8,6 +8,7 @@ import { AccountScreen } from './screens/AccountScreen';
 import { CollectionScreen } from './screens/CollectionScreen';
 import { ImportScreen } from './screens/ImportScreen';
 import { LoginScreen } from './screens/LoginScreen';
+import { OwnCollectionsScreen } from './screens/OwnCollectionsScreen';
 import { NotFoundScreen } from './screens/NotFoundScreen';
 import { RecipeEditScreen, RecipeFormScreen } from './screens/RecipeFormScreen';
 import { RecipeScreen } from './screens/RecipeScreen';
@@ -38,6 +39,7 @@ export function App() {
               <Route path="przepisy/z-linku" element={<ImportScreen />} />
               <Route path="przepisy/:id/edycja" element={<RecipeEditScreen />} />
               <Route path="przepisy/:id" element={<RecipeScreen />} />
+              <Route path="kolekcje" element={<OwnCollectionsScreen />} />
               <Route path="ustawienia" element={<SettingsScreen />} />
               <Route path="ustawienia/progi-filtrow" element={<ThresholdsScreen />} />
               <Route path="konto" element={<AccountScreen />} />

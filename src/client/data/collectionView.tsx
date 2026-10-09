@@ -10,9 +10,12 @@ type CollectionViewValue = {
   filters: readonly FilterId[];
   sort: SortKey;
   query: string;
+  /** The own collection chosen as a filter; only one at a time. */
+  collectionId: string | null;
   toggleFilter: (filter: FilterId) => void;
   setSort: (sort: SortKey) => void;
   setQuery: (query: string) => void;
+  setCollectionId: (id: string | null) => void;
   /** "Wyczyść filtry": switches every filter off and empties the search; the sorting stays. */
   clearFilters: () => void;
 };
@@ -27,6 +30,7 @@ export function CollectionViewProvider({ children }: { children: ReactNode }) {
   const [active, setActive] = useState<ReadonlySet<FilterId>>(new Set());
   const [sort, setSort] = useState<SortKey>(DEFAULT_SORT);
   const [query, setQuery] = useState('');
+  const [collectionId, setCollectionId] = useState<string | null>(null);
 
   const toggleFilter = useCallback((filter: FilterId) => {
     setActive((current) => {
@@ -39,6 +43,7 @@ export function CollectionViewProvider({ children }: { children: ReactNode }) {
   const clearFilters = useCallback(() => {
     setActive(new Set());
     setQuery('');
+    setCollectionId(null);
   }, []);
 
   const value = useMemo(
@@ -46,12 +51,14 @@ export function CollectionViewProvider({ children }: { children: ReactNode }) {
       filters: FILTER_IDS.filter((id) => active.has(id)),
       sort,
       query,
+      collectionId,
       toggleFilter,
       setSort,
       setQuery,
+      setCollectionId,
       clearFilters,
     }),
-    [active, sort, query, toggleFilter, clearFilters],
+    [active, sort, query, collectionId, toggleFilter, clearFilters],
   );
   return <CollectionViewContext.Provider value={value}>{children}</CollectionViewContext.Provider>;
 }

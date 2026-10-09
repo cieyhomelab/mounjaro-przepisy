@@ -1,17 +1,19 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import {
   FILTER_IDS,
   FILTER_LABELS,
   SORT_KEYS,
   SORT_LABELS,
   applyFilters,
+  inOwnCollection,
   searchMatcher,
   sortRecipes,
   type SortKey,
 } from '../../shared/domain/recipeList';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { VirtualRecipeList } from '../components/VirtualRecipeList';
+import { WeeklyCounter } from '../components/WeeklyCounter';
 import { useCollection } from '../data/collection';
 import { useCollectionView } from '../data/collectionView';
 
@@ -52,8 +54,9 @@ function EmptyCollection() {
 }
 
 /** Search field, the five Mounjaro filters and the sorting choice. */
-function ListControls() {
-  const { filters, sort, query, toggleFilter, setSort, setQuery } = useCollectionView();
+function ListControls({ collections }: { collections: { id: string; name: string }[] }) {
+  const { filters, sort, query, collectionId, toggleFilter, setSort, setQuery, setCollectionId } =
+    useCollectionView();
   return (
     <div className="flex flex-col gap-3">
       <input
@@ -81,6 +84,26 @@ function ListControls() {
             </button>
           );
         })}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="flex flex-wrap items-center gap-2">
+          <span className="font-medium">Kolekcja własna</span>
+          <select
+            value={collectionId ?? ''}
+            onChange={(event) => setCollectionId(event.target.value || null)}
+            className="min-h-11 rounded-lg border border-neutral-300 bg-white px-3"
+          >
+            <option value="">Wszystkie przepisy</option>
+            {collections.map((collection) => (
+              <option key={collection.id} value={collection.id}>
+                {collection.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
+          Kolekcje własne
+        </Link>
       </div>
       <label className="flex flex-wrap items-center gap-2">
         <span className="font-medium">Sortowanie</span>
@@ -118,17 +141,22 @@ function NoMatches({ onClear }: { onClear: () => void }) {
 /** Home screen of a logged-in user: the collection with filters, sorting and search. */
 export function CollectionScreen() {
   const { state, sync } = useCollection();
-  const { filters, sort, query, clearFilters } = useCollectionView();
+  const { filters, sort, query, collectionId, clearFilters } = useCollectionView();
   const [adding, setAdding] = useState(false);
   const recipes = state.status === 'ready' ? state.recipes : null;
   const settings = state.status === 'ready' ? state.settings : null;
+  const collections = state.status === 'ready' ? state.collections : null;
+  // A collection deleted meanwhile (here or on another device) no longer filters.
+  const activeCollection =
+    collections?.find((collection) => collection.id === collectionId)?.id ?? null;
 
   const shown = useMemo(() => {
     if (!recipes || !settings) return [];
     const matches = searchMatcher(query);
     const found = recipes.filter((recipe) => matches(recipe.searchText));
-    return sortRecipes(applyFilters(found, filters, settings), sort);
-  }, [recipes, settings, filters, sort, query]);
+    const inCollection = inOwnCollection(found, activeCollection);
+    return sortRecipes(applyFilters(inCollection, filters, settings), sort);
+  }, [recipes, settings, filters, sort, query, activeCollection]);
 
   return (
     <section className="flex flex-col gap-4">
@@ -155,7 +183,10 @@ export function CollectionScreen() {
         <ErrorNotice code={state.code} onRetry={() => void sync()} />
       ) : null}
       {state.status === 'ready' && state.recipes.length === 0 ? <EmptyCollection /> : null}
-      {state.status === 'ready' && state.recipes.length > 0 ? <ListControls /> : null}
+      {state.status === 'ready' ? <WeeklyCounter cookEvents={state.cookEvents} /> : null}
+      {state.status === 'ready' && state.recipes.length > 0 ? (
+        <ListControls collections={state.collections} />
+      ) : null}
       {state.status === 'ready' && state.recipes.length > 0 && shown.length === 0 ? (
         <NoMatches onClear={clearFilters} />
       ) : null}

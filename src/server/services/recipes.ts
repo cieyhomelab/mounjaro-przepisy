@@ -15,7 +15,7 @@ import {
 } from '../../shared/domain/nutrition';
 import { parseSourceUrl } from '../../shared/domain/sourceUrl';
 import type { Database } from '../db/client';
-import { accounts, recipePhotos, recipes } from '../db/schema';
+import { accounts, recipeCollections, recipePhotos, recipes } from '../db/schema';
 import ingredientTable from '../../shared/nutrition/ingredients.pl.json';
 
 /** Anything that can run a select: the database itself or a transaction. */
@@ -38,8 +38,12 @@ const nutritionValue = (value: number | null, origin: RecipeRow['kcalOrigin']) =
   origin: value === null ? ('none' as const) : origin,
 });
 
-/** The API shape of a recipe row; `photoId` comes from the photo table. */
-export function toRecipe(row: RecipeRow, photoId: string | null): Recipe {
+/** The API shape of a recipe row; `photoId` comes from the photo table, `collectionIds` from the assignments. */
+export function toRecipe(
+  row: RecipeRow,
+  photoId: string | null,
+  collectionIds: string[] = [],
+): Recipe {
   return {
     id: row.id,
     title: row.title,
@@ -64,7 +68,7 @@ export function toRecipe(row: RecipeRow, photoId: string | null): Recipe {
     toleranceNote: row.toleranceNote,
     worseDays: row.worseDays,
     photoId,
-    collectionIds: [],
+    collectionIds,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -263,7 +267,16 @@ export async function listRecipes(db: Executor, accountId: string): Promise<Reci
     .leftJoin(recipePhotos, eq(recipePhotos.recipeId, recipes.id))
     .where(eq(recipes.accountId, accountId))
     .orderBy(asc(recipes.createdAt), asc(recipes.id));
-  return rows.map((row) => toRecipe(row.recipe, row.photoId));
+  const assigned = await db
+    .select({ recipeId: recipeCollections.recipeId, collectionId: recipeCollections.collectionId })
+    .from(recipeCollections)
+    .innerJoin(recipes, eq(recipes.id, recipeCollections.recipeId))
+    .where(eq(recipes.accountId, accountId));
+  const byRecipe = new Map<string, string[]>();
+  for (const { recipeId, collectionId } of assigned) {
+    byRecipe.set(recipeId, [...(byRecipe.get(recipeId) ?? []), collectionId]);
+  }
+  return rows.map((row) => toRecipe(row.recipe, row.photoId, byRecipe.get(row.recipe.id)));
 }
 
 /** One recipe of the account, or null. */
@@ -277,7 +290,16 @@ export async function findRecipe(
     .from(recipes)
     .leftJoin(recipePhotos, eq(recipePhotos.recipeId, recipes.id))
     .where(and(eq(recipes.id, recipeId), eq(recipes.accountId, accountId)));
-  return row ? toRecipe(row.recipe, row.photoId) : null;
+  if (!row) return null;
+  const assigned = await db
+    .select({ collectionId: recipeCollections.collectionId })
+    .from(recipeCollections)
+    .where(eq(recipeCollections.recipeId, recipeId));
+  return toRecipe(
+    row.recipe,
+    row.photoId,
+    assigned.map((item) => item.collectionId),
+  );
 }
 
 /**
@@ -348,8 +370,8 @@ export async function updateRecipe(
 }
 
 /**
- * Deletes a recipe with its photo and returns the new data version, or null when the account has
- * no such recipe. Own collections (stage 1.3) will drop their entries for it here as well.
+ * Deletes a recipe with its photo and its assignments to own collections, and returns the new data
+ * version, or null when the account has no such recipe. Its cookings stay, without a recipe.
  */
 export async function deleteRecipe(
   { db }: Database,

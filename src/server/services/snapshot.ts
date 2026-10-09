@@ -3,6 +3,8 @@ import { API_VERSION } from '../../shared/contracts/session';
 import type { Snapshot } from '../../shared/contracts/snapshot';
 import type { Database } from '../db/client';
 import { accounts } from '../db/schema';
+import { listCollections } from './collections';
+import { listCookEvents } from './recipeDetails';
 import { listRecipes, type Executor } from './recipes';
 import { readSettings } from './settings';
 
@@ -34,8 +36,8 @@ export async function buildSnapshot(
         generatedAt: now.toISOString(),
         settings: await readSettings(tx, accountId),
         recipes: await listRecipes(tx, accountId),
-        collections: [],
-        cookEvents: [],
+        collections: await listCollections(tx, accountId),
+        cookEvents: await listCookEvents(tx, accountId),
       };
     },
     { isolationLevel: 'repeatable read', accessMode: 'read only' },

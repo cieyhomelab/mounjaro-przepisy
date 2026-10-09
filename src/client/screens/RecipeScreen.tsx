@@ -2,10 +2,14 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { recipeDeletedResponseSchema, type Recipe } from '../../shared/contracts/recipe';
 import { formatSourceRating } from '../../shared/domain/sourceRating';
+import { CookPanel } from '../components/CookPanel';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { NutritionDetails } from '../components/NutritionDetails';
+import { OwnRating } from '../components/OwnRating';
 import { RecipeImage } from '../components/RecipeImage';
 import { ApiError, apiRequest } from '../data/api';
+import { RecipeOrganizer } from '../components/RecipeOrganizer';
+import { ToleranceEditor } from '../components/ToleranceEditor';
 import { useCollection } from '../data/collection';
 
 const actionClass =
@@ -99,12 +103,22 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
         {recipe.kind === 'manual' ? (
           <span className="rounded-full bg-neutral-200 px-2 text-sm">ręczny</span>
         ) : null}
+        {recipe.worseDays ? (
+          <span className="rounded-full bg-amber-100 px-2 text-sm">Na gorsze dni</span>
+        ) : null}
+        {recipe.tolerance === 'bad' ? (
+          <span className="rounded-full bg-red-100 px-2 text-sm">źle toleruję</span>
+        ) : null}
       </div>
       {recipe.kind === 'link' || recipe.sourceRating !== null ? (
         <p>Ocena ze źródła: {formatSourceRating(recipe)}</p>
       ) : null}
       <p>Liczba porcji: {recipe.servings.toLocaleString('pl-PL')}</p>
       <NutritionDetails recipe={recipe} />
+      <CookPanel recipe={recipe} />
+      <OwnRating recipe={recipe} />
+      <ToleranceEditor recipe={recipe} />
+      <RecipeOrganizer recipe={recipe} />
       <section aria-labelledby="ingredients-heading" className="flex flex-col gap-1">
         <h2 id="ingredients-heading" className="text-lg font-semibold">
           Składniki

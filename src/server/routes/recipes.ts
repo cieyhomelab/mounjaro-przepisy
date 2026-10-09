@@ -1,5 +1,11 @@
 import { z } from 'zod';
 import type { FastifyInstance } from 'fastify';
+import {
+  ratingInputSchema,
+  recipeCollectionsInputSchema,
+  toleranceInputSchema,
+  worseDaysInputSchema,
+} from '../../shared/contracts/recipe';
 import { importPreviewRequestSchema } from '../../shared/contracts/recipeImport';
 import { validateRecipeInput } from '../../shared/domain/recipeValidation';
 import type { Clock } from '../clock';
@@ -7,6 +13,14 @@ import type { Database } from '../db/client';
 import { sendError } from '../errors';
 import type { PageFetcher } from '../integrations/pageFetcher';
 import { previewImport } from '../services/recipeImport';
+import {
+  addCookEvent,
+  removeLastCookEvent,
+  setRating,
+  setRecipeCollections,
+  setTolerance,
+  setWorseDays,
+} from '../services/recipeDetails';
 import { createRecipe, deleteRecipe, updateRecipe } from '../services/recipes';
 
 const idParams = z.object({ id: z.uuid() });
@@ -80,5 +94,96 @@ export function registerRecipeRoutes(
       params.data.id,
     );
     return dataVersion === null ? sendError(reply, 404, 'not_found') : reply.send({ dataVersion });
+  });
+
+  app.put('/api/recipes/:id/rating', async (request, reply) => {
+    const params = idParams.safeParse(request.params);
+    if (!params.success) return sendError(reply, 404, 'not_found');
+    const body = ratingInputSchema.safeParse(request.body);
+    if (!body.success) return sendError(reply, 400, 'validation', { rating: 'invalid' });
+    const changed = await setRating(
+      deps.database,
+      request.session?.accountId ?? '',
+      params.data.id,
+      body.data.rating,
+      deps.clock.now(),
+    );
+    return changed ? reply.send(changed) : sendError(reply, 404, 'not_found');
+  });
+
+  app.put('/api/recipes/:id/tolerance', async (request, reply) => {
+    const params = idParams.safeParse(request.params);
+    if (!params.success) return sendError(reply, 404, 'not_found');
+    const body = toleranceInputSchema.safeParse(request.body);
+    if (!body.success) {
+      const fields = Object.fromEntries(
+        body.error.issues.map((issue) => [String(issue.path[0] ?? 'body'), 'invalid']),
+      );
+      return sendError(reply, 400, 'validation', fields);
+    }
+    const changed = await setTolerance(
+      deps.database,
+      request.session?.accountId ?? '',
+      params.data.id,
+      body.data,
+      deps.clock.now(),
+    );
+    return changed ? reply.send(changed) : sendError(reply, 404, 'not_found');
+  });
+
+  app.put('/api/recipes/:id/worse-days', async (request, reply) => {
+    const params = idParams.safeParse(request.params);
+    if (!params.success) return sendError(reply, 404, 'not_found');
+    const body = worseDaysInputSchema.safeParse(request.body);
+    if (!body.success) return sendError(reply, 400, 'validation', { enabled: 'invalid' });
+    const changed = await setWorseDays(
+      deps.database,
+      request.session?.accountId ?? '',
+      params.data.id,
+      body.data.enabled,
+      deps.clock.now(),
+    );
+    return changed ? reply.send(changed) : sendError(reply, 404, 'not_found');
+  });
+
+  app.put('/api/recipes/:id/collections', async (request, reply) => {
+    const params = idParams.safeParse(request.params);
+    if (!params.success) return sendError(reply, 404, 'not_found');
+    const body = recipeCollectionsInputSchema.safeParse(request.body);
+    if (!body.success) return sendError(reply, 400, 'validation', { collectionIds: 'invalid' });
+    const changed = await setRecipeCollections(
+      deps.database,
+      request.session?.accountId ?? '',
+      params.data.id,
+      body.data.collectionIds,
+      deps.clock.now(),
+    );
+    if (changed === 'unknown_collection') {
+      return sendError(reply, 400, 'validation', { collectionIds: 'unknown' });
+    }
+    return changed ? reply.send(changed) : sendError(reply, 404, 'not_found');
+  });
+
+  app.post('/api/recipes/:id/cook-events', async (request, reply) => {
+    const params = idParams.safeParse(request.params);
+    if (!params.success) return sendError(reply, 404, 'not_found');
+    const created = await addCookEvent(
+      deps.database,
+      request.session?.accountId ?? '',
+      params.data.id,
+      deps.clock.now(),
+    );
+    return created ? reply.code(201).send(created) : sendError(reply, 404, 'not_found');
+  });
+
+  app.delete('/api/recipes/:id/cook-events/last', async (request, reply) => {
+    const params = idParams.safeParse(request.params);
+    if (!params.success) return sendError(reply, 404, 'not_found');
+    const removed = await removeLastCookEvent(
+      deps.database,
+      request.session?.accountId ?? '',
+      params.data.id,
+    );
+    return removed ? reply.send(removed) : sendError(reply, 404, 'not_found');
   });
 }

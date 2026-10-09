@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { collectionSchema } from './collection';
+import { cookEventSchema } from './cookEvent';
 import { recipeSchema } from './recipe';
 
 export const settingsSchema = z.object({
@@ -11,8 +13,7 @@ export const settingsSchema = z.object({
 export type Settings = z.infer<typeof settingsSchema>;
 
 /**
- * Response of GET /api/snapshot: the whole account state. `collections` and `cookEvents` are
- * always empty until the stages that introduce them.
+ * Response of GET /api/snapshot: the whole account state.
  */
 export const snapshotSchema = z.object({
   apiVersion: z.number().int(),
@@ -20,8 +21,8 @@ export const snapshotSchema = z.object({
   generatedAt: z.iso.datetime(),
   settings: settingsSchema,
   recipes: z.array(recipeSchema),
-  collections: z.array(z.unknown()),
-  cookEvents: z.array(z.unknown()),
+  collections: z.array(collectionSchema),
+  cookEvents: z.array(cookEventSchema),
 });
 export type Snapshot = z.infer<typeof snapshotSchema>;
 

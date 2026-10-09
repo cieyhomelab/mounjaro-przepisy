@@ -11,6 +11,7 @@ import { sendError } from './errors';
 import { createAuthProvider, type AuthProvider } from './integrations/auth';
 import { createPageFetcher, type PageFetcher } from './integrations/pageFetcher';
 import { SESSION_COOKIE, registerAuthRoutes, sessionCookieOptions } from './routes/auth';
+import { registerCollectionRoutes } from './routes/collections';
 import { registerHealthRoutes } from './routes/health';
 import { registerPhotoRoutes } from './routes/photos';
 import { registerRecipeRoutes } from './routes/recipes';
@@ -130,6 +131,7 @@ export async function buildApp({
       }),
     fetchTimeoutMs: config.fetchTimeoutMs,
   });
+  registerCollectionRoutes(app, { database, clock: appClock });
   await registerPhotoRoutes(app, { database, clock: appClock });
   registerAuthRoutes(app, {
     config,

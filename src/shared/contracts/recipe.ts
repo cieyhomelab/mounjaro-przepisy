@@ -122,3 +122,33 @@ export type RecipeResponse = z.infer<typeof recipeResponseSchema>;
 /** Response of DELETE /api/recipes/:id. */
 export const recipeDeletedResponseSchema = z.object({ dataVersion: z.number().int() });
 export type RecipeDeletedResponse = z.infer<typeof recipeDeletedResponseSchema>;
+
+export const TOLERANCE_LEVELS = ['good', 'medium', 'bad'] as const;
+export const TOLERANCE_SYMPTOMS = ['nausea', 'heartburn', 'bloating', 'other'] as const;
+export const NOTE_MAX = 500;
+
+/** Request body of PUT /api/recipes/:id/rating; null removes the rating. */
+export const ratingInputSchema = z.object({
+  rating: z.number().int().min(1).max(5).nullable(),
+});
+
+/** Request body of PUT /api/recipes/:id/tolerance; `note` belongs to the "other" symptom only. */
+export const toleranceInputSchema = z
+  .object({
+    level: z.enum(TOLERANCE_LEVELS).nullable(),
+    symptoms: z.array(z.enum(TOLERANCE_SYMPTOMS)).max(TOLERANCE_SYMPTOMS.length).default([]),
+    note: z.string().trim().max(NOTE_MAX).nullable().optional(),
+  })
+  .refine((value) => !value.note || value.symptoms.includes('other'), {
+    path: ['note'],
+    message: 'note_without_other',
+  });
+export type ToleranceInput = z.infer<typeof toleranceInputSchema>;
+
+/** Request body of PUT /api/recipes/:id/worse-days. */
+export const worseDaysInputSchema = z.object({ enabled: z.boolean() });
+
+/** Request body of PUT /api/recipes/:id/collections: replaces the assignments. */
+export const recipeCollectionsInputSchema = z.object({
+  collectionIds: z.array(z.uuid()).max(1000),
+});

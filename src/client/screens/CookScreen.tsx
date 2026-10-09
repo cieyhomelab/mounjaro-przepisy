@@ -7,7 +7,7 @@ import { useCollection } from '../data/collection';
 import { useWakeLock } from '../data/useWakeLock';
 
 const buttonClass =
-  'inline-flex min-h-14 min-w-14 flex-1 cursor-pointer items-center justify-center rounded-lg border border-neutral-400 px-4 text-xl font-medium disabled:opacity-60';
+  'inline-flex min-h-14 min-w-14 flex-1 cursor-pointer items-center justify-center rounded-lg border border-neutral-400 px-4 text-2xl font-medium disabled:opacity-60';
 const primaryClass = `${buttonClass} border-neutral-900 bg-neutral-900 text-white`;
 
 /**
@@ -69,17 +69,17 @@ export function CookScreen() {
         <Link
           to={recipePath}
           replace
-          className="inline-flex min-h-14 min-w-14 items-center justify-center rounded-lg border border-neutral-400 px-4 font-medium"
+          className="inline-flex min-h-14 min-w-14 items-center justify-center rounded-lg border border-neutral-400 px-4 text-2xl font-medium"
         >
           Wyjdź
         </Link>
       </header>
       {unavailable && !noticeDismissed ? (
-        <div role="status" className="flex flex-col gap-2 rounded-lg bg-amber-100 p-3 text-xl">
+        <div role="status" className="flex flex-col gap-2 rounded-lg bg-amber-100 p-3 text-2xl">
           <p>Ta przeglądarka nie pozwala utrzymać włączonego ekranu — ekran może zgasnąć.</p>
           <button
             type="button"
-            className="inline-flex min-h-11 min-w-11 cursor-pointer items-center self-start rounded-lg border border-neutral-600 px-3"
+            className="inline-flex min-h-11 min-w-11 cursor-pointer items-center self-start rounded-lg border border-neutral-600 px-3 text-2xl"
             onClick={() => setNoticeDismissed(true)}
           >
             Rozumiem
@@ -101,7 +101,7 @@ export function CookScreen() {
         </section>
       ) : (
         <section aria-labelledby="cook-step" className="flex flex-1 flex-col gap-3">
-          <h2 id="cook-step" className="text-xl font-semibold text-neutral-700">
+          <h2 id="cook-step" className="text-2xl font-semibold text-neutral-700">
             krok {(stepIndex ?? 0) + 1} z {total}
           </h2>
           <p className="text-2xl leading-relaxed">{recipe.steps[stepIndex ?? 0]}</p>

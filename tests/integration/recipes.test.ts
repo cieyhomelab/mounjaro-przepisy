@@ -2,7 +2,8 @@ import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
 import { errorResponseSchema } from '../../src/shared/contracts/error';
 import { recipeResponseSchema } from '../../src/shared/contracts/recipe';
-import { snapshotSchema } from '../../src/shared/contracts/snapshot';
+import { API_VERSION } from '../../src/shared/contracts/session';
+import { snapshotEtag, snapshotSchema } from '../../src/shared/contracts/snapshot';
 import { CookieJar, OWNER_EMAIL, loginWithMock, originHeaders, useApp } from './helpers';
 
 const recipeBody = (overrides: Record<string, unknown> = {}) => ({
@@ -61,27 +62,36 @@ describe('snapshot and manual recipes', () => {
       const body = snapshotSchema.parse(response.json());
       expect(body).toMatchObject({ dataVersion: 0, recipes: [], collections: [], cookEvents: [] });
       expect(body.settings.thresholdProteinG).toBe(25);
-      expect(response.headers.etag).toBe('"0"');
+      expect(response.headers.etag).toBe(snapshotEtag(0));
     });
 
     it('answers 304 when the client already has the current version', async () => {
       const jar = await login();
 
-      const response = await snapshot(jar, { 'if-none-match': '"0"' });
+      const response = await snapshot(jar, { 'if-none-match': snapshotEtag(0) });
 
       expect(response.statusCode).toBe(304);
       expect(response.body).toBe('');
-      expect(response.headers.etag).toBe('"0"');
+      expect(response.headers.etag).toBe(snapshotEtag(0));
+    });
+
+    it('answers with a full snapshot to a client that knows the data version under another API version', async () => {
+      const jar = await login();
+
+      const response = await snapshot(jar, { 'if-none-match': snapshotEtag(0, API_VERSION - 1) });
+
+      expect(response.statusCode).toBe(200);
+      expect(snapshotSchema.parse(response.json()).apiVersion).toBe(API_VERSION);
     });
 
     it('answers with a full snapshot again after a change', async () => {
       const jar = await login();
       await post(jar, recipeBody());
 
-      const response = await snapshot(jar, { 'if-none-match': '"0"' });
+      const response = await snapshot(jar, { 'if-none-match': snapshotEtag(0) });
 
       expect(response.statusCode).toBe(200);
-      expect(response.headers.etag).toBe('"1"');
+      expect(response.headers.etag).toBe(snapshotEtag(1));
       expect(snapshotSchema.parse(response.json()).recipes).toHaveLength(1);
     });
   });

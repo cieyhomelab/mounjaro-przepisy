@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { snapshotEtag } from '../../shared/contracts/snapshot';
 import { clearLocalData } from '../data/localDb';
 import { json, loggedIn, manual, recipeOf, renderAt, snapshotOf, stubFetch } from '../testHelpers';
 
@@ -11,7 +12,7 @@ afterEach(async () => {
 });
 
 const withRecipes = (...recipes: Parameters<typeof snapshotOf>[0] & object) =>
-  json(200, snapshotOf(recipes, 3), { ETag: '"3"' });
+  json(200, snapshotOf(recipes, 3), { ETag: snapshotEtag(3) });
 
 describe('S6: collection list', () => {
   it('S6: an empty collection invites to add the first recipe, "Z linku" is enabled', async () => {

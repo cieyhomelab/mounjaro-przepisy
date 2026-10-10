@@ -159,6 +159,56 @@ test.describe('S23: przypomnienie o zastrzyku, zgoda na powiadomienia', () => {
     await expect(page.getByRole('alert').filter({ hasText: OFFLINE_MESSAGE })).toBeVisible();
   });
 
+  test('S23: po wymianie kluczy VAPID zapis ustawień przypomnienia wymienia starą subskrypcję na nową', async ({
+    page,
+  }) => {
+    const stale = 'https://push.example.test/stale-device';
+    // The browser has no subscription at start, so the check at start has nothing to renew; the
+    // stale one (made with a key the server no longer uses) appears only before the settings are saved.
+    await page.addInitScript(
+      ({ staleEndpoint, endpoint }) => {
+        let current: unknown = null;
+        PushManager.prototype.getSubscription = () =>
+          Promise.resolve(current as PushSubscription | null);
+        PushManager.prototype.subscribe = (options) => {
+          current = {
+            endpoint,
+            options: { applicationServerKey: options?.applicationServerKey },
+            toJSON: () => ({ endpoint, keys: { p256dh: 'p256dh-key', auth: 'auth-key' } }),
+          };
+          return Promise.resolve(current as PushSubscription);
+        };
+        (window as unknown as { makeStale: () => void }).makeStale = () => {
+          current = {
+            endpoint: staleEndpoint,
+            options: { applicationServerKey: new Uint8Array([1, 2, 3]).buffer },
+            unsubscribe: () => {
+              current = null;
+              return Promise.resolve(true);
+            },
+            toJSON: () => ({
+              endpoint: staleEndpoint,
+              keys: { p256dh: 'old-key', auth: 'old-auth' },
+            }),
+          };
+        };
+      },
+      { staleEndpoint: stale, endpoint: DEVICE },
+    );
+    await openReminderSettings(page);
+    await subscribe(page, stale);
+    await page.evaluate(() => (window as unknown as { makeStale: () => void }).makeStale());
+
+    await page.getByRole('checkbox', { name: 'Przypominaj o zastrzyku' }).check();
+    await page.getByRole('button', { name: 'Zapisz' }).click();
+    await expect(page.getByText('Zapisano przypomnienie.')).toBeVisible();
+
+    // Only the new subscription is left on the server, so the reminder reaches this device alone.
+    expect(await tickAt(page, '2026-10-15T17:00:00Z')).toEqual([
+      { endpoint: DEVICE, kind: 'first', body: REMINDER_TEXT },
+    ]);
+  });
+
   test('S23: po wymianie kluczy VAPID urządzenie przy starcie wymienia starą subskrypcję na nową', async ({
     page,
   }) => {
@@ -195,6 +245,7 @@ test.describe('S23: przypomnienie o zastrzyku, zgoda na powiadomienia', () => {
     await enableReminder(page);
     await subscribe(page, stale);
 
+    // The check also runs at the first load; the reload below starts from the stale subscription.
     const registered = page.waitForResponse(
       (response) =>
         response.url().endsWith('/api/push/subscriptions') &&

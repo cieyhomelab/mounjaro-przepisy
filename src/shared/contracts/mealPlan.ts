@@ -20,9 +20,14 @@ export type MealPlanEntry = z.infer<typeof mealPlanEntrySchema>;
 
 /** Request body of POST /api/meal-plan; `servings` defaults to 1. */
 export const mealPlanInputSchema = z.object({
-  date: dayString.refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), {
-    message: 'invalid_date',
-  }),
+  date: dayString.refine(
+    (value) => {
+      const time = Date.parse(`${value}T00:00:00Z`);
+      // Dates that roll over (30 February) parse but are not the day that was written.
+      return !Number.isNaN(time) && new Date(time).toISOString().startsWith(value);
+    },
+    { message: 'invalid_date' },
+  ),
   slot: mealSlotSchema,
   recipeId: z.uuid(),
   servings: z.number().min(SERVINGS_MIN).max(SERVINGS_MAX).multipleOf(SERVINGS_STEP).default(1),

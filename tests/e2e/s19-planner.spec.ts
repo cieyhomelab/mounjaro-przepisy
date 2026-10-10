@@ -29,8 +29,8 @@ async function plan(page: Page, day: string, slot: string, title: string, servin
   await meal(page, day, slot)
     .getByRole('button', { name: /^Dodaj przepis/ })
     .click();
-  await page.getByLabel('Przepis').selectOption({ label: title });
-  if (servings) await page.getByLabel('Liczba porcji').fill(servings);
+  await page.getByLabel('Przepis', { exact: true }).selectOption({ label: title });
+  if (servings) await page.getByLabel('Liczba porcji', { exact: true }).fill(servings);
   await page.getByRole('button', { name: 'Dodaj do planera' }).click();
 }
 
@@ -93,8 +93,8 @@ test.describe('S19: planer posiłków na tydzień', () => {
     await meal(page, 'środa, 14 października', 'Obiad')
       .getByRole('button', { name: /^Dodaj przepis/ })
       .click();
-    await page.getByLabel('Przepis').selectOption({ label: 'Zupa dyniowa' });
-    await page.getByLabel('Liczba porcji').fill('100');
+    await page.getByLabel('Przepis', { exact: true }).selectOption({ label: 'Zupa dyniowa' });
+    await page.getByLabel('Liczba porcji', { exact: true }).fill('100');
 
     await expect(
       page.getByText('Liczba porcji musi być od 0,5 do 99, z krokiem 0,5.'),

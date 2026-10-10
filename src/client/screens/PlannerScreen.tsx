@@ -65,9 +65,12 @@ function AddToMeal({
         void submit();
       }}
     >
-      <label className="flex flex-col gap-1">
-        <span className="font-medium">Przepis</span>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="planner-recipe" className="font-medium">
+          Przepis
+        </label>
         <select
+          id="planner-recipe"
           value={recipeId}
           onChange={(event) => setRecipeId(event.target.value)}
           className="min-h-11 rounded-lg border border-neutral-400 px-3"
@@ -81,10 +84,13 @@ function AddToMeal({
               </option>
             ))}
         </select>
-      </label>
-      <label className="flex flex-col gap-1">
-        <span className="font-medium">Liczba porcji</span>
+      </div>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="planner-servings" className="font-medium">
+          Liczba porcji
+        </label>
         <input
+          id="planner-servings"
           inputMode="decimal"
           autoComplete="off"
           value={servingsText}
@@ -92,7 +98,7 @@ function AddToMeal({
           onChange={(event) => setServingsText(event.target.value)}
           className="min-h-11 w-24 rounded-lg border border-neutral-400 px-3"
         />
-      </label>
+      </div>
       {servings === null ? (
         <p role="alert" className="text-red-900">
           Liczba porcji musi być od 0,5 do 99, z krokiem 0,5.

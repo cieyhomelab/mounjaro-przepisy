@@ -1,4 +1,9 @@
+import { lookup as dnsLookup } from 'node:dns/promises';
+import http from 'node:http';
+import https from 'node:https';
+import { isIP } from 'node:net';
 import webpush from 'web-push';
+import { isPrivateAddress } from './privateAddress';
 import { REMINDER_TEXT, type ReminderKind } from '../../shared/domain/reminder';
 import type { Config } from '../config';
 
@@ -57,7 +62,65 @@ const PUSH_TIMEOUT_MS = 10_000;
 // A reminder that cannot be delivered within an hour is not worth showing any more.
 const PUSH_TTL_SECONDS = 60 * 60;
 
-type RealPushConfig = Pick<Config, 'vapidPublicKey' | 'vapidPrivateKey' | 'vapidSubject'>;
+type RealPushConfig = Pick<Config, 'vapidPublicKey' | 'vapidPrivateKey' | 'vapidSubject'> & {
+  /** Tests only (never in production): lets the sender reach a local push service stand-in. */
+  fetchAllowPrivateNetwork?: boolean;
+};
+
+/**
+ * POSTs to the push service. The address comes from the browser's subscription, so every
+ * connection goes to an address checked here: private, loopback and link-local ones (also behind
+ * a host name) are never contacted, and redirects are not followed.
+ */
+function postToPushService(
+  request: { endpoint: string; headers: Record<string, string>; body: unknown },
+  allowPrivate: boolean,
+): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const url = new URL(request.endpoint);
+    if (url.protocol !== 'https:' && !(allowPrivate && url.protocol === 'http:')) {
+      return reject(new Error('blocked'));
+    }
+    const host = url.hostname.replace(/^\[|\]$/g, '');
+    if (isIP(host) !== 0 && !allowPrivate && isPrivateAddress(host)) {
+      return reject(new Error('blocked'));
+    }
+    const transport = url.protocol === 'https:' ? https : http;
+    const outgoing = transport.request(
+      url,
+      {
+        method: 'POST',
+        headers: request.headers,
+        agent: false,
+        timeout: PUSH_TIMEOUT_MS,
+        lookup: (hostname, options, callback) => {
+          dnsLookup(hostname, { all: true }).then(
+            (addresses) => {
+              const usable = addresses.filter((a) =>
+                options.family === 4 || options.family === 6 ? a.family === options.family : true,
+              );
+              const first = usable[0];
+              if (!first || (!allowPrivate && addresses.some((a) => isPrivateAddress(a.address)))) {
+                return callback(new Error('blocked'), '', 4);
+              }
+              if (options.all) return callback(null, usable);
+              return callback(null, first.address, first.family);
+            },
+            (error: NodeJS.ErrnoException) => callback(error, '', 4),
+          );
+        },
+      },
+      (response) => {
+        response.resume();
+        resolve(response.statusCode ?? 0);
+      },
+    );
+    outgoing.on('timeout', () => outgoing.destroy(new Error('timeout')));
+    outgoing.on('error', reject);
+    if (request.body) outgoing.write(request.body);
+    outgoing.end();
+  });
+}
 
 /** Real Web Push (W3C) with VAPID keys; unconfigured when the keys are missing. */
 export function createWebPushSender(config: RealPushConfig): PushSender {
@@ -86,16 +149,16 @@ export function createWebPushSender(config: RealPushConfig): PushSender {
             },
           },
         );
-        const response = await fetch(request.endpoint, {
-          method: request.method,
-          headers: request.headers as Record<string, string>,
-          body: request.body,
-          redirect: 'error',
-          signal: AbortSignal.timeout(PUSH_TIMEOUT_MS),
-        });
-        await response.body?.cancel();
-        if (response.status === 404 || response.status === 410) return 'gone';
-        return response.ok ? 'sent' : 'failed';
+        const status = await postToPushService(
+          {
+            endpoint: request.endpoint,
+            headers: request.headers,
+            body: request.body,
+          },
+          config.fetchAllowPrivateNetwork === true,
+        );
+        if (status === 404 || status === 410) return 'gone';
+        return status >= 200 && status < 300 ? 'sent' : 'failed';
       } catch {
         return 'failed';
       }

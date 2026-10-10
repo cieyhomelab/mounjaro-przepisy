@@ -130,6 +130,15 @@ describe('S23: reminder settings, subscriptions and scheduler', () => {
     expect(key.json<{ publicKey: string }>().publicKey.length).toBeGreaterThan(40);
     const anonymous = await harness.app.inject({ method: 'GET', url: '/api/push/public-key' });
     expect(anonymous.statusCode).toBe(401);
+    for (const [method, url] of [
+      ['POST', '/api/push/subscriptions'],
+      ['DELETE', '/api/push/subscriptions'],
+      ['PUT', '/api/settings/reminder'],
+    ] as const) {
+      expect(
+        (await harness.app.inject({ method, url, payload: {}, headers: originHeaders })).statusCode,
+      ).toBe(401);
+    }
   });
 
   it('S23: sends the first reminder to every device with the fixed text, once', async () => {
@@ -267,6 +276,7 @@ describe('S23: real Web Push against a local push service', () => {
     vapidPublicKey: vapid.publicKey,
     vapidPrivateKey: vapid.privateKey,
     vapidSubject: 'mailto:owner@example.test',
+    fetchAllowPrivateNetwork: true,
   });
   // A real browser subscription has a P-256 public key and a 16-byte secret.
   const browser = webpush.generateVAPIDKeys();
@@ -306,6 +316,26 @@ describe('S23: real Web Push against a local push service', () => {
     expect(
       await sender.sendReminder({ ...(await target()), endpoint: 'http://127.0.0.1:1/x' }, 'first'),
     ).toBe('failed');
+  });
+
+  it('S23: a subscription pointing at a private address is never contacted', async () => {
+    requests.length = 0;
+    const guarded = createWebPushSender({
+      vapidPublicKey: vapid.publicKey,
+      vapidPrivateKey: vapid.privateKey,
+      vapidSubject: 'mailto:owner@example.test',
+    });
+    const port = (await target()).endpoint.split(':')[2]?.split('/')[0];
+    for (const endpoint of [
+      `https://127.0.0.1:${port}/push/device`,
+      `http://127.0.0.1:${port}/push/device`,
+      `https://localhost:${port}/push/device`,
+      'https://169.254.169.254/latest/meta-data',
+      'https://[::1]/x',
+    ]) {
+      expect(await guarded.sendReminder({ ...(await target()), endpoint }, 'first')).toBe('failed');
+    }
+    expect(requests).toHaveLength(0);
   });
 
   it('S23: without VAPID keys there is no public key and nothing is sent', async () => {

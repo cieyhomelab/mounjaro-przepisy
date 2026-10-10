@@ -192,4 +192,47 @@ test.describe('S23: przypomnienie o zastrzyku, zgoda na powiadomienia', () => {
       )
       .toEqual([{ title: 'Przepisy', body: REMINDER_TEXT }]);
   });
+
+  test('S23: dotknięcie powiadomienia zamyka je i otwiera formularz nowego wpisu dawki', async ({
+    page,
+    context,
+  }) => {
+    await open(page, THURSDAY_1900);
+    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
+
+    await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification('Przepisy', { body: 'x', tag: 'dose-reminder' });
+    });
+    await expect.poll(() => context.serviceWorkers().length).toBeGreaterThan(0);
+    const worker = context.serviceWorkers()[0];
+
+    // The page's DOM types do not know the worker scope, so the few members used are described here.
+    await worker?.evaluate(async () => {
+      type Scope = {
+        registration: { getNotifications(filter: { tag: string }): Promise<unknown[]> };
+        dispatchEvent(event: unknown): boolean;
+      };
+      const scope = self as unknown as Scope;
+      const NotificationEventClass = (
+        self as unknown as {
+          NotificationEvent: new (type: string, init: { notification: unknown }) => unknown;
+        }
+      ).NotificationEvent;
+      const [notification] = await scope.registration.getNotifications({ tag: 'dose-reminder' });
+      scope.dispatchEvent(new NotificationEventClass('notificationclick', { notification }));
+    });
+
+    await expect(page).toHaveURL(/\/dawki\/(przypomnienie|nowy)$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Nowy wpis dawki' })).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(async () => {
+          const registration = await navigator.serviceWorker.ready;
+          return (await registration.getNotifications({ tag: 'dose-reminder' })).length;
+        }),
+      )
+      .toBe(0);
+  });
 });

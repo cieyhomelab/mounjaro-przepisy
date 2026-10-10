@@ -157,6 +157,11 @@ describe('snapshot and manual recipes', () => {
       ['servings off the 0.5 step', { servings: 1.3 }, { servings: 'invalid' }],
       ['no ingredients', { ingredients: [] }, { ingredients: 'required' }],
       ['no steps', { steps: [] }, { steps: 'required' }],
+      [
+        'an ingredient quantity the column cannot hold',
+        { ingredients: [{ quantity: 10_000_000_000, originalText: '10000000000 g mąki' }] },
+        { ingredients: 'invalid' },
+      ],
       ['negative nutrition', { nutritionManual: { kcal: -1 } }, { kcal: 'invalid' }],
       ['a source that is not an address', { sourceUrl: 'nie adres' }, { sourceUrl: 'invalid' }],
     ])('rejects %s and names the field', async (_name, override, fields) => {

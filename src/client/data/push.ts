@@ -28,6 +28,47 @@ function toKeyBytes(publicKey: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(raw, (char) => char.charCodeAt(0));
 }
 
+/** True when the subscription was made with another key than `keyBytes` (unknown counts as same). */
+function madeWithOtherKey(subscription: PushSubscription, keyBytes: Uint8Array): boolean {
+  const current = subscription.options?.applicationServerKey;
+  if (!current) return false;
+  const bytes = new Uint8Array(current);
+  return bytes.length !== keyBytes.length || bytes.some((value, i) => value !== keyBytes[i]);
+}
+
+/**
+ * The subscription for this device made with the server's current key: the existing one when it
+ * matches, otherwise the old one is dropped (also on the server) and a new one is made.
+ */
+async function subscriptionFor(
+  registration: ServiceWorkerRegistration,
+  publicKey: string,
+): Promise<PushSubscription> {
+  const keyBytes = toKeyBytes(publicKey);
+  const existing = await registration.pushManager.getSubscription();
+  if (existing && !madeWithOtherKey(existing, keyBytes)) return existing;
+  if (existing) {
+    await existing.unsubscribe();
+    // The old row can never be delivered to again; failing to remove it is not worth stopping for.
+    await apiRequest('/api/push/subscriptions', {
+      method: 'DELETE',
+      body: { endpoint: existing.endpoint },
+    }).catch(() => undefined);
+  }
+  return registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: keyBytes,
+  });
+}
+
+async function registerSubscription(subscription: PushSubscription): Promise<void> {
+  const json = subscription.toJSON();
+  await apiRequest('/api/push/subscriptions', {
+    method: 'POST',
+    body: { endpoint: json.endpoint, keys: json.keys },
+  });
+}
+
 /**
  * Asks for permission when it is still open and subscribes this device, then registers the
  * subscription with the server. Resolves to the state of the device afterwards.
@@ -40,17 +81,8 @@ export async function enableNotifications(): Promise<PushState> {
   }
   const { publicKey } = publicKeyResponseSchema.parse(await apiRequest('/api/push/public-key'));
   const registration = await navigator.serviceWorker.ready;
-  const subscription =
-    (await registration.pushManager.getSubscription()) ??
-    (await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: toKeyBytes(publicKey),
-    }));
-  const json = subscription.toJSON();
-  await apiRequest('/api/push/subscriptions', {
-    method: 'POST',
-    body: { endpoint: json.endpoint, keys: json.keys },
-  });
+  const subscription = await subscriptionFor(registration, publicKey);
+  await registerSubscription(subscription);
   return 'ready';
 }
 
@@ -59,4 +91,23 @@ export async function isSubscribed(): Promise<boolean> {
   if (pushState() !== 'ready') return false;
   const registration = await navigator.serviceWorker.ready;
   return (await registration.pushManager.getSubscription()) !== null;
+}
+
+/**
+ * At start: a device subscribed with a key the server no longer uses (the VAPID pair was replaced)
+ * gets a new subscription registered. Does nothing without permission or an existing subscription,
+ * and never throws: a failed check is repeated at the next start.
+ */
+export async function renewStaleSubscription(): Promise<void> {
+  try {
+    if (pushState() !== 'ready') return;
+    const registration = await navigator.serviceWorker.ready;
+    const existing = await registration.pushManager.getSubscription();
+    if (!existing) return;
+    const { publicKey } = publicKeyResponseSchema.parse(await apiRequest('/api/push/public-key'));
+    if (!madeWithOtherKey(existing, toKeyBytes(publicKey))) return;
+    await registerSubscription(await subscriptionFor(registration, publicKey));
+  } catch {
+    // Offline, push unavailable on the server or the browser refused: retried at the next start.
+  }
 }

@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import { Outlet, Route, Routes } from 'react-router';
 import { AppShell } from './components/AppShell';
 import { RequireSession } from './components/RequireSession';
 import { ScrollToTop } from './components/ScrollToTop';
 import { CollectionProvider } from './data/collection';
 import { CollectionViewProvider } from './data/collectionView';
+import { renewStaleSubscription } from './data/push';
 import { SessionProvider } from './data/session';
 import { AccountScreen } from './screens/AccountScreen';
 import { DoseFormScreen } from './screens/DoseFormScreen';
@@ -28,6 +30,10 @@ import { TrustedSitesScreen } from './screens/TrustedSitesScreen';
 
 /** Local copy of the user's data, kept in step with the server while a session exists. */
 function DataLayout() {
+  useEffect(() => {
+    void renewStaleSubscription();
+  }, []);
+
   return (
     <CollectionProvider>
       <CollectionViewProvider>

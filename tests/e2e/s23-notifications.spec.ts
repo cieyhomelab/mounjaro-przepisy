@@ -5,8 +5,10 @@ import {
   OFFLINE_MESSAGE,
   REMINDER_TEXT,
   THURSDAY_1900,
+  enableReminder,
   kinds,
   open,
+  subscribe,
   tickAt,
 } from './reminderHelpers';
 
@@ -155,6 +157,56 @@ test.describe('S23: przypomnienie o zastrzyku, zgoda na powiadomienia', () => {
     await page.getByRole('button', { name: 'Zapisz' }).click();
 
     await expect(page.getByRole('alert').filter({ hasText: OFFLINE_MESSAGE })).toBeVisible();
+  });
+
+  test('S23: po wymianie kluczy VAPID urządzenie przy starcie wymienia starą subskrypcję na nową', async ({
+    page,
+  }) => {
+    const stale = 'https://push.example.test/stale-device';
+    // The browser still holds a subscription made with a key the server no longer uses.
+    await page.addInitScript(
+      ({ staleEndpoint, endpoint }) => {
+        let current: unknown = {
+          endpoint: staleEndpoint,
+          options: { applicationServerKey: new Uint8Array([1, 2, 3]).buffer },
+          unsubscribe: () => {
+            current = null;
+            return Promise.resolve(true);
+          },
+          toJSON: () => ({
+            endpoint: staleEndpoint,
+            keys: { p256dh: 'old-key', auth: 'old-auth' },
+          }),
+        };
+        PushManager.prototype.getSubscription = () =>
+          Promise.resolve(current as PushSubscription | null);
+        PushManager.prototype.subscribe = (options) => {
+          current = {
+            endpoint,
+            options: { applicationServerKey: options?.applicationServerKey },
+            toJSON: () => ({ endpoint, keys: { p256dh: 'p256dh-key', auth: 'auth-key' } }),
+          };
+          return Promise.resolve(current as PushSubscription);
+        };
+      },
+      { staleEndpoint: stale, endpoint: DEVICE },
+    );
+    await open(page, THURSDAY_1900);
+    await enableReminder(page);
+    await subscribe(page, stale);
+
+    const registered = page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/push/subscriptions') &&
+        response.request().method() === 'POST',
+    );
+    await page.reload();
+    await registered;
+
+    // Only the new subscription is left on the server, so the reminder reaches this device.
+    expect(await tickAt(page, THURSDAY_1900)).toEqual([
+      { endpoint: DEVICE, kind: 'first', body: REMINDER_TEXT },
+    ]);
   });
 
   test('S23: service worker pokazuje powiadomienie o stałej treści także przy zamkniętej aplikacji', async ({

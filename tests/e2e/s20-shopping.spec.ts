@@ -418,8 +418,13 @@ test.describe('S20: lista zakupów z planera', () => {
 
   test('S20: odhaczenie odrzucane przez serwer jest ponawiane w rosnących odstępach', async ({
     page,
+    context,
     request,
-  }) => {
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name === 'mobile-webkit',
+      'WebKit nie przekazuje żądań z service workera do page.route, więc nie da się wymusić odpowiedzi 500',
+    );
     await setServerClock(request, NOW);
     await page.clock.install({ time: new Date(NOW) });
     await logIn(page);
@@ -433,7 +438,7 @@ test.describe('S20: lista zakupów z planera', () => {
     await page.reload();
     await openList(page);
     let attempts = 0;
-    await page.route('**/api/shopping/*/checks', (route) => {
+    await context.route('**/api/shopping/*/checks', (route) => {
       attempts += 1;
       return route.fulfill({ status: 500, json: { error: { code: 'internal' } } });
     });

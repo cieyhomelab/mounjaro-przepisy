@@ -165,30 +165,55 @@ test.describe('S23: przypomnienie o zastrzyku, zgoda na powiadomienia', () => {
     await page.getByRole('link', { name: 'Ustawienia' }).click();
     await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
 
+    // A push sent to a registration whose worker is not yet active is dropped.
+    await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+
+    const origin = new URL(page.url()).origin;
     const cdp = await context.newCDPSession(page);
+    const activated = new Set<string>();
+    cdp.on('ServiceWorker.workerVersionUpdated', (event) => {
+      for (const version of event.versions) {
+        if (version.status === 'activated' && version.runningStatus === 'running') {
+          activated.add(version.registrationId);
+        }
+      }
+    });
     const registrations: { registrationId: string; scopeURL: string }[] = [];
     cdp.on('ServiceWorker.workerRegistrationUpdated', (event) => {
       registrations.splice(0, registrations.length, ...event.registrations);
     });
     await cdp.send('ServiceWorker.enable');
-    await expect.poll(() => registrations.length).toBeGreaterThan(0);
-    const registrationId = registrations[0]?.registrationId ?? '';
+    // The push is delivered only to a worker that is activated and running.
+    await expect
+      .poll(() =>
+        registrations.some(
+          (item) => item.scopeURL.startsWith(origin) && activated.has(item.registrationId),
+        ),
+      )
+      .toBe(true);
+    const registrationId =
+      registrations.find((item) => item.scopeURL.startsWith(origin))?.registrationId ?? '';
 
-    await cdp.send('ServiceWorker.deliverPushMessage', {
-      origin: new URL(page.url()).origin,
-      registrationId,
-      data: JSON.stringify({ type: 'dose-reminder' }),
-    });
+    // Chromium can drop a push message that arrives right after the worker starts, so the same
+    // message is sent again until the notification shows; the fixed tag keeps it to one notification.
+    const deliver = () =>
+      cdp.send('ServiceWorker.deliverPushMessage', {
+        origin,
+        registrationId,
+        data: JSON.stringify({ type: 'dose-reminder' }),
+      });
 
     await expect
       .poll(() =>
-        page.evaluate(async () => {
-          const registration = await navigator.serviceWorker.ready;
-          return (await registration.getNotifications()).map((item) => ({
-            title: item.title,
-            body: item.body,
-          }));
-        }),
+        deliver().then(() =>
+          page.evaluate(async () => {
+            const registration = await navigator.serviceWorker.ready;
+            return (await registration.getNotifications()).map((item) => ({
+              title: item.title,
+              body: item.body,
+            }));
+          }),
+        ),
       )
       .toEqual([{ title: 'Przepisy', body: REMINDER_TEXT }]);
   });

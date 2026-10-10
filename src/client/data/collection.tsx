@@ -11,15 +11,21 @@ import {
 import type { OwnCollection } from '../../shared/contracts/collection';
 import type { MealPlanEntry } from '../../shared/contracts/mealPlan';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
+import type { ShoppingCheck, ShoppingCustomItem } from '../../shared/contracts/shopping';
+import { checksResponseSchema } from '../../shared/contracts/shopping';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings } from '../../shared/contracts/snapshot';
 import type { TrustedSite } from '../../shared/contracts/trustedSite';
 import { snapshotEtag, snapshotSchema } from '../../shared/contracts/snapshot';
 import { reloadOnVersionMismatch } from './clientVersion';
 import { ApiError, NOT_MODIFIED, apiRequest } from './api';
-import { loadOfflineStatus, syncOfflineData } from './offline';
+import { isOffline, loadOfflineStatus, syncOfflineData } from './offline';
 import {
   readLocalData,
+  readOutbox,
+  recordCheck,
+  removeFromOutbox,
+  type OutboxEntry,
   touchContact,
   removeRecipe,
   storeChange,
@@ -39,6 +45,8 @@ export type CollectionState =
       cookEvents: CookEvent[];
       trustedSites: TrustedSite[];
       mealPlan: MealPlanEntry[];
+      shoppingChecks: ShoppingCheck[];
+      shoppingCustomItems: ShoppingCustomItem[];
       settings: Settings;
     }
   | { status: 'error'; code: string };
@@ -55,7 +63,41 @@ type CollectionContextValue = {
   settingsSaved: (settings: Settings, dataVersion: number) => Promise<void>;
   /** Records a confirmed change of own collections or cookings; pulls the whole snapshot if another device changed data meanwhile. */
   changeSaved: (change: LocalChange, dataVersion: number) => Promise<void>;
+  /** Ticks or unticks a shopping list item: shown at once, kept in the queue and sent when there is a connection (S20). */
+  checkItem: (entry: OutboxEntry) => Promise<void>;
 };
+
+/** Sends the queued ticks, one request per week, in the order they were made. */
+async function flushOutbox(): Promise<void> {
+  if (isOffline()) return;
+  const queued = await readOutbox();
+  const weeks = [...new Set(queued.map((entry) => entry.weekStart))];
+  for (const week of weeks) {
+    const entries = queued.filter((entry) => entry.weekStart === week);
+    try {
+      checksResponseSchema.parse(
+        await apiRequest(`/api/shopping/${week}/checks`, {
+          method: 'PUT',
+          body: {
+            changes: entries.map(({ itemKey, customItemId, checked, quantity }) => ({
+              ...(itemKey === undefined ? {} : { itemKey }),
+              ...(customItemId === undefined ? {} : { customItemId }),
+              checked,
+              quantity,
+            })),
+          },
+        }),
+      );
+    } catch (error) {
+      // A refused queue would block every later tick for good: drop it. A lost connection or a
+      // failing server keeps it for the next sync.
+      if (!(error instanceof ApiError) || error.status === 401 || error.status >= 500) throw error;
+    }
+    await removeFromOutbox(
+      entries.flatMap((entry) => (entry.seq === undefined ? [] : [entry.seq])),
+    );
+  }
+}
 
 const CollectionContext = createContext<CollectionContextValue | null>(null);
 
@@ -84,6 +126,8 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         cookEvents: local.cookEvents,
         trustedSites: local.trustedSites,
         mealPlan: local.mealPlan,
+        shoppingChecks: local.shoppingChecks,
+        shoppingCustomItems: local.shoppingCustomItems,
         settings: local.settings,
       });
     return local.dataVersion !== null;
@@ -92,6 +136,8 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   const runSync = useCallback(async () => {
     const version = knownVersion.current;
     try {
+      // Ticks made offline reach the account first, so the snapshot already holds them.
+      await flushOutbox();
       const payload = await apiRequest('/api/snapshot', {
         headers:
           version === null || needsFullSync.current
@@ -174,6 +220,20 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     [reload, sync],
   );
 
+  const checkItem = useCallback(
+    async (entry: OutboxEntry) => {
+      await recordCheck(entry);
+      await reload();
+      // Offline the queue waits; online it goes out now. A sync that was already running may have
+      // read the queue before this tick, so go again while something is left.
+      void (async () => {
+        await sync();
+        if (!isOffline() && (await readOutbox()).length > 0) await sync();
+      })();
+    },
+    [reload, sync],
+  );
+
   useEffect(() => {
     let active = true;
     const start = async () => {
@@ -201,8 +261,16 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   }, [sync]);
 
   const value = useMemo(
-    () => ({ state, sync: retry, recipeSaved, recipeDeleted, settingsSaved, changeSaved }),
-    [state, retry, recipeSaved, recipeDeleted, settingsSaved, changeSaved],
+    () => ({
+      state,
+      sync: retry,
+      recipeSaved,
+      recipeDeleted,
+      settingsSaved,
+      changeSaved,
+      checkItem,
+    }),
+    [state, retry, recipeSaved, recipeDeleted, settingsSaved, changeSaved, checkItem],
   );
   return <CollectionContext.Provider value={value}>{children}</CollectionContext.Provider>;
 }

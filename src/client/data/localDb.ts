@@ -4,6 +4,7 @@ import type { MealPlanEntry } from '../../shared/contracts/mealPlan';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings, Snapshot } from '../../shared/contracts/snapshot';
+import type { ShoppingCheck, ShoppingCustomItem } from '../../shared/contracts/shopping';
 import type { TrustedSite } from '../../shared/contracts/trustedSite';
 import { DEFAULT_THRESHOLDS, buildSearchText } from '../../shared/domain/recipeList';
 import { PHOTO_CACHE } from './offlineCache';
@@ -18,6 +19,23 @@ const withSearchText = (recipe: Recipe): StoredRecipe => ({
 
 /** A trusted site with its place in the list, so the list keeps the order the server gave. */
 export type StoredSite = TrustedSite & { position: number };
+
+/** A tick as held locally; `id` joins the week and the item so a tick has one row. */
+type StoredCheck = ShoppingCheck & { id: string };
+const checkId = (weekStart: string, itemKey: string) => `${weekStart}|${itemKey}`;
+
+/**
+ * A tick or untick made on this device and not yet sent (S20). `seq` orders the queue; the entry
+ * is deleted once the server has confirmed it.
+ */
+export type OutboxEntry = {
+  seq?: number;
+  weekStart: string;
+  itemKey?: string;
+  customItemId?: string;
+  checked: boolean;
+  quantity: number | null;
+};
 
 type SettingsRow = Settings & { key: 'settings' };
 type MetaRow = { key: string; value: number | string };
@@ -36,6 +54,9 @@ class LocalDatabase extends Dexie {
   cookEvents!: EntityTable<CookEvent, 'id'>;
   trustedSites!: EntityTable<StoredSite, 'id'>;
   mealPlan!: EntityTable<MealPlanEntry, 'id'>;
+  shoppingChecks!: EntityTable<StoredCheck, 'id'>;
+  shoppingCustomItems!: EntityTable<ShoppingCustomItem, 'id'>;
+  outbox!: EntityTable<OutboxEntry, 'seq'>;
   settings!: EntityTable<SettingsRow, 'key'>;
   meta!: EntityTable<MetaRow, 'key'>;
 
@@ -76,6 +97,14 @@ class LocalDatabase extends Dexie {
     this.version(5)
       .stores({})
       .upgrade((tx) => tx.table('meta').put({ key: META_FULL_SYNC, value: 1 }));
+    // Shopping lists (S20). A copy synced before has no ticks or own items: fetch the snapshot.
+    this.version(6)
+      .stores({
+        shoppingChecks: 'id, weekStart',
+        shoppingCustomItems: 'id, weekStart',
+        outbox: '++seq',
+      })
+      .upgrade((tx) => tx.table('meta').put({ key: META_FULL_SYNC, value: 1 }));
   }
 }
 
@@ -87,6 +116,8 @@ export type LocalData = {
   cookEvents: CookEvent[];
   trustedSites: TrustedSite[];
   mealPlan: MealPlanEntry[];
+  shoppingChecks: ShoppingCheck[];
+  shoppingCustomItems: ShoppingCustomItem[];
   settings: Settings;
   dataVersion: number | null;
   /** The copy may lack data a client of the past did not know about: fetch the whole snapshot. */
@@ -94,17 +125,29 @@ export type LocalData = {
 };
 
 export async function readLocalData(): Promise<LocalData> {
-  const [rows, collections, cookEvents, siteRows, mealPlan, settingsRow, version, fullSync] =
-    await Promise.all([
-      localDb.recipes.toArray(),
-      localDb.collections.toArray(),
-      localDb.cookEvents.toArray(),
-      localDb.trustedSites.toArray(),
-      localDb.mealPlan.toArray(),
-      localDb.settings.get('settings'),
-      localDb.meta.get(META_DATA_VERSION),
-      localDb.meta.get(META_FULL_SYNC),
-    ]);
+  const [
+    rows,
+    collections,
+    cookEvents,
+    siteRows,
+    mealPlan,
+    checkRows,
+    customItems,
+    settingsRow,
+    version,
+    fullSync,
+  ] = await Promise.all([
+    localDb.recipes.toArray(),
+    localDb.collections.toArray(),
+    localDb.cookEvents.toArray(),
+    localDb.trustedSites.toArray(),
+    localDb.mealPlan.toArray(),
+    localDb.shoppingChecks.toArray(),
+    localDb.shoppingCustomItems.toArray(),
+    localDb.settings.get('settings'),
+    localDb.meta.get(META_DATA_VERSION),
+    localDb.meta.get(META_FULL_SYNC),
+  ]);
   // A copy stored before the search text existed gets it now, so it is never missing.
   const recipes = rows.map((row) =>
     typeof row.searchText === 'string' ? row : withSearchText(row),
@@ -118,6 +161,14 @@ export async function readLocalData(): Promise<LocalData> {
       .sort((a, b) => a.position - b.position)
       .map(({ id, host, name, active }) => ({ id, host, name, active })),
     mealPlan,
+    shoppingChecks: checkRows.map((row) => ({
+      weekStart: row.weekStart,
+      itemKey: row.itemKey,
+      checked: row.checked,
+      checkedQuantity: row.checkedQuantity,
+      updatedAt: row.updatedAt,
+    })),
+    shoppingCustomItems: customItems,
     settings: {
       thresholdProteinG: settings.thresholdProteinG,
       thresholdFatG: settings.thresholdFatG,
@@ -138,6 +189,8 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
     await localDb.cookEvents.clear();
     await localDb.trustedSites.clear();
     await localDb.mealPlan.clear();
+    await localDb.shoppingChecks.clear();
+    await localDb.shoppingCustomItems.clear();
     await localDb.recipes.bulkPut(snapshot.recipes.map(withSearchText));
     await localDb.collections.bulkPut(snapshot.collections);
     await localDb.cookEvents.bulkPut(snapshot.cookEvents);
@@ -145,6 +198,16 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
       snapshot.trustedSites.map((site, position) => ({ ...site, position })),
     );
     await localDb.mealPlan.bulkPut(snapshot.mealPlan);
+    await localDb.shoppingChecks.bulkPut(
+      snapshot.shoppingChecks.map((check) => ({
+        ...check,
+        id: checkId(check.weekStart, check.itemKey),
+      })),
+    );
+    await localDb.shoppingCustomItems.bulkPut(snapshot.shoppingCustomItems);
+    // Ticks made here and not yet sent stay on top of what the server says.
+    for (const entry of await localDb.outbox.orderBy('seq').toArray())
+      await applyEntryLocally(entry, new Date().toISOString());
     await localDb.settings.put({ key: 'settings', ...snapshot.settings });
     await localDb.meta.delete(META_FULL_SYNC);
     await localDb.meta.bulkPut([
@@ -180,6 +243,8 @@ export type LocalChange = {
   removeTrustedSiteId?: string;
   mealPlanEntry?: MealPlanEntry;
   removeMealPlanEntryId?: string;
+  shoppingCustomItem?: ShoppingCustomItem;
+  removeShoppingCustomItemId?: string;
 };
 
 /** Stores a confirmed change of own collections or cookings together with the new data version. */
@@ -206,8 +271,55 @@ export async function storeChange(change: LocalChange, dataVersion: number): Pro
     if (change.removeTrustedSiteId) await localDb.trustedSites.delete(change.removeTrustedSiteId);
     if (change.mealPlanEntry) await localDb.mealPlan.put(change.mealPlanEntry);
     if (change.removeMealPlanEntryId) await localDb.mealPlan.delete(change.removeMealPlanEntryId);
+    if (change.shoppingCustomItem) await localDb.shoppingCustomItems.put(change.shoppingCustomItem);
+    if (change.removeShoppingCustomItemId)
+      await localDb.shoppingCustomItems.delete(change.removeShoppingCustomItemId);
     await localDb.meta.put({ key: META_DATA_VERSION, value: dataVersion });
   });
+}
+
+/** Puts a tick on the local copy (S20): the tick of a computed item or the state of an own item. */
+async function applyEntryLocally(entry: OutboxEntry, at: string): Promise<void> {
+  if (entry.itemKey !== undefined) {
+    await localDb.shoppingChecks.put({
+      id: checkId(entry.weekStart, entry.itemKey),
+      weekStart: entry.weekStart,
+      itemKey: entry.itemKey,
+      checked: entry.checked,
+      checkedQuantity: entry.quantity,
+      updatedAt: at,
+    });
+  } else if (entry.customItemId !== undefined) {
+    await localDb.shoppingCustomItems.update(entry.customItemId, {
+      checked: entry.checked,
+      updatedAt: at,
+    });
+  }
+}
+
+/**
+ * Records a tick or untick (S20): visible at once on this device and queued to be sent. This is
+ * the one change of data that works offline.
+ */
+export async function recordCheck(entry: OutboxEntry): Promise<void> {
+  await localDb.transaction(
+    'rw',
+    localDb.shoppingChecks,
+    localDb.shoppingCustomItems,
+    localDb.outbox,
+    async () => {
+      await applyEntryLocally(entry, new Date().toISOString());
+      await localDb.outbox.add(entry);
+    },
+  );
+}
+
+/** The ticks waiting to be sent, oldest first. */
+export const readOutbox = (): Promise<OutboxEntry[]> => localDb.outbox.orderBy('seq').toArray();
+
+/** Forgets ticks the server has confirmed (or refused for good). */
+export async function removeFromOutbox(seqs: number[]): Promise<void> {
+  await localDb.outbox.bulkDelete(seqs);
 }
 
 /** Removes a recipe the server has just deleted, together with the new data version. */

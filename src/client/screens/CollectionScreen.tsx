@@ -171,6 +171,9 @@ export function CollectionScreen() {
             <Link to="/planer" className="inline-flex min-h-11 items-center underline">
               Planer
             </Link>
+            <Link to="/dawki" className="inline-flex min-h-11 items-center underline">
+              Dziennik dawek
+            </Link>
             <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
               Kolekcje własne
             </Link>

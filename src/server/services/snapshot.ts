@@ -4,6 +4,7 @@ import type { Snapshot } from '../../shared/contracts/snapshot';
 import type { Database } from '../db/client';
 import { accounts } from '../db/schema';
 import { listCollections } from './collections';
+import { listDoseEntries } from './doseEntries';
 import { listMealPlan } from './mealPlan';
 import { listCookEvents } from './recipeDetails';
 import { listRecipes, type Executor } from './recipes';
@@ -45,6 +46,7 @@ export async function buildSnapshot(
         mealPlan: await listMealPlan(tx, accountId),
         shoppingChecks: await listShoppingChecks(tx, accountId),
         shoppingCustomItems: await listShoppingCustomItems(tx, accountId),
+        doseEntries: await listDoseEntries(tx, accountId),
       };
     },
     { isolationLevel: 'repeatable read', accessMode: 'read only' },

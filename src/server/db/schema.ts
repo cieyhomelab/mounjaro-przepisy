@@ -237,3 +237,18 @@ export const shoppingCustomItems = pgTable('shopping_custom_items', {
   createdAt: timestamptz('created_at').notNull(),
   updatedAt: timestamptz('updated_at').notNull(),
 });
+
+/** One injection of the dose journal (S21). Health data: never logged. */
+export const doseEntries = pgTable('dose_entries', {
+  id: uuid('id').primaryKey(),
+  accountId: uuid('account_id')
+    .notNull()
+    .references(() => accounts.id, { onDelete: 'cascade' }),
+  doseDate: date('dose_date', { mode: 'string' }).notNull(),
+  doseMg: numeric('dose_mg', { precision: 7, scale: 3, mode: 'number' }).notNull(),
+  site: text('site', {
+    enum: ['abdomen_left', 'abdomen_right', 'thigh_left', 'thigh_right', 'arm_left', 'arm_right'],
+  }).notNull(),
+  note: text('note'),
+  createdAt: timestamptz('created_at').notNull(),
+});

@@ -6,6 +6,8 @@ import { CollectionProvider } from './data/collection';
 import { CollectionViewProvider } from './data/collectionView';
 import { SessionProvider } from './data/session';
 import { AccountScreen } from './screens/AccountScreen';
+import { DoseFormScreen } from './screens/DoseFormScreen';
+import { DoseLogScreen } from './screens/DoseLogScreen';
 import { CookScreen } from './screens/CookScreen';
 import { CollectionScreen } from './screens/CollectionScreen';
 import { ImportScreen } from './screens/ImportScreen';
@@ -49,6 +51,9 @@ export function App() {
               <Route path="przepisy/:id" element={<RecipeScreen />} />
               <Route path="planer" element={<PlannerScreen />} />
               <Route path="zakupy" element={<ShoppingScreen />} />
+              <Route path="dawki" element={<DoseLogScreen />} />
+              <Route path="dawki/nowy" element={<DoseFormScreen />} />
+              <Route path="dawki/:id/edycja" element={<DoseFormScreen />} />
               <Route path="szukaj" element={<SearchScreen />} />
               <Route path="kolekcje" element={<OwnCollectionsScreen />} />
               <Route path="ustawienia" element={<SettingsScreen />} />

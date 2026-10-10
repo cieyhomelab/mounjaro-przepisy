@@ -2,6 +2,7 @@ import Dexie, { type EntityTable } from 'dexie';
 import type { OwnCollection } from '../../shared/contracts/collection';
 import type { MealPlanEntry } from '../../shared/contracts/mealPlan';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
+import type { DoseEntry } from '../../shared/contracts/dose';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings, Snapshot } from '../../shared/contracts/snapshot';
 import type { ShoppingCheck, ShoppingCustomItem } from '../../shared/contracts/shopping';
@@ -56,6 +57,7 @@ class LocalDatabase extends Dexie {
   mealPlan!: EntityTable<MealPlanEntry, 'id'>;
   shoppingChecks!: EntityTable<StoredCheck, 'id'>;
   shoppingCustomItems!: EntityTable<ShoppingCustomItem, 'id'>;
+  doseEntries!: EntityTable<DoseEntry, 'id'>;
   outbox!: EntityTable<OutboxEntry, 'seq'>;
   settings!: EntityTable<SettingsRow, 'key'>;
   meta!: EntityTable<MetaRow, 'key'>;
@@ -105,6 +107,10 @@ class LocalDatabase extends Dexie {
         outbox: '++seq',
       })
       .upgrade((tx) => tx.table('meta').put({ key: META_FULL_SYNC, value: 1 }));
+    // Dose journal (S21). A copy synced before has no entries: fetch the snapshot.
+    this.version(7)
+      .stores({ doseEntries: 'id' })
+      .upgrade((tx) => tx.table('meta').put({ key: META_FULL_SYNC, value: 1 }));
   }
 }
 
@@ -118,6 +124,7 @@ export type LocalData = {
   mealPlan: MealPlanEntry[];
   shoppingChecks: ShoppingCheck[];
   shoppingCustomItems: ShoppingCustomItem[];
+  doseEntries: DoseEntry[];
   settings: Settings;
   dataVersion: number | null;
   /** The copy may lack data a client of the past did not know about: fetch the whole snapshot. */
@@ -133,6 +140,7 @@ export async function readLocalData(): Promise<LocalData> {
     mealPlan,
     checkRows,
     customItems,
+    doseEntries,
     settingsRow,
     version,
     fullSync,
@@ -144,6 +152,7 @@ export async function readLocalData(): Promise<LocalData> {
     localDb.mealPlan.toArray(),
     localDb.shoppingChecks.toArray(),
     localDb.shoppingCustomItems.toArray(),
+    localDb.doseEntries.toArray(),
     localDb.settings.get('settings'),
     localDb.meta.get(META_DATA_VERSION),
     localDb.meta.get(META_FULL_SYNC),
@@ -169,6 +178,7 @@ export async function readLocalData(): Promise<LocalData> {
       updatedAt: row.updatedAt,
     })),
     shoppingCustomItems: customItems,
+    doseEntries,
     settings: {
       thresholdProteinG: settings.thresholdProteinG,
       thresholdFatG: settings.thresholdFatG,
@@ -191,6 +201,7 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
     await localDb.mealPlan.clear();
     await localDb.shoppingChecks.clear();
     await localDb.shoppingCustomItems.clear();
+    await localDb.doseEntries.clear();
     await localDb.recipes.bulkPut(snapshot.recipes.map(withSearchText));
     await localDb.collections.bulkPut(snapshot.collections);
     await localDb.cookEvents.bulkPut(snapshot.cookEvents);
@@ -205,6 +216,7 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
       })),
     );
     await localDb.shoppingCustomItems.bulkPut(snapshot.shoppingCustomItems);
+    await localDb.doseEntries.bulkPut(snapshot.doseEntries);
     // Ticks made here and not yet sent stay on top of what the server says.
     for (const entry of await localDb.outbox.orderBy('seq').toArray())
       await applyEntryLocally(entry, new Date().toISOString());
@@ -245,6 +257,8 @@ export type LocalChange = {
   removeMealPlanEntryId?: string;
   shoppingCustomItem?: ShoppingCustomItem;
   removeShoppingCustomItemId?: string;
+  doseEntry?: DoseEntry;
+  removeDoseEntryId?: string;
 };
 
 /** Stores a confirmed change of own collections or cookings together with the new data version. */
@@ -274,6 +288,8 @@ export async function storeChange(change: LocalChange, dataVersion: number): Pro
     if (change.shoppingCustomItem) await localDb.shoppingCustomItems.put(change.shoppingCustomItem);
     if (change.removeShoppingCustomItemId)
       await localDb.shoppingCustomItems.delete(change.removeShoppingCustomItemId);
+    if (change.doseEntry) await localDb.doseEntries.put(change.doseEntry);
+    if (change.removeDoseEntryId) await localDb.doseEntries.delete(change.removeDoseEntryId);
     await localDb.meta.put({ key: META_DATA_VERSION, value: dataVersion });
   });
 }

@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { OwnCollection } from '../../shared/contracts/collection';
+import type { DoseEntry } from '../../shared/contracts/dose';
 import type { MealPlanEntry } from '../../shared/contracts/mealPlan';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { ShoppingCheck, ShoppingCustomItem } from '../../shared/contracts/shopping';
@@ -47,6 +48,7 @@ export type CollectionState =
       mealPlan: MealPlanEntry[];
       shoppingChecks: ShoppingCheck[];
       shoppingCustomItems: ShoppingCustomItem[];
+      doseEntries: DoseEntry[];
       settings: Settings;
     }
   | { status: 'error'; code: string };
@@ -133,6 +135,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         mealPlan: local.mealPlan,
         shoppingChecks: local.shoppingChecks,
         shoppingCustomItems: local.shoppingCustomItems,
+        doseEntries: local.doseEntries,
         settings: local.settings,
       });
     return local.dataVersion !== null;

@@ -95,15 +95,10 @@ test('Wersja klienta: kopia zsynchronizowana przez stary klient dostaje brakują
       };
     });
   });
-  await page.reload();
-  await goToPlannerAndExpect(page);
-});
-
-async function goToPlannerAndExpect(page: Page) {
-  await page.getByRole('link', { name: 'Planer', exact: true }).click();
+  await page.goto('/planer');
   await expect(
     page
       .getByRole('region', { name: 'środa, 14 października: Obiad' })
       .getByRole('link', { name: 'Zupa dyniowa' }),
   ).toBeVisible();
-}
+});

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /** Bumped on incompatible API changes; a client with another version reloads (see BACKWARD_COMPATIBILITY.md). */
-export const API_VERSION = 2;
+export const API_VERSION = 3;
 
 /** Response contract of GET /api/session. */
 export const sessionResponseSchema = z.object({

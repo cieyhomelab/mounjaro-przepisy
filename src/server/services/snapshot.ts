@@ -8,6 +8,7 @@ import { listMealPlan } from './mealPlan';
 import { listCookEvents } from './recipeDetails';
 import { listRecipes, type Executor } from './recipes';
 import { readSettings } from './settings';
+import { listShoppingChecks, listShoppingCustomItems } from './shopping';
 import { listTrustedSites } from './trustedSites';
 
 /** Current data version of the account; the ETag of the snapshot. */
@@ -42,6 +43,8 @@ export async function buildSnapshot(
         cookEvents: await listCookEvents(tx, accountId),
         trustedSites: await listTrustedSites(tx, accountId),
         mealPlan: await listMealPlan(tx, accountId),
+        shoppingChecks: await listShoppingChecks(tx, accountId),
+        shoppingCustomItems: await listShoppingCustomItems(tx, accountId),
       };
     },
     { isolationLevel: 'repeatable read', accessMode: 'read only' },

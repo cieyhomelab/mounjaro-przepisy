@@ -3,6 +3,11 @@ import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
 import { mealPlanEntrySchema } from './mealPlan';
 import { recipeSchema } from './recipe';
+import {
+  exportedShoppingListSchema,
+  shoppingCheckSchema,
+  shoppingCustomItemSchema,
+} from './shopping';
 import { settingsSchema } from './snapshot';
 import { trustedSiteSchema } from './trustedSite';
 
@@ -45,5 +50,10 @@ export const accountExportSchema = z.object({
   trustedSites: z.array(trustedSiteSchema),
   /** The planned meals: a recipe on a day and a meal, with the number of servings. */
   mealPlan: z.array(mealPlanEntrySchema),
+  /** The ticks of the shopping lists and the user's own items; the lists themselves are computed from the plan. */
+  shoppingChecks: z.array(shoppingCheckSchema),
+  shoppingCustomItems: z.array(shoppingCustomItemSchema),
+  /** The shopping list of every week that has a plan, own items or ticks, as the app shows it. */
+  shoppingLists: z.array(exportedShoppingListSchema),
 });
 export type AccountExport = z.infer<typeof accountExportSchema>;

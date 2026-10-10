@@ -15,6 +15,7 @@ import { registerAccountRoutes } from './routes/account';
 import { SESSION_COOKIE, registerAuthRoutes, sessionCookieOptions } from './routes/auth';
 import { registerCollectionRoutes } from './routes/collections';
 import { registerDoseEntryRoutes } from './routes/doseEntries';
+import { registerWellbeingRoutes } from './routes/wellbeing';
 import { registerMealPlanRoutes } from './routes/mealPlan';
 import { registerShoppingRoutes } from './routes/shopping';
 import { registerHealthRoutes } from './routes/health';
@@ -161,6 +162,7 @@ export async function buildApp({
   registerMealPlanRoutes(app, { database, clock: appClock });
   registerShoppingRoutes(app, { database, clock: appClock });
   registerDoseEntryRoutes(app, { database, clock: appClock });
+  registerWellbeingRoutes(app, { database, clock: appClock });
   registerPushRoutes(app, { database, clock: appClock, sender });
   await registerPhotoRoutes(app, { database, clock: appClock });
   registerAuthRoutes(app, {

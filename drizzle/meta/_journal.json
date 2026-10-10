@@ -71,6 +71,13 @@
       "when": 1791644299768,
       "tag": "0009_reminder_retry",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791658395629,
+      "tag": "0010_wellbeing_entries",
+      "breakpoints": true
     }
   ]
 }

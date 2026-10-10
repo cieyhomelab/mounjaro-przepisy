@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
 import { doseEntrySchema } from './dose';
+import { wellbeingEntrySchema } from './wellbeing';
 import { mealPlanEntrySchema } from './mealPlan';
 import { recipeSchema } from './recipe';
 import { shoppingCheckSchema, shoppingCustomItemSchema } from './shopping';
@@ -37,6 +38,7 @@ export const snapshotSchema = z.object({
   shoppingChecks: z.array(shoppingCheckSchema),
   shoppingCustomItems: z.array(shoppingCustomItemSchema),
   doseEntries: z.array(doseEntrySchema),
+  wellbeingEntries: z.array(wellbeingEntrySchema),
 });
 export type Snapshot = z.infer<typeof snapshotSchema>;
 

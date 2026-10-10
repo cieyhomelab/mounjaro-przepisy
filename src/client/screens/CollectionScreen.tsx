@@ -174,6 +174,9 @@ export function CollectionScreen() {
             <Link to="/dawki" className="inline-flex min-h-11 items-center underline">
               Dziennik dawek
             </Link>
+            <Link to="/waga" className="inline-flex min-h-11 items-center underline">
+              Waga i samopoczucie
+            </Link>
             <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
               Kolekcje własne
             </Link>

@@ -10,6 +10,7 @@ import {
 } from 'react';
 import type { OwnCollection } from '../../shared/contracts/collection';
 import type { DoseEntry } from '../../shared/contracts/dose';
+import type { WellbeingEntry } from '../../shared/contracts/wellbeing';
 import type { MealPlanEntry } from '../../shared/contracts/mealPlan';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { ShoppingCheck, ShoppingCustomItem } from '../../shared/contracts/shopping';
@@ -49,6 +50,7 @@ export type CollectionState =
       shoppingChecks: ShoppingCheck[];
       shoppingCustomItems: ShoppingCustomItem[];
       doseEntries: DoseEntry[];
+      wellbeingEntries: WellbeingEntry[];
       settings: Settings;
     }
   | { status: 'error'; code: string };
@@ -136,6 +138,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         shoppingChecks: local.shoppingChecks,
         shoppingCustomItems: local.shoppingCustomItems,
         doseEntries: local.doseEntries,
+        wellbeingEntries: local.wellbeingEntries,
         settings: local.settings,
       });
     return local.dataVersion !== null;

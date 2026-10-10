@@ -8,6 +8,7 @@ import type { Database } from '../db/client';
 import { accounts, recipePhotos } from '../db/schema';
 import { listCollections } from './collections';
 import { listDoseEntries } from './doseEntries';
+import { listWellbeingEntries } from './wellbeing';
 import { listCookEvents } from './recipeDetails';
 import { listRecipes } from './recipes';
 import { readSettings } from './settings';
@@ -69,6 +70,7 @@ export async function buildAccountExport(
         shoppingChecks,
         shoppingCustomItems,
         doseEntries: await listDoseEntries(tx, accountId),
+        wellbeingEntries: await listWellbeingEntries(tx, accountId),
         shoppingLists: exportShoppingLists({
           entries: mealPlan,
           recipes,

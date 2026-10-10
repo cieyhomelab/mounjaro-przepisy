@@ -11,6 +11,8 @@ import { AccountScreen } from './screens/AccountScreen';
 import { DoseFormScreen } from './screens/DoseFormScreen';
 import { DoseLogScreen } from './screens/DoseLogScreen';
 import { DoseReminderScreen } from './screens/DoseReminderScreen';
+import { WellbeingFormScreen } from './screens/WellbeingFormScreen';
+import { WellbeingLogScreen } from './screens/WellbeingLogScreen';
 import { ReminderScreen } from './screens/ReminderScreen';
 import { CookScreen } from './screens/CookScreen';
 import { CollectionScreen } from './screens/CollectionScreen';
@@ -76,6 +78,8 @@ export function App() {
               <Route path="dawki/przypomnienie" element={<DoseReminderScreen />} />
               <Route path="dawki/nowy" element={<DoseFormScreen />} />
               <Route path="dawki/:id/edycja" element={<DoseFormScreen />} />
+              <Route path="waga" element={<WellbeingLogScreen />} />
+              <Route path="waga/nowy" element={<WellbeingFormScreen />} />
               <Route path="szukaj" element={<SearchScreen />} />
               <Route path="kolekcje" element={<OwnCollectionsScreen />} />
               <Route path="ustawienia" element={<SettingsScreen />} />

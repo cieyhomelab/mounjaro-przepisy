@@ -246,10 +246,19 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
       if (document.visibilityState === 'visible') void sync();
     };
     const onOnline = () => void sync();
+    // Some browsers announce the connection before requests get through; while ticks are
+    // waiting, keep trying.
+    const retryQueued = window.setInterval(() => {
+      if (isOffline()) return;
+      void readOutbox().then((queued) => {
+        if (queued.length > 0 && active) void sync();
+      });
+    }, 2000);
     document.addEventListener('visibilitychange', onVisible);
     window.addEventListener('online', onOnline);
     return () => {
       active = false;
+      window.clearInterval(retryQueued);
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('online', onOnline);
     };

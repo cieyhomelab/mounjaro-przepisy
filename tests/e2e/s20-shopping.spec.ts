@@ -23,7 +23,14 @@ const plan = (page: Page, recipeId: string, date: string, servings: number, slot
 
 /** Opens the list through the planner, as the user does. */
 async function openList(page: Page) {
-  await page.getByRole('link', { name: 'Planer', exact: true }).click();
+  const planner = page.getByRole('heading', { level: 1, name: 'Planer' });
+  // Firefox may swallow a tap made while the collection is still rendering: tap again.
+  await expect(async () => {
+    if (!(await planner.isVisible())) {
+      await page.getByRole('link', { name: 'Planer', exact: true }).click({ timeout: 2000 });
+    }
+    await expect(planner).toBeVisible({ timeout: 2000 });
+  }).toPass();
   await page.getByRole('link', { name: 'Lista zakupów' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Lista zakupów' })).toBeVisible();
 }

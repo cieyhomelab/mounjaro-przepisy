@@ -94,18 +94,20 @@ export async function isSubscribed(): Promise<boolean> {
 }
 
 /**
- * At start: a device subscribed with a key the server no longer uses (the VAPID pair was replaced)
- * gets a new subscription registered. Does nothing without permission or an existing subscription,
- * and never throws: a failed check is repeated at the next start.
+ * At start: makes sure this device is registered on the server with a subscription made with the
+ * server's current key. A subscription made with another key (the VAPID pair was replaced) is
+ * replaced; one that matches is registered again (the server keeps one row per endpoint), because
+ * an earlier renewal may have stopped after the browser subscribed but before the server heard of
+ * it. A device with no subscription gets one when the reminder is on. Does nothing without
+ * permission, and never throws: a failed attempt is repeated at the next start.
  */
-export async function renewStaleSubscription(): Promise<void> {
+export async function renewStaleSubscription(reminderEnabled: boolean): Promise<void> {
   try {
     if (pushState() !== 'ready') return;
     const registration = await navigator.serviceWorker.ready;
     const existing = await registration.pushManager.getSubscription();
-    if (!existing) return;
+    if (!existing && !reminderEnabled) return;
     const { publicKey } = publicKeyResponseSchema.parse(await apiRequest('/api/push/public-key'));
-    if (!madeWithOtherKey(existing, toKeyBytes(publicKey))) return;
     await registerSubscription(await subscriptionFor(registration, publicKey));
   } catch {
     // Offline, push unavailable on the server or the browser refused: retried at the next start.

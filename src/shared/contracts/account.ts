@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
+import { doseEntrySchema } from './dose';
 import { mealPlanEntrySchema } from './mealPlan';
 import { recipeSchema } from './recipe';
 import {
@@ -55,5 +56,7 @@ export const accountExportSchema = z.object({
   shoppingCustomItems: z.array(shoppingCustomItemSchema),
   /** The shopping list of every week that has a plan, own items or ticks, as the app shows it. */
   shoppingLists: z.array(exportedShoppingListSchema),
+  /** The dose journal: date, dose in mg, injection site and note of every entry. */
+  doseEntries: z.array(doseEntrySchema),
 });
 export type AccountExport = z.infer<typeof accountExportSchema>;

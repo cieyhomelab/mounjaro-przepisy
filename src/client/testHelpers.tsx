@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { vi } from 'vitest';
+import { API_VERSION } from '../shared/contracts/session';
 import type { Recipe } from '../shared/contracts/recipe';
 import type { Snapshot } from '../shared/contracts/snapshot';
 import { App } from './App';
@@ -10,10 +11,10 @@ export type Handler = (url: string, init?: RequestInit) => Response | Promise<Re
 export const json = (status: number, body: unknown, headers?: Record<string, string>) =>
   Response.json(body, { status, headers: headers ?? {} });
 export const unauthenticated = () => json(401, { error: { code: 'unauthenticated' } });
-export const loggedIn = () => json(200, { email: 'owner@example.test', apiVersion: 1 });
+export const loggedIn = () => json(200, { email: 'owner@example.test', apiVersion: API_VERSION });
 
 export const snapshotOf = (recipes: Recipe[] = [], dataVersion = 0): Snapshot => ({
-  apiVersion: 1,
+  apiVersion: API_VERSION,
   dataVersion,
   generatedAt: '2026-10-08T12:00:00.000Z',
   settings: {

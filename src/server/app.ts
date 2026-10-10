@@ -13,6 +13,7 @@ import { createPageFetcher, type PageFetcher } from './integrations/pageFetcher'
 import { registerAccountRoutes } from './routes/account';
 import { SESSION_COOKIE, registerAuthRoutes, sessionCookieOptions } from './routes/auth';
 import { registerCollectionRoutes } from './routes/collections';
+import { registerMealPlanRoutes } from './routes/mealPlan';
 import { registerHealthRoutes } from './routes/health';
 import { registerPhotoRoutes } from './routes/photos';
 import { registerRecipeRoutes } from './routes/recipes';
@@ -149,6 +150,7 @@ export async function buildApp({
     fetchTimeoutMs: config.fetchTimeoutMs,
   });
   registerCollectionRoutes(app, { database, clock: appClock });
+  registerMealPlanRoutes(app, { database, clock: appClock });
   await registerPhotoRoutes(app, { database, clock: appClock });
   registerAuthRoutes(app, {
     config,

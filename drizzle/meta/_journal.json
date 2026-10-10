@@ -36,6 +36,13 @@
       "when": 1791570391779,
       "tag": "0004_trusted_sites",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791605755397,
+      "tag": "0005_meal_plan",
+      "breakpoints": true
     }
   ]
 }

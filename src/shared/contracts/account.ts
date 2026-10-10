@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
+import { mealPlanEntrySchema } from './mealPlan';
 import { recipeSchema } from './recipe';
 import { settingsSchema } from './snapshot';
 import { trustedSiteSchema } from './trustedSite';
@@ -42,5 +43,7 @@ export const accountExportSchema = z.object({
   cookEvents: z.array(cookEventSchema),
   /** The trusted sites with their state (active or not). */
   trustedSites: z.array(trustedSiteSchema),
+  /** The planned meals: a recipe on a day and a meal, with the number of servings. */
+  mealPlan: z.array(mealPlanEntrySchema),
 });
 export type AccountExport = z.infer<typeof accountExportSchema>;

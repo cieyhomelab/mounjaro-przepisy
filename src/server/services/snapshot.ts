@@ -4,6 +4,7 @@ import type { Snapshot } from '../../shared/contracts/snapshot';
 import type { Database } from '../db/client';
 import { accounts } from '../db/schema';
 import { listCollections } from './collections';
+import { listMealPlan } from './mealPlan';
 import { listCookEvents } from './recipeDetails';
 import { listRecipes, type Executor } from './recipes';
 import { readSettings } from './settings';
@@ -40,6 +41,7 @@ export async function buildSnapshot(
         collections: await listCollections(tx, accountId),
         cookEvents: await listCookEvents(tx, accountId),
         trustedSites: await listTrustedSites(tx, accountId),
+        mealPlan: await listMealPlan(tx, accountId),
       };
     },
     { isolationLevel: 'repeatable read', accessMode: 'read only' },

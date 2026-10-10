@@ -168,6 +168,9 @@ export function CollectionScreen() {
         <h1 className="text-2xl font-semibold">Kolekcja</h1>
         {state.status === 'ready' ? (
           <div className="flex flex-wrap items-center justify-end gap-2">
+            <Link to="/planer" className="inline-flex min-h-11 items-center underline">
+              Planer
+            </Link>
             <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
               Kolekcje własne
             </Link>

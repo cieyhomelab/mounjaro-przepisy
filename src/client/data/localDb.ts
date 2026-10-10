@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import type { OwnCollection } from '../../shared/contracts/collection';
+import type { MealPlanEntry } from '../../shared/contracts/mealPlan';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings, Snapshot } from '../../shared/contracts/snapshot';
@@ -33,6 +34,7 @@ class LocalDatabase extends Dexie {
   collections!: EntityTable<OwnCollection, 'id'>;
   cookEvents!: EntityTable<CookEvent, 'id'>;
   trustedSites!: EntityTable<StoredSite, 'id'>;
+  mealPlan!: EntityTable<MealPlanEntry, 'id'>;
   settings!: EntityTable<SettingsRow, 'key'>;
   meta!: EntityTable<MetaRow, 'key'>;
 
@@ -58,6 +60,15 @@ class LocalDatabase extends Dexie {
       settings: 'key',
       meta: 'key',
     });
+    this.version(4).stores({
+      recipes: 'id',
+      collections: 'id',
+      cookEvents: 'id',
+      trustedSites: 'id',
+      mealPlan: 'id, recipeId',
+      settings: 'key',
+      meta: 'key',
+    });
   }
 }
 
@@ -68,19 +79,22 @@ export type LocalData = {
   collections: OwnCollection[];
   cookEvents: CookEvent[];
   trustedSites: TrustedSite[];
+  mealPlan: MealPlanEntry[];
   settings: Settings;
   dataVersion: number | null;
 };
 
 export async function readLocalData(): Promise<LocalData> {
-  const [rows, collections, cookEvents, siteRows, settingsRow, version] = await Promise.all([
-    localDb.recipes.toArray(),
-    localDb.collections.toArray(),
-    localDb.cookEvents.toArray(),
-    localDb.trustedSites.toArray(),
-    localDb.settings.get('settings'),
-    localDb.meta.get(META_DATA_VERSION),
-  ]);
+  const [rows, collections, cookEvents, siteRows, mealPlan, settingsRow, version] =
+    await Promise.all([
+      localDb.recipes.toArray(),
+      localDb.collections.toArray(),
+      localDb.cookEvents.toArray(),
+      localDb.trustedSites.toArray(),
+      localDb.mealPlan.toArray(),
+      localDb.settings.get('settings'),
+      localDb.meta.get(META_DATA_VERSION),
+    ]);
   // A copy stored before the search text existed gets it now, so it is never missing.
   const recipes = rows.map((row) =>
     typeof row.searchText === 'string' ? row : withSearchText(row),
@@ -93,6 +107,7 @@ export async function readLocalData(): Promise<LocalData> {
     trustedSites: siteRows
       .sort((a, b) => a.position - b.position)
       .map(({ id, host, name, active }) => ({ id, host, name, active })),
+    mealPlan,
     settings: {
       thresholdProteinG: settings.thresholdProteinG,
       thresholdFatG: settings.thresholdFatG,
@@ -111,12 +126,14 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
     await localDb.collections.clear();
     await localDb.cookEvents.clear();
     await localDb.trustedSites.clear();
+    await localDb.mealPlan.clear();
     await localDb.recipes.bulkPut(snapshot.recipes.map(withSearchText));
     await localDb.collections.bulkPut(snapshot.collections);
     await localDb.cookEvents.bulkPut(snapshot.cookEvents);
     await localDb.trustedSites.bulkPut(
       snapshot.trustedSites.map((site, position) => ({ ...site, position })),
     );
+    await localDb.mealPlan.bulkPut(snapshot.mealPlan);
     await localDb.settings.put({ key: 'settings', ...snapshot.settings });
     await localDb.meta.bulkPut([
       { key: META_DATA_VERSION, value: snapshot.dataVersion },
@@ -149,6 +166,8 @@ export type LocalChange = {
   removeCookEventId?: string;
   trustedSite?: TrustedSite;
   removeTrustedSiteId?: string;
+  mealPlanEntry?: MealPlanEntry;
+  removeMealPlanEntryId?: string;
 };
 
 /** Stores a confirmed change of own collections or cookings together with the new data version. */
@@ -173,14 +192,18 @@ export async function storeChange(change: LocalChange, dataVersion: number): Pro
       await localDb.trustedSites.put({ ...change.trustedSite, position });
     }
     if (change.removeTrustedSiteId) await localDb.trustedSites.delete(change.removeTrustedSiteId);
+    if (change.mealPlanEntry) await localDb.mealPlan.put(change.mealPlanEntry);
+    if (change.removeMealPlanEntryId) await localDb.mealPlan.delete(change.removeMealPlanEntryId);
     await localDb.meta.put({ key: META_DATA_VERSION, value: dataVersion });
   });
 }
 
 /** Removes a recipe the server has just deleted, together with the new data version. */
 export async function removeRecipe(recipeId: string, dataVersion: number): Promise<void> {
-  await localDb.transaction('rw', localDb.recipes, localDb.cookEvents, localDb.meta, async () => {
+  await localDb.transaction('rw', localDb.tables, async () => {
     await localDb.recipes.delete(recipeId);
+    // The planner drops the recipe too.
+    await localDb.mealPlan.where('recipeId').equals(recipeId).delete();
     // The cookings stay in the history, without a recipe.
     await localDb.cookEvents
       .filter((event) => event.recipeId === recipeId)

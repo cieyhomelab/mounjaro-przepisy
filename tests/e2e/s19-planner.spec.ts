@@ -219,11 +219,23 @@ test.describe('S19: planer posiłków na tydzień', () => {
     await expect(page.getByRole('link', { name: 'Zupa dyniowa' })).toBeVisible();
     await page.getByRole('link', { name: 'Ustawienia' }).click();
     await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
+    // Under load the service worker may not control the page yet, and the offline reload below
+    // relies on it to serve the app shell, so wait until it does.
+    await expect
+      .poll(() =>
+        page.evaluate(async () => {
+          await navigator.serviceWorker.ready;
+          return navigator.serviceWorker.controller !== null;
+        }),
+      )
+      .toBe(true);
 
     await goOffline(context, page);
     await page.goto('/planer');
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Planer' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Planer' })).toBeVisible({
+      timeout: 15_000,
+    });
     const lunch = meal(page, 'środa, 14 października', 'Obiad');
     await expect(lunch.getByRole('link', { name: 'Zupa dyniowa' })).toBeVisible();
     await lunch.getByRole('button', { name: 'Usuń z pory: Zupa dyniowa' }).click();

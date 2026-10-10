@@ -159,13 +159,7 @@ export function ReminderScreen() {
       {state.status === 'error' ? (
         <ErrorNotice code={state.code} onRetry={() => void sync()} />
       ) : null}
-      {state.status === 'ready' ? (
-        // Keyed by the saved values so another device's change refills the fields.
-        <ReminderForm
-          key={`${state.settings.reminderEnabled}-${state.settings.reminderWeekday}-${state.settings.reminderTime}`}
-          settings={state.settings}
-        />
-      ) : null}
+      {state.status === 'ready' ? <ReminderForm settings={state.settings} /> : null}
     </section>
   );
 }

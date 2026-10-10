@@ -284,6 +284,21 @@ export const reminderDeliveries = pgTable(
     occurrenceDate: date('occurrence_date', { mode: 'string' }).notNull(),
     kind: text('kind', { enum: ['first', 'repeat'] }).notNull(),
     sentAt: timestamptz('sent_at').notNull(),
+    /** Set once every subscription has the reminder; until then it is retried within its window. */
+    completedAt: timestamptz('completed_at'),
   },
   (table) => [primaryKey({ columns: [table.accountId, table.occurrenceDate, table.kind] })],
+);
+
+/** Which subscription already got which reminder, so a retry never notifies a device twice. */
+export const reminderDeviceDeliveries = pgTable(
+  'reminder_device_deliveries',
+  {
+    subscriptionId: uuid('subscription_id')
+      .notNull()
+      .references(() => pushSubscriptions.id, { onDelete: 'cascade' }),
+    occurrenceDate: date('occurrence_date', { mode: 'string' }).notNull(),
+    kind: text('kind', { enum: ['first', 'repeat'] }).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.subscriptionId, table.occurrenceDate, table.kind] })],
 );

@@ -5,7 +5,13 @@ import { addDays, warsawDate } from '../../shared/domain/cookStats';
 import { dueReminders, type DueReminder } from '../../shared/domain/reminder';
 import type { Clock } from '../clock';
 import type { Database } from '../db/client';
-import { doseEntries, pushSubscriptions, reminderDeliveries, settings } from '../db/schema';
+import {
+  doseEntries,
+  pushSubscriptions,
+  reminderDeliveries,
+  reminderDeviceDeliveries,
+  settings,
+} from '../db/schema';
 import type { PushSender } from '../integrations/push';
 import type { SubscriptionInput } from '../../shared/contracts/push';
 
@@ -47,8 +53,9 @@ export async function deleteSubscription(
 
 /**
  * One run of the scheduler (S23): for every account with the reminder on, works out what is due
- * now and sends it to all of its subscriptions. A delivery is claimed in the database before it is
- * sent, so each reminder is sent once even with several runs or a restart in between.
+ * now and sends it to all of its subscriptions. Every device is claimed in the database before it
+ * is sent, so each device gets a reminder once even with several runs or a restart in between; a
+ * device whose delivery failed is retried by the next runs until the reminder's window ends.
  */
 export async function runReminderTick(
   database: Database,
@@ -99,24 +106,49 @@ export async function runReminderTick(
         occurrenceDate: row.occurrenceDate,
         kind: row.kind,
       })),
+      incomplete: deliveries
+        .filter((row) => row.completedAt === null)
+        .map((row): DueReminder => ({ occurrenceDate: row.occurrenceDate, kind: row.kind })),
     });
     for (const reminder of due) {
-      const claimed = await db
+      await db
         .insert(reminderDeliveries)
         .values({ accountId: account.accountId, ...reminder, sentAt: now })
-        .onConflictDoNothing()
-        .returning({ kind: reminderDeliveries.kind });
-      if (claimed.length === 0) continue;
+        .onConflictDoNothing();
       const subscriptions = await db
         .select()
         .from(pushSubscriptions)
         .where(eq(pushSubscriptions.accountId, account.accountId));
       const gone: string[] = [];
       const delivered: string[] = [];
+      let covered = 0;
       for (const subscription of subscriptions) {
+        const claimed = await db
+          .insert(reminderDeviceDeliveries)
+          .values({ subscriptionId: subscription.id, ...reminder })
+          .onConflictDoNothing()
+          .returning({ kind: reminderDeviceDeliveries.kind });
+        if (claimed.length === 0) {
+          covered += 1;
+          continue;
+        }
         const result = await sender.sendReminder(subscription, reminder.kind);
         if (result === 'gone') gone.push(subscription.id);
-        if (result === 'sent') delivered.push(subscription.id);
+        if (result === 'sent') {
+          delivered.push(subscription.id);
+          covered += 1;
+        }
+        if (result === 'failed') {
+          await db
+            .delete(reminderDeviceDeliveries)
+            .where(
+              and(
+                eq(reminderDeviceDeliveries.subscriptionId, subscription.id),
+                eq(reminderDeviceDeliveries.occurrenceDate, reminder.occurrenceDate),
+                eq(reminderDeviceDeliveries.kind, reminder.kind),
+              ),
+            );
+        }
       }
       if (gone.length > 0) {
         await db.delete(pushSubscriptions).where(inArray(pushSubscriptions.id, gone));
@@ -127,6 +159,19 @@ export async function runReminderTick(
           .set({ lastSuccessAt: now })
           .where(inArray(pushSubscriptions.id, delivered));
       }
+      const failed = subscriptions.length - covered - gone.length;
+      if (covered > 0 && failed === 0) {
+        await db
+          .update(reminderDeliveries)
+          .set({ completedAt: now })
+          .where(
+            and(
+              eq(reminderDeliveries.accountId, account.accountId),
+              eq(reminderDeliveries.occurrenceDate, reminder.occurrenceDate),
+              eq(reminderDeliveries.kind, reminder.kind),
+            ),
+          );
+      }
       sentCount += delivered.length;
       // Technical counts only: no dates, doses or endpoints in the log.
       log.info({
@@ -134,7 +179,7 @@ export async function runReminderTick(
         kind: reminder.kind,
         delivered: delivered.length,
         removed: gone.length,
-        failed: subscriptions.length - delivered.length - gone.length,
+        failed,
       });
     }
   }

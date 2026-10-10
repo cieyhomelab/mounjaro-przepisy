@@ -80,10 +80,11 @@ const hasDose = (doseDates: readonly string[], ...days: string[]) =>
  * unless a dose is already entered for that day; the repeat is due at the same time on the next
  * day, once the first was sent and no dose is entered for either day. A reminder is due for five
  * minutes from its moment, so a restart or a change of settings never replays old ones.
- * `sent` lists what the account was already sent.
+ * `sent` lists what the account was already sent; `incomplete` is the part of it that did not reach
+ * every device, which stays due (for the devices still missing) for the rest of its window.
  */
 export function dueReminders(
-  input: ReminderInput & { sent: readonly DueReminder[] },
+  input: ReminderInput & { sent: readonly DueReminder[]; incomplete?: readonly DueReminder[] },
 ): DueReminder[] {
   if (!input.reminderEnabled) return [];
   const today = warsawDate(input.now);
@@ -93,14 +94,19 @@ export function dueReminders(
     const at = warsawInstant(day, input.reminderTime).getTime();
     return nowMs >= at && nowMs < at + REMINDER_WINDOW_MS;
   };
+  const matches = (entry: DueReminder, occurrenceDate: string, kind: ReminderKind) =>
+    entry.occurrenceDate === occurrenceDate && entry.kind === kind;
   const wasSent = (occurrenceDate: string, kind: ReminderKind) =>
-    input.sent.some((entry) => entry.occurrenceDate === occurrenceDate && entry.kind === kind);
+    input.sent.some((entry) => matches(entry, occurrenceDate, kind));
+  const isComplete = (occurrenceDate: string, kind: ReminderKind) =>
+    wasSent(occurrenceDate, kind) &&
+    !(input.incomplete ?? []).some((entry) => matches(entry, occurrenceDate, kind));
 
   if (
     isoWeekday(today) === input.reminderWeekday &&
     inWindow(today) &&
     !hasDose(input.doseDates, today) &&
-    !wasSent(today, 'first')
+    !isComplete(today, 'first')
   ) {
     due.push({ occurrenceDate: today, kind: 'first' });
   }
@@ -110,7 +116,7 @@ export function dueReminders(
     inWindow(today) &&
     wasSent(yesterday, 'first') &&
     !hasDose(input.doseDates, yesterday, today) &&
-    !wasSent(yesterday, 'repeat')
+    !isComplete(yesterday, 'repeat')
   ) {
     due.push({ occurrenceDate: yesterday, kind: 'repeat' });
   }

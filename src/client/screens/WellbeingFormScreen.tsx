@@ -91,12 +91,23 @@ function WellbeingForm({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [existingDate, setExistingDate] = useState<string | null>(known ? first : null);
 
-  /** A day that already has an entry fills the form with it, and saving then updates it. */
+  /**
+   * A day that already has an entry fills the form with it, and saving then updates it.
+   * Leaving such a day for one without an entry clears the fields that came from it;
+   * values typed by hand (the form was not filled from an entry) stay.
+   */
   const changeDate = (next: string) => {
     setDate(next);
     const found = entries.find((entry) => entry.date === next);
     setExistingDate(found ? next : null);
-    if (!found) return;
+    if (!found) {
+      if (existingDate !== null) {
+        setWeightText('');
+        setMood(null);
+        setNote('');
+      }
+      return;
+    }
     setWeightText(found.weightKg !== null ? formatWeight(found.weightKg) : '');
     setMood(found.mood);
     setNote(found.note ?? '');

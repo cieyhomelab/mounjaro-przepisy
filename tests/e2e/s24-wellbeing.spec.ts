@@ -168,6 +168,32 @@ test.describe('S24: dziennik wagi i samopoczucia', () => {
     await expect(entries(page).first()).toContainText('Samopoczucie: 4 z 5');
   });
 
+  test('S24: zmiana daty z dnia z wpisem na dzień bez wpisu czyści pola, ręcznie wpisane zostają', async ({
+    page,
+    request,
+  }) => {
+    await open(page, request);
+    await seed(page, '2026-10-12', { weightKg: 82.5, mood: 4, note: 'rano' });
+    await page.reload();
+    await goToLog(page);
+    await openForm(page);
+
+    await page.getByLabel('Waga (kg)').fill('70');
+    await page.getByLabel('Data', { exact: true }).fill('2026-10-11');
+    await expect(page.getByLabel('Waga (kg)')).toHaveValue('70');
+
+    await page.getByLabel('Data', { exact: true }).fill('2026-10-12');
+    await expect(page.getByLabel('Waga (kg)')).toHaveValue('82,5');
+    await page.getByLabel('Data', { exact: true }).fill('2026-10-11');
+
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Nowy wpis wagi i samopoczucia' }),
+    ).toBeVisible();
+    await expect(page.getByLabel('Waga (kg)')).toHaveValue('');
+    await expect(page.getByRole('radio', { name: '4 – dobrze' })).not.toBeChecked();
+    await expect(page.getByLabel('Notatka')).toHaveValue('');
+  });
+
   test('S24: dziennik pokazuje wpisy od najnowszej daty', async ({ page, request }) => {
     await open(page, request);
     await seed(page, '2026-10-05', { weightKg: 83 });

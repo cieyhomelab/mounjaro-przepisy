@@ -150,10 +150,16 @@ test.describe('S23: przypomnienie o zastrzyku, zgoda na powiadomienia', () => {
     context,
   }) => {
     await openReminderSettings(page);
+    // Under load the form can still be loading (and remount, resetting the checkbox) when the
+    // network is cut, so wait until it is ready first.
+    const reminder = page.getByRole('checkbox', { name: 'Przypominaj o zastrzyku' });
+    await expect(reminder).toBeVisible();
+    await expect(page.getByText('Ładowanie…')).toBeHidden();
     await context.setOffline(true);
     await expect.poll(() => page.evaluate(() => navigator.onLine)).toBe(false);
 
-    await page.getByRole('checkbox', { name: 'Przypominaj o zastrzyku' }).check();
+    await reminder.check();
+    await expect(reminder).toBeChecked();
     await page.getByRole('button', { name: 'Zapisz' }).click();
 
     await expect(page.getByRole('alert').filter({ hasText: OFFLINE_MESSAGE })).toBeVisible();

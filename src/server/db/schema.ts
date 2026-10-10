@@ -258,6 +258,22 @@ export const doseEntries = pgTable('dose_entries', {
   createdAt: timestamptz('created_at').notNull(),
 });
 
+/** The entry of one day of the weight and mood journal (S24). Health data: never logged. */
+export const wellbeingEntries = pgTable(
+  'wellbeing_entries',
+  {
+    accountId: uuid('account_id')
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'cascade' }),
+    entryDate: date('entry_date', { mode: 'string' }).notNull(),
+    weightKg: numeric('weight_kg', { precision: 5, scale: 2, mode: 'number' }),
+    mood: integer('mood'),
+    note: text('note'),
+    updatedAt: timestamptz('updated_at').notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.accountId, table.entryDate] })],
+);
+
 /** A browser that agreed to notifications (S23). Removed when the push service says it is gone. */
 export const pushSubscriptions = pgTable('push_subscriptions', {
   id: uuid('id').primaryKey(),

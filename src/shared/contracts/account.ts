@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
 import { doseEntrySchema } from './dose';
+import { wellbeingEntrySchema } from './wellbeing';
 import { mealPlanEntrySchema } from './mealPlan';
 import { recipeSchema } from './recipe';
 import {
@@ -58,5 +59,7 @@ export const accountExportSchema = z.object({
   shoppingLists: z.array(exportedShoppingListSchema),
   /** The dose journal: date, dose in mg, injection site and note of every entry. */
   doseEntries: z.array(doseEntrySchema),
+  /** The weight and mood journal: date, weight, mood and note of every entry. */
+  wellbeingEntries: z.array(wellbeingEntrySchema),
 });
 export type AccountExport = z.infer<typeof accountExportSchema>;

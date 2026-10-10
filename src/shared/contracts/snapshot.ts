@@ -14,6 +14,10 @@ export const settingsSchema = z.object({
   thresholdFiberG: z.number(),
   thresholdKcal: z.number(),
   thresholdSmallPortionKcal: z.number(),
+  /** The injection reminder (S23): on or off, weekday 1–7 (Monday = 1) and `HH:MM` in Warsaw time. */
+  reminderEnabled: z.boolean(),
+  reminderWeekday: z.number().int().min(1).max(7),
+  reminderTime: z.string().regex(/^\d{2}:\d{2}$/),
 });
 export type Settings = z.infer<typeof settingsSchema>;
 

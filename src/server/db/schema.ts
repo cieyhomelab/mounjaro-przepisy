@@ -12,6 +12,7 @@ import {
   primaryKey,
   smallint,
   text,
+  time,
   timestamp,
   uniqueIndex,
   uuid,
@@ -53,6 +54,10 @@ export const settings = pgTable('settings', {
   thresholdFiberG: threshold('threshold_fiber_g', 5),
   thresholdKcal: threshold('threshold_kcal', 400),
   thresholdSmallPortionKcal: threshold('threshold_small_portion_kcal', 300),
+  // Injection reminder (S23): health data, never logged.
+  reminderEnabled: boolean('reminder_enabled').notNull().default(false),
+  reminderWeekday: smallint('reminder_weekday').notNull().default(4),
+  reminderTime: time('reminder_time', { precision: 0 }).notNull().default('19:00'),
 });
 
 const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
@@ -252,3 +257,33 @@ export const doseEntries = pgTable('dose_entries', {
   note: text('note'),
   createdAt: timestamptz('created_at').notNull(),
 });
+
+/** A browser that agreed to notifications (S23). Removed when the push service says it is gone. */
+export const pushSubscriptions = pgTable('push_subscriptions', {
+  id: uuid('id').primaryKey(),
+  accountId: uuid('account_id')
+    .notNull()
+    .references(() => accounts.id, { onDelete: 'cascade' }),
+  endpoint: text('endpoint').notNull().unique(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  createdAt: timestamptz('created_at').notNull(),
+  lastSuccessAt: timestamptz('last_success_at'),
+});
+
+/**
+ * The reminders already sent; the composite key makes one sending per occurrence day and kind, also
+ * after a restart. It holds dates only, no health content.
+ */
+export const reminderDeliveries = pgTable(
+  'reminder_deliveries',
+  {
+    accountId: uuid('account_id')
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'cascade' }),
+    occurrenceDate: date('occurrence_date', { mode: 'string' }).notNull(),
+    kind: text('kind', { enum: ['first', 'repeat'] }).notNull(),
+    sentAt: timestamptz('sent_at').notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.accountId, table.occurrenceDate, table.kind] })],
+);

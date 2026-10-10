@@ -64,6 +64,9 @@ describe('filter thresholds', () => {
       thresholdFiberG: 6,
       thresholdKcal: 450,
       thresholdSmallPortionKcal: 250,
+      reminderEnabled: false,
+      reminderWeekday: 4,
+      reminderTime: '19:00',
     });
     expect((await snapshot(jar)).settings).toEqual(body.settings);
   });
@@ -96,6 +99,9 @@ describe('filter thresholds', () => {
       thresholdFiberG: 5,
       thresholdKcal: 400,
       thresholdSmallPortionKcal: 300,
+      reminderEnabled: false,
+      reminderWeekday: 4,
+      reminderTime: '19:00',
     });
   });
 

@@ -1,5 +1,6 @@
 // Service worker: serves the application shell and the cached photos without a connection.
 // It does not touch any other /api call, so data never comes from here, only from IndexedDB.
+import { REMINDER_TEXT } from '../shared/domain/reminder';
 import { PHOTO_CACHE } from './data/offlineCache';
 
 // The DOM library is in use here, so the few worker types needed are declared by hand.
@@ -11,9 +12,30 @@ type FetchWorkerEvent = WorkerEvent & {
   request: Request;
   respondWith(response: Promise<Response>): void;
 };
+type WindowClientLike = { focus(): Promise<unknown>; navigate?(url: string): Promise<unknown> };
+type NotificationLike = { close(): void };
+type NotificationWorkerEvent = WorkerEvent & { notification: NotificationLike };
 type Worker = {
   skipWaiting(): Promise<void>;
-  clients: { claim(): Promise<void> };
+  clients: {
+    claim(): Promise<void>;
+    matchAll(options: {
+      type: 'window';
+      includeUncontrolled: boolean;
+    }): Promise<WindowClientLike[]>;
+    openWindow(url: string): Promise<unknown>;
+  };
+  registration: {
+    showNotification(
+      title: string,
+      options: { body: string; tag: string; icon: string; badge: string },
+    ): Promise<void>;
+  };
+  addEventListener(type: 'push', listener: (event: WorkerEvent) => void): void;
+  addEventListener(
+    type: 'notificationclick',
+    listener: (event: NotificationWorkerEvent) => void,
+  ): void;
   addEventListener(type: 'install' | 'activate', listener: (event: WorkerEvent) => void): void;
   addEventListener(type: 'fetch', listener: (event: FetchWorkerEvent) => void): void;
   location: { origin: string };
@@ -80,4 +102,32 @@ worker.addEventListener('fetch', (event) => {
     return;
   }
   if (precachedPaths.has(url.pathname)) event.respondWith(fromCache(SHELL_CACHE, url.pathname));
+});
+
+// The injection reminder (S23). The text is fixed and holds no dose, site or name of the medicine,
+// since it can be read on a locked screen; the push message itself carries no health content.
+worker.addEventListener('push', (event) => {
+  event.waitUntil(
+    worker.registration.showNotification('Przepisy', {
+      body: REMINDER_TEXT,
+      // One notification at a time: the repeat replaces an unread first one.
+      tag: 'dose-reminder',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+    }),
+  );
+});
+
+// A tap opens the app on a page that picks the form or, offline, the journal with a message.
+worker.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = '/dawki/przypomnienie';
+  event.waitUntil(
+    worker.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (windows) => {
+      const open = windows[0];
+      if (!open?.navigate) return worker.clients.openWindow(target);
+      await open.navigate(target);
+      return open.focus();
+    }),
+  );
 });

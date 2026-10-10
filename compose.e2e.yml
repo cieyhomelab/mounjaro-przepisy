@@ -7,6 +7,7 @@ services:
     environment:
       APP_ENV: e2e
       AUTH_MODE: mock
+      PUSH_MODE: mock
       APP_BASE_URL: http://localhost:3000
       ALLOWED_EMAIL: owner@example.test
       # Recipe pages come from the "fixtures" service on the private Compose network.

@@ -8,6 +8,8 @@ import { SessionProvider } from './data/session';
 import { AccountScreen } from './screens/AccountScreen';
 import { DoseFormScreen } from './screens/DoseFormScreen';
 import { DoseLogScreen } from './screens/DoseLogScreen';
+import { DoseReminderScreen } from './screens/DoseReminderScreen';
+import { ReminderScreen } from './screens/ReminderScreen';
 import { CookScreen } from './screens/CookScreen';
 import { CollectionScreen } from './screens/CollectionScreen';
 import { ImportScreen } from './screens/ImportScreen';
@@ -52,12 +54,14 @@ export function App() {
               <Route path="planer" element={<PlannerScreen />} />
               <Route path="zakupy" element={<ShoppingScreen />} />
               <Route path="dawki" element={<DoseLogScreen />} />
+              <Route path="dawki/przypomnienie" element={<DoseReminderScreen />} />
               <Route path="dawki/nowy" element={<DoseFormScreen />} />
               <Route path="dawki/:id/edycja" element={<DoseFormScreen />} />
               <Route path="szukaj" element={<SearchScreen />} />
               <Route path="kolekcje" element={<OwnCollectionsScreen />} />
               <Route path="ustawienia" element={<SettingsScreen />} />
               <Route path="ustawienia/progi-filtrow" element={<ThresholdsScreen />} />
+              <Route path="ustawienia/przypomnienie" element={<ReminderScreen />} />
               <Route path="ustawienia/zaufane-serwisy" element={<TrustedSitesScreen />} />
               <Route path="ustawienia/moje-dane" element={<MyDataScreen />} />
               <Route path="konto" element={<AccountScreen />} />

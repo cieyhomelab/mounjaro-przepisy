@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
-import type { ThresholdsInput } from '../../shared/contracts/settings';
+import type { ReminderInput, ThresholdsInput } from '../../shared/contracts/settings';
 import type { Settings } from '../../shared/contracts/snapshot';
+import { DEFAULT_REMINDER } from '../../shared/domain/reminder';
 import { DEFAULT_THRESHOLDS } from '../../shared/domain/recipeList';
 import type { Database } from '../db/client';
 import { settings } from '../db/schema';
@@ -17,11 +18,15 @@ export function toSettings(row: Row | undefined): Settings {
         thresholdFiberG: row.thresholdFiberG,
         thresholdKcal: row.thresholdKcal,
         thresholdSmallPortionKcal: row.thresholdSmallPortionKcal,
+        reminderEnabled: row.reminderEnabled,
+        reminderWeekday: row.reminderWeekday,
+        // The column is a time of day: "19:00:00".
+        reminderTime: row.reminderTime.slice(0, 5),
       }
-    : { ...DEFAULT_THRESHOLDS };
+    : { ...DEFAULT_THRESHOLDS, ...DEFAULT_REMINDER };
 }
 
-async function writeThresholds(
+async function writeSettings(
   { db }: Database,
   accountId: string,
   values: Omit<typeof settings.$inferInsert, 'accountId'>,
@@ -39,7 +44,7 @@ async function writeThresholds(
 
 /** Saves the filter thresholds (S7). */
 export function saveThresholds(database: Database, accountId: string, input: ThresholdsInput) {
-  return writeThresholds(database, accountId, {
+  return writeSettings(database, accountId, {
     thresholdProteinG: input.proteinG,
     thresholdFatG: input.fatG,
     thresholdFiberG: input.fiberG,
@@ -48,9 +53,18 @@ export function saveThresholds(database: Database, accountId: string, input: Thr
   });
 }
 
+/** Saves the injection reminder: on or off, weekday and time (S23). */
+export function saveReminder(database: Database, accountId: string, input: ReminderInput) {
+  return writeSettings(database, accountId, {
+    reminderEnabled: input.enabled,
+    reminderWeekday: input.weekday,
+    reminderTime: input.time,
+  });
+}
+
 /** Puts the default thresholds back. */
 export function resetThresholds(database: Database, accountId: string) {
-  return writeThresholds(database, accountId, {
+  return writeSettings(database, accountId, {
     thresholdProteinG: DEFAULT_THRESHOLDS.thresholdProteinG,
     thresholdFatG: DEFAULT_THRESHOLDS.thresholdFatG,
     thresholdFiberG: DEFAULT_THRESHOLDS.thresholdFiberG,

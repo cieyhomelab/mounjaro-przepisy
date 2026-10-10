@@ -6,6 +6,8 @@ const messages: Record<string, string> = {
   confirmation_mismatch: 'Wpisz słowo „USUŃ”, aby potwierdzić usunięcie konta.',
   validation: 'Dane są niepoprawne. Sprawdź je i spróbuj ponownie.',
   forbidden_origin: 'Nie udało się wykonać tej akcji. Odśwież aplikację i spróbuj ponownie.',
+  push_unavailable:
+    'Powiadomienia nie są jeszcze skonfigurowane na serwerze, więc to urządzenie ich nie dostanie.',
   not_found: 'Nie znaleziono tych danych.',
   conflict: 'Te dane zmieniły się w międzyczasie. Odśwież i spróbuj ponownie.',
   payload_too_large: 'Przesyłane dane są za duże.',

@@ -31,3 +31,11 @@ export const settingsResponseSchema = z.object({
   dataVersion: z.number().int(),
 });
 export type SettingsResponse = z.infer<typeof settingsResponseSchema>;
+
+/** Request body of PUT /api/settings/reminder: `weekday` 1–7 (Monday = 1), `time` as `HH:MM`. */
+export const reminderInputSchema = z.object({
+  enabled: z.boolean(),
+  weekday: z.number().int().min(1).max(7),
+  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+});
+export type ReminderInput = z.infer<typeof reminderInputSchema>;

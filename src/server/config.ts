@@ -13,6 +13,10 @@ const envSchema = z
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
     FETCH_TIMEOUT_MS: z.coerce.number().int().min(100).max(15_000).default(12_000),
     FETCH_ALLOW_PRIVATE_NETWORK: z.enum(['true', 'false']).default('false'),
+    PUSH_MODE: z.enum(['web-push', 'mock']).default('web-push'),
+    VAPID_PUBLIC_KEY: z.string().min(1).optional(),
+    VAPID_PRIVATE_KEY: z.string().min(1).optional(),
+    VAPID_SUBJECT: z.string().min(1).optional(),
   })
   .superRefine((env, ctx) => {
     const missing = (name: string) =>
@@ -27,6 +31,9 @@ const envSchema = z
       if (!env.GOOGLE_CLIENT_SECRET) missing('GOOGLE_CLIENT_SECRET');
     }
     if (env.APP_ENV === 'production' && !env.APP_BASE_URL) missing('APP_BASE_URL');
+    if (env.PUSH_MODE === 'mock' && env.APP_ENV === 'production') {
+      ctx.addIssue({ code: 'custom', path: ['PUSH_MODE'], message: 'mock is not allowed' });
+    }
     if (env.APP_ENV === 'production' && env.FETCH_ALLOW_PRIVATE_NETWORK === 'true') {
       ctx.addIssue({
         code: 'custom',
@@ -52,6 +59,13 @@ export type Config = {
   fetchTimeoutMs: number;
   /** Lets the page fetcher reach private addresses (test pages); never true in production. */
   fetchAllowPrivateNetwork: boolean;
+  /** `mock` keeps notifications in memory (tests); `web-push` sends them through the browsers' push services. */
+  pushMode: 'web-push' | 'mock';
+  /** VAPID keys of the real Web Push; without them reminders cannot be delivered. */
+  vapidPublicKey: string | undefined;
+  vapidPrivateKey: string | undefined;
+  /** `mailto:` or `https:` contact for the push services; defaults to the app address. */
+  vapidSubject: string;
 };
 
 /** Parses and validates environment variables. Throws listing every invalid variable. */
@@ -77,5 +91,11 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     googleClientSecret: data.GOOGLE_CLIENT_SECRET,
     fetchTimeoutMs: data.FETCH_TIMEOUT_MS,
     fetchAllowPrivateNetwork: data.FETCH_ALLOW_PRIVATE_NETWORK === 'true',
+    pushMode: data.PUSH_MODE,
+    vapidPublicKey: data.VAPID_PUBLIC_KEY,
+    vapidPrivateKey: data.VAPID_PRIVATE_KEY,
+    vapidSubject:
+      data.VAPID_SUBJECT ??
+      (data.APP_BASE_URL ?? `http://localhost:${data.PORT}`).replace(/\/+$/, ''),
   };
 }

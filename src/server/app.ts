@@ -10,6 +10,7 @@ import type { Database } from './db/client';
 import { sendError } from './errors';
 import { createAuthProvider, type AuthProvider } from './integrations/auth';
 import { createPageFetcher, type PageFetcher } from './integrations/pageFetcher';
+import { createPushSender, type PushSender } from './integrations/push';
 import { registerAccountRoutes } from './routes/account';
 import { SESSION_COOKIE, registerAuthRoutes, sessionCookieOptions } from './routes/auth';
 import { registerCollectionRoutes } from './routes/collections';
@@ -18,6 +19,7 @@ import { registerMealPlanRoutes } from './routes/mealPlan';
 import { registerShoppingRoutes } from './routes/shopping';
 import { registerHealthRoutes } from './routes/health';
 import { registerPhotoRoutes } from './routes/photos';
+import { registerPushRoutes } from './routes/push';
 import { registerRecipeRoutes } from './routes/recipes';
 import { registerSearchRoutes } from './routes/search';
 import { registerSessionRoutes } from './routes/session';
@@ -44,6 +46,8 @@ export type AppDeps = {
   authProvider?: AuthProvider;
   /** Fetcher of recipe pages; defaults to the real one configured by `FETCH_*`. */
   pageFetcher?: PageFetcher;
+  /** Sender of push notifications; defaults to the one selected by `PUSH_MODE`. */
+  pushSender?: PushSender;
 };
 
 /** Routes reachable without a session. Everything else under /api is protected by default. */
@@ -59,6 +63,7 @@ export async function buildApp({
   clock,
   authProvider,
   pageFetcher,
+  pushSender,
 }: AppDeps) {
   const app = Fastify({
     logger: {
@@ -73,6 +78,7 @@ export async function buildApp({
   });
   const appClock = clock ?? createClock();
   const provider = authProvider ?? createAuthProvider(config);
+  const sender = pushSender ?? createPushSender(config);
   const allowedOrigin = new URL(config.appBaseUrl).origin;
   const isProduction = config.appEnv === 'production';
 
@@ -155,6 +161,7 @@ export async function buildApp({
   registerMealPlanRoutes(app, { database, clock: appClock });
   registerShoppingRoutes(app, { database, clock: appClock });
   registerDoseEntryRoutes(app, { database, clock: appClock });
+  registerPushRoutes(app, { database, clock: appClock, sender });
   await registerPhotoRoutes(app, { database, clock: appClock });
   registerAuthRoutes(app, {
     config,
@@ -167,6 +174,7 @@ export async function buildApp({
       database,
       clock: appClock,
       mockLogin: config.authMode === 'mock',
+      sender,
     });
   }
 

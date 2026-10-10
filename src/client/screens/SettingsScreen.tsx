@@ -57,6 +57,14 @@ export function SettingsScreen() {
         </li>
         <li>
           <Link
+            to="/ustawienia/przypomnienie"
+            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+          >
+            Przypomnienie o zastrzyku
+          </Link>
+        </li>
+        <li>
+          <Link
             to="/ustawienia/zaufane-serwisy"
             className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
           >

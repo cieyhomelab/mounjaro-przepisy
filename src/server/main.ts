@@ -1,7 +1,10 @@
 import { buildApp } from './app';
+import { createClock } from './clock';
 import { loadConfig } from './config';
 import { createDatabase } from './db/client';
+import { createPushSender } from './integrations/push';
 import { refreshStoredNutrition } from './services/recipes';
+import { startReminderScheduler } from './services/reminders';
 
 const config = loadConfig(process.env);
 const database = createDatabase(config.databaseUrl);
@@ -9,9 +12,13 @@ await database.migrate();
 // One-off catch-up for recipes saved before nutrition was computed; a no-op once they are current.
 const refreshed = await refreshStoredNutrition(database);
 
-const app = await buildApp({ config, database, clientDir: 'dist/client' });
+const clock = createClock();
+const pushSender = createPushSender(config);
+const app = await buildApp({ config, database, clock, pushSender, clientDir: 'dist/client' });
+const stopScheduler = startReminderScheduler(database, clock, pushSender, app.log);
 
 const shutdown = async () => {
+  stopScheduler();
   await app.close();
   await database.close();
 };

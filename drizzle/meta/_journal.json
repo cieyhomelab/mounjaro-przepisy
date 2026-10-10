@@ -57,6 +57,13 @@
       "when": 1791627855860,
       "tag": "0007_dose_entries",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791631712270,
+      "tag": "0008_reminder",
+      "breakpoints": true
     }
   ]
 }

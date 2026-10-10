@@ -4,6 +4,7 @@ import { ApiError } from '../data/api';
 import { errorMessage } from '../data/errors';
 import { useSession } from '../data/session';
 import { OfflineBadge } from './OfflineBadge';
+import { ReminderBanner } from './ReminderBanner';
 
 const linkClass = 'inline-flex min-h-11 min-w-11 items-center rounded-lg px-3 font-medium';
 
@@ -49,6 +50,7 @@ export function AppShell() {
           {errorMessage(logoutError)}
         </p>
       ) : null}
+      <ReminderBanner />
       <main className="flex-1 p-4">
         <Outlet />
       </main>

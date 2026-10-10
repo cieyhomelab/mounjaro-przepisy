@@ -8,6 +8,7 @@ import type { Settings, Snapshot } from '../../shared/contracts/snapshot';
 import type { ShoppingCheck, ShoppingCustomItem } from '../../shared/contracts/shopping';
 import type { TrustedSite } from '../../shared/contracts/trustedSite';
 import { DEFAULT_THRESHOLDS, buildSearchText } from '../../shared/domain/recipeList';
+import { DEFAULT_REMINDER } from '../../shared/domain/reminder';
 import { PHOTO_CACHE } from './offlineCache';
 
 /** A recipe as held locally: with the text the collection search looks in, worked out when it is stored. */
@@ -161,7 +162,8 @@ export async function readLocalData(): Promise<LocalData> {
   const recipes = rows.map((row) =>
     typeof row.searchText === 'string' ? row : withSearchText(row),
   );
-  const settings = settingsRow ?? { ...DEFAULT_THRESHOLDS };
+  // A copy stored before the reminder existed has none of its fields: the defaults fill in.
+  const settings = { ...DEFAULT_THRESHOLDS, ...DEFAULT_REMINDER, ...settingsRow };
   return {
     recipes,
     collections: collections.sort((a, b) => a.name.localeCompare(b.name, 'pl')),
@@ -185,6 +187,9 @@ export async function readLocalData(): Promise<LocalData> {
       thresholdFiberG: settings.thresholdFiberG,
       thresholdKcal: settings.thresholdKcal,
       thresholdSmallPortionKcal: settings.thresholdSmallPortionKcal,
+      reminderEnabled: settings.reminderEnabled,
+      reminderWeekday: settings.reminderWeekday,
+      reminderTime: settings.reminderTime,
     },
     dataVersion: typeof version?.value === 'number' ? version.value : null,
     needsFullSync: fullSync !== undefined,

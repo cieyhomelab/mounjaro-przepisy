@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { doseDeletedResponseSchema, type DoseEntry } from '../../shared/contracts/dose';
 import {
   SITE_LABELS,
@@ -96,7 +96,9 @@ function Entry({ entry }: { entry: DoseEntry }) {
 export function DoseLogScreen() {
   const { state, sync } = useCollection();
   const navigate = useNavigate();
-  const [offlineNotice, setOfflineNotice] = useState(false);
+  // A tap on the reminder without a connection arrives here with the message already shown.
+  const arrived = useLocation().state as { offlineNotice?: boolean } | null;
+  const [offlineNotice, setOfflineNotice] = useState(arrived?.offlineNotice === true);
 
   return (
     <section className="flex flex-col gap-4">

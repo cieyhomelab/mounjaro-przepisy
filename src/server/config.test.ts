@@ -26,6 +26,10 @@ describe('loadConfig', () => {
       googleClientSecret: undefined,
       fetchTimeoutMs: 12_000,
       fetchAllowPrivateNetwork: false,
+      pushMode: 'web-push',
+      vapidPublicKey: undefined,
+      vapidPrivateKey: undefined,
+      vapidSubject: 'http://localhost:3000',
     });
   });
 
@@ -79,6 +83,26 @@ describe('loadConfig', () => {
   it('requires the public address in production', () => {
     expect(() => loadConfig({ ...google, APP_ENV: 'production', APP_BASE_URL: undefined })).toThrow(
       /APP_BASE_URL/,
+    );
+  });
+
+  it('reads the push settings and refuses the mock in production', () => {
+    const config = loadConfig({
+      ...base,
+      AUTH_MODE: 'mock',
+      PUSH_MODE: 'mock',
+      VAPID_PUBLIC_KEY: 'public',
+      VAPID_PRIVATE_KEY: 'private',
+      VAPID_SUBJECT: 'mailto:owner@example.test',
+    });
+    expect(config).toMatchObject({
+      pushMode: 'mock',
+      vapidPublicKey: 'public',
+      vapidPrivateKey: 'private',
+      vapidSubject: 'mailto:owner@example.test',
+    });
+    expect(() => loadConfig({ ...google, APP_ENV: 'production', PUSH_MODE: 'mock' })).toThrow(
+      /PUSH_MODE/,
     );
   });
 });

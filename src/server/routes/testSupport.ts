@@ -4,6 +4,8 @@ import type { Clock } from '../clock';
 import type { Database } from '../db/client';
 import { sendError } from '../errors';
 import { MOCK_LOGIN_PATH } from '../integrations/auth';
+import { isMockPushSender, type PushSender } from '../integrations/push';
+import { runReminderTick } from '../services/reminders';
 import { deleteAllData, firstAccountId } from '../services/testSupport';
 import { replaceSitesForTests } from '../services/trustedSites';
 
@@ -13,12 +15,25 @@ const escapeHtml = (value: string) =>
 /** Routes under /api/__test. Registered only when APP_ENV is not "production". */
 export function registerTestSupportRoutes(
   app: FastifyInstance,
-  deps: { database: Database; clock: Clock; mockLogin: boolean },
+  deps: { database: Database; clock: Clock; mockLogin: boolean; sender: PushSender },
 ) {
   app.post('/api/__test/reset', async (_request, reply) => {
     await deleteAllData(deps.database);
     deps.clock.set(null);
+    if (isMockPushSender(deps.sender)) deps.sender.clear();
     return reply.code(204).send();
+  });
+
+  // What the mock push service has sent (PUSH_MODE=mock).
+  app.get('/api/__test/push-outbox', (_request, reply) => {
+    if (!isMockPushSender(deps.sender)) return sendError(reply, 404, 'not_found');
+    return reply.send({ notifications: deps.sender.outbox() });
+  });
+
+  // One run of the reminder scheduler, as the 30-second timer would do it.
+  app.post('/api/__test/scheduler/tick', async (request, reply) => {
+    const sent = await runReminderTick(deps.database, deps.clock, deps.sender, request.log);
+    return reply.send({ sent });
   });
 
   app.put('/api/__test/clock', (request, reply) => {

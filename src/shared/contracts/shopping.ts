@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+/** The largest quantity the database column (`numeric(12, 3)`) can hold. */
+export const MAX_QUANTITY = 999_999_999;
+
 const dayString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 /** Whether `value` is a real calendar day that is a Monday. */
@@ -57,7 +60,7 @@ export const checkChangeSchema = z
     customItemId: z.uuid().optional(),
     checked: z.boolean(),
     /** The quantity of the item at the time of the tick; empty for items without a quantity. */
-    quantity: z.number().positive().nullable().optional(),
+    quantity: z.number().min(0).max(MAX_QUANTITY).nullable().optional(),
   })
   .refine((change) => (change.itemKey === undefined) !== (change.customItemId === undefined), {
     message: 'item_required',

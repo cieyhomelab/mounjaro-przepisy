@@ -386,6 +386,36 @@ test.describe('S20: lista zakupów z planera', () => {
     await other.context.close();
   });
 
+  test('S20: odhaczenie, którego serwer nie przyjmuje, nie blokuje pobierania zmian z drugiego urządzenia', async ({
+    page,
+    browser,
+    request,
+  }) => {
+    await openApp(page, request);
+    const recipe = await seedRecipe(page, {
+      title: 'Naleśniki',
+      servings: 1,
+      ingredients: ['100 g mąki'],
+    });
+    await plan(page, recipe, '2026-10-14', 1);
+    await page.reload();
+    await openList(page);
+    await page.route('**/api/shopping/*/checks', (route) =>
+      route.fulfill({ status: 500, json: { error: { code: 'internal' } } }),
+    );
+    await item(page, 'mąki 100 g').click();
+    const other = await secondDevice(browser);
+
+    await apiCall(other.page, 'POST', '/api/shopping/2026-10-12/custom-items', {
+      name: 'sznurek',
+    });
+
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+
+    await expect(item(page, 'sznurek')).toBeVisible();
+    await other.context.close();
+  });
+
   test('S20: offline dopisanie i usunięcie własnej pozycji jest niedostępne', async ({
     page,
     context,

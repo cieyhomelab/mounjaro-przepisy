@@ -108,6 +108,21 @@ describe('S20: shopping list', () => {
     expect((await snapshot(jar)).shoppingChecks).toEqual(body.checks);
   });
 
+  it('S20: a tick with a quantity the column cannot hold is refused, one of 0 is stored', async () => {
+    const jar = await login();
+
+    const tooBig = await send(jar, 'PUT', `/api/shopping/${WEEK}/checks`, {
+      changes: [{ itemKey: 'mąka|g', checked: true, quantity: 10_000_000_000 }],
+    });
+    const zero = await send(jar, 'PUT', `/api/shopping/${WEEK}/checks`, {
+      changes: [{ itemKey: 'sól|g', checked: true, quantity: 0 }],
+    });
+
+    expect(tooBig.statusCode).toBe(400);
+    expect(zero.statusCode).toBe(200);
+    expect(checksResponseSchema.parse(zero.json()).checks[0]?.checkedQuantity).toBe(0);
+  });
+
   it('S20: a tick of an own item is stored on the item; a deleted item is skipped', async () => {
     const jar = await login();
     const { item } = await addItem(jar);

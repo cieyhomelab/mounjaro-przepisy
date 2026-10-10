@@ -19,8 +19,14 @@ async function loggedIn(page: Page) {
 }
 
 async function openManager(page: Page) {
-  await page.getByRole('link', { name: 'Kolekcje własne' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Kolekcje własne' })).toBeVisible();
+  // The home screen first shows the local copy and re-lays out when the snapshot arrives; a click
+  // made in between can miss the link, so repeat it until the manager opens.
+  await expect(async () => {
+    await page.getByRole('link', { name: 'Kolekcje własne' }).click({ timeout: 2000 });
+    await expect(page.getByRole('heading', { level: 1, name: 'Kolekcje własne' })).toBeVisible({
+      timeout: 2000,
+    });
+  }).toPass({ timeout: 15000 });
 }
 
 async function addCollection(page: Page, name: string) {

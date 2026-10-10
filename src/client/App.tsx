@@ -17,6 +17,7 @@ import { PlannerScreen } from './screens/PlannerScreen';
 import { RecipeEditScreen, RecipeFormScreen } from './screens/RecipeFormScreen';
 import { RecipeScreen } from './screens/RecipeScreen';
 import { SearchScreen } from './screens/SearchScreen';
+import { ShoppingScreen } from './screens/ShoppingScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { ThresholdsScreen } from './screens/ThresholdsScreen';
 import { TrustedSitesScreen } from './screens/TrustedSitesScreen';
@@ -47,6 +48,7 @@ export function App() {
               <Route path="przepisy/:id/edycja" element={<RecipeEditScreen />} />
               <Route path="przepisy/:id" element={<RecipeScreen />} />
               <Route path="planer" element={<PlannerScreen />} />
+              <Route path="zakupy" element={<ShoppingScreen />} />
               <Route path="szukaj" element={<SearchScreen />} />
               <Route path="kolekcje" element={<OwnCollectionsScreen />} />
               <Route path="ustawienia" element={<SettingsScreen />} />

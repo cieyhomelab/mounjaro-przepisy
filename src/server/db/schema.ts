@@ -204,3 +204,36 @@ export const mealPlanEntries = pgTable('meal_plan_entries', {
   servings: numeric('servings', { precision: 3, scale: 1, mode: 'number' }).notNull(),
   createdAt: timestamptz('created_at').notNull(),
 });
+
+/**
+ * The tick of an item of a week's shopping list (S20). The list itself is computed from the plan;
+ * `item_key` is the normalised name and the unit. The tick holds while `checked_quantity` equals
+ * the item's current quantity.
+ */
+export const shoppingChecks = pgTable(
+  'shopping_checks',
+  {
+    accountId: uuid('account_id')
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'cascade' }),
+    weekStart: date('week_start', { mode: 'string' }).notNull(),
+    itemKey: text('item_key').notNull(),
+    checked: boolean('checked').notNull(),
+    checkedQuantity: numeric('checked_quantity', { precision: 12, scale: 3, mode: 'number' }),
+    updatedAt: timestamptz('updated_at').notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.accountId, table.weekStart, table.itemKey] })],
+);
+
+/** An item the user added to the shopping list of a week (S20). */
+export const shoppingCustomItems = pgTable('shopping_custom_items', {
+  id: uuid('id').primaryKey(),
+  accountId: uuid('account_id')
+    .notNull()
+    .references(() => accounts.id, { onDelete: 'cascade' }),
+  weekStart: date('week_start', { mode: 'string' }).notNull(),
+  name: text('name').notNull(),
+  checked: boolean('checked').notNull().default(false),
+  createdAt: timestamptz('created_at').notNull(),
+  updatedAt: timestamptz('updated_at').notNull(),
+});

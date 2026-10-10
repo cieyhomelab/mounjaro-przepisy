@@ -206,6 +206,12 @@ export function PlannerScreen() {
               Następny tydzień
             </button>
           </div>
+          <Link
+            to={week === currentWeek ? '/zakupy' : `/zakupy?${WEEK_PARAM}=${week}`}
+            className={`${buttonClass} self-start border border-neutral-400`}
+          >
+            Lista zakupów
+          </Link>
           <ol className="flex flex-col gap-4">
             {planWeek(state.mealPlan, week).map((day) => (
               <li key={day.date}>

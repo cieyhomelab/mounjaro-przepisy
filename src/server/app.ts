@@ -14,6 +14,7 @@ import { registerAccountRoutes } from './routes/account';
 import { SESSION_COOKIE, registerAuthRoutes, sessionCookieOptions } from './routes/auth';
 import { registerCollectionRoutes } from './routes/collections';
 import { registerMealPlanRoutes } from './routes/mealPlan';
+import { registerShoppingRoutes } from './routes/shopping';
 import { registerHealthRoutes } from './routes/health';
 import { registerPhotoRoutes } from './routes/photos';
 import { registerRecipeRoutes } from './routes/recipes';
@@ -151,6 +152,7 @@ export async function buildApp({
   });
   registerCollectionRoutes(app, { database, clock: appClock });
   registerMealPlanRoutes(app, { database, clock: appClock });
+  registerShoppingRoutes(app, { database, clock: appClock });
   await registerPhotoRoutes(app, { database, clock: appClock });
   registerAuthRoutes(app, {
     config,

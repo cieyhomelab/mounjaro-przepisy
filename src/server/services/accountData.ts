@@ -11,7 +11,9 @@ import { listCookEvents } from './recipeDetails';
 import { listRecipes } from './recipes';
 import { readSettings } from './settings';
 import { listMealPlan } from './mealPlan';
+import { listShoppingChecks, listShoppingCustomItems } from './shopping';
 import { listTrustedSites } from './trustedSites';
+import { exportShoppingLists } from '../../shared/domain/shoppingList';
 
 export type ExportedPhoto = { path: string; content: Buffer };
 
@@ -44,12 +46,16 @@ export async function buildAccountExport(
       const attached = photoRows.flatMap((row) =>
         row.recipeId ? [{ id: row.id, recipeId: row.recipeId, content: row.content }] : [],
       );
+      const recipes = await listRecipes(tx, accountId);
+      const mealPlan = await listMealPlan(tx, accountId);
+      const shoppingChecks = await listShoppingChecks(tx, accountId);
+      const shoppingCustomItems = await listShoppingCustomItems(tx, accountId);
       const data: AccountExport = {
         formatVersion: EXPORT_FORMAT_VERSION,
         exportedAt: now.toISOString(),
         account: { email: account.email, createdAt: account.createdAt.toISOString() },
         settings: await readSettings(tx, accountId),
-        recipes: await listRecipes(tx, accountId),
+        recipes,
         photos: attached.map((row) => ({
           recipeId: row.recipeId,
           photoId: row.id,
@@ -58,7 +64,15 @@ export async function buildAccountExport(
         collections: await listCollections(tx, accountId),
         cookEvents: await listCookEvents(tx, accountId),
         trustedSites: await listTrustedSites(tx, accountId),
-        mealPlan: await listMealPlan(tx, accountId),
+        mealPlan,
+        shoppingChecks,
+        shoppingCustomItems,
+        shoppingLists: exportShoppingLists({
+          entries: mealPlan,
+          recipes,
+          checks: shoppingChecks,
+          customItems: shoppingCustomItems,
+        }),
       };
       return {
         data,

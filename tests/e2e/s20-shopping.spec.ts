@@ -416,6 +416,40 @@ test.describe('S20: lista zakupów z planera', () => {
     await other.context.close();
   });
 
+  test('S20: odhaczenie odrzucane przez serwer jest ponawiane w rosnących odstępach', async ({
+    page,
+    request,
+  }) => {
+    await setServerClock(request, NOW);
+    await page.clock.install({ time: new Date(NOW) });
+    await logIn(page);
+    await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
+    const recipe = await seedRecipe(page, {
+      title: 'Naleśniki',
+      servings: 1,
+      ingredients: ['100 g mąki'],
+    });
+    await plan(page, recipe, '2026-10-14', 1);
+    await page.reload();
+    await openList(page);
+    let attempts = 0;
+    await page.route('**/api/shopping/*/checks', (route) => {
+      attempts += 1;
+      return route.fulfill({ status: 500, json: { error: { code: 'internal' } } });
+    });
+    await item(page, 'mąki 100 g').click();
+    await expect.poll(() => attempts).toBeGreaterThan(0);
+
+    // A minute in 2 s steps: a fixed 2 s retry would send about thirty requests.
+    for (let second = 0; second < 60; second += 2) {
+      await page.clock.runFor(2000);
+      await page.evaluate(() => fetch('/api/health'));
+    }
+
+    expect(attempts).toBeGreaterThan(1);
+    expect(attempts).toBeLessThanOrEqual(8);
+  });
+
   test('S20: offline dopisanie i usunięcie własnej pozycji jest niedostępne', async ({
     page,
     context,

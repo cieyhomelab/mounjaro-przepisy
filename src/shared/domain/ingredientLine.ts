@@ -1,4 +1,5 @@
 import type { Ingredient } from '../contracts/recipe';
+import { MAX_QUANTITY } from '../contracts/shopping';
 
 /** Spellings of the units we understand, mapped to one canonical form. */
 const UNITS: Record<string, string> = {
@@ -96,7 +97,8 @@ export function parseIngredientLine(line: string): Ingredient {
   const textOnly: Ingredient = { quantity: null, unit: null, name: null, originalText };
   const read = readQuantity(originalText);
   if (!read) return { ...textOnly, name: originalText };
-  if (RANGE_CONTINUATION.test(read.rest)) return textOnly;
+  // A quantity the stored column cannot hold is kept as text, like a range.
+  if (read.quantity > MAX_QUANTITY || RANGE_CONTINUATION.test(read.rest)) return textOnly;
 
   const rest = read.rest.trim();
   const [firstWord = '', ...others] = rest.split(' ');

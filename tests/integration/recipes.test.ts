@@ -177,6 +177,20 @@ describe('snapshot and manual recipes', () => {
       expect(snapshotSchema.parse((await snapshot(jar)).json()).dataVersion).toBe(0);
     });
 
+    it('keeps a line with a quantity above the column limit as text only', async () => {
+      const jar = await login();
+
+      const response = await post(
+        jar,
+        recipeBody({ ingredients: [{ originalText: '10000000000 g mąki' }] }),
+      );
+
+      expect(response.statusCode).toBe(201);
+      expect(recipeResponseSchema.parse(response.json()).recipe.ingredients).toEqual([
+        { quantity: null, unit: null, name: null, originalText: '10000000000 g mąki' },
+      ]);
+    });
+
     it('accepts half servings and the limits of the range', async () => {
       const jar = await login();
 

@@ -154,7 +154,8 @@ describe('S23: reminder settings, subscriptions and scheduler', () => {
     const jar = await login();
     await subscribe(jar);
     await enable(jar);
-    await dose(jar, '2026-10-15');
+    harness.clock.set(new Date('2026-10-15T08:00:00Z'));
+    expect((await dose(jar, '2026-10-15')).statusCode).toBe(201);
 
     await tickAt(THURSDAY);
     await tickAt(FRIDAY);

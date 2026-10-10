@@ -229,10 +229,10 @@ test.describe('S19: planer posiłków na tydzień', () => {
     await lunch.getByRole('button', { name: 'Usuń z pory: Zupa dyniowa' }).click();
     await expect(page.getByText(OFFLINE_MESSAGE)).toBeVisible();
     await expect(lunch.getByRole('link', { name: 'Zupa dyniowa' })).toBeVisible();
-    await meal(page, 'czwartek, 15 października', 'Obiad')
-      .getByRole('button', { name: /^Dodaj przepis/ })
-      .click();
-    await expect(page.getByText(OFFLINE_MESSAGE).first()).toBeVisible();
+    const thursday = meal(page, 'czwartek, 15 października', 'Obiad');
+    await thursday.getByRole('button', { name: /^Dodaj przepis/ }).click();
+    await expect(thursday.getByText(OFFLINE_MESSAGE)).toBeInViewport();
+    await expect(thursday.getByRole('button', { name: 'Dodaj do planera' })).toHaveCount(0);
   });
 });
 

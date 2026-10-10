@@ -167,7 +167,7 @@ export function PlannerScreen() {
   const { state, sync } = useCollection();
   const [params, setParams] = useSearchParams();
   const [adding, setAdding] = useState<Target | null>(null);
-  const [offlineNotice, setOfflineNotice] = useState(false);
+  const [offlineNotice, setOfflineNotice] = useState<Target | null>(null);
 
   const currentWeek = weekStart(warsawDate(new Date()));
   const week = parseWeekParam(params.get(WEEK_PARAM)) ?? currentWeek;
@@ -206,11 +206,6 @@ export function PlannerScreen() {
               Następny tydzień
             </button>
           </div>
-          {offlineNotice ? (
-            <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-900">
-              {OFFLINE_MESSAGE}
-            </p>
-          ) : null}
           <ol className="flex flex-col gap-4">
             {planWeek(state.mealPlan, week).map((day) => (
               <li key={day.date}>
@@ -241,6 +236,11 @@ export function PlannerScreen() {
                             ))}
                           </ul>
                         ) : null}
+                        {offlineNotice?.date === day.date && offlineNotice.slot === slot ? (
+                          <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-900">
+                            {OFFLINE_MESSAGE}
+                          </p>
+                        ) : null}
                         {isAdding ? (
                           <AddToMeal
                             target={{ date: day.date, slot }}
@@ -252,8 +252,8 @@ export function PlannerScreen() {
                             type="button"
                             aria-label={`Dodaj przepis: ${formatPlanDay(day.date)}, ${SLOT_LABELS[slot].toLowerCase()}`}
                             onClick={() => {
-                              if (isOffline()) return setOfflineNotice(true);
-                              setOfflineNotice(false);
+                              if (isOffline()) return setOfflineNotice({ date: day.date, slot });
+                              setOfflineNotice(null);
                               setAdding({ date: day.date, slot });
                             }}
                             className={`${buttonClass} self-start border border-neutral-400`}

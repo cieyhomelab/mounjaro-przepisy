@@ -250,6 +250,98 @@ describe('S23: reminder settings, subscriptions and scheduler', () => {
   });
 });
 
+describe('S23: retry of a failed delivery within the five-minute window', () => {
+  const harness = useApp(() => ({ pushSender }));
+
+  const setup = async (...endpoints: string[]) => {
+    await harness.app.inject({ method: 'POST', url: '/api/__test/reset' });
+    pushSender.clear();
+    harness.clock.set(new Date('2026-10-13T10:00:00Z'));
+    const jar = new CookieJar();
+    await loginWithMock(harness.app, jar, OWNER_EMAIL);
+    const headers = { ...originHeaders, ...jar.header() };
+    for (const endpoint of endpoints) {
+      await harness.app.inject({
+        method: 'POST',
+        url: '/api/push/subscriptions',
+        headers,
+        payload: { endpoint, keys: { p256dh: 'p256dh-key', auth: 'auth-key' } },
+      });
+    }
+    await harness.app.inject({
+      method: 'PUT',
+      url: '/api/settings/reminder',
+      headers,
+      payload: { enabled: true, weekday: 4, time: '19:00' },
+    });
+    return headers;
+  };
+
+  const tickAt = async (instant: string) => {
+    harness.clock.set(new Date(instant));
+    const response = await harness.app.inject({
+      method: 'POST',
+      url: '/api/__test/scheduler/tick',
+    });
+    expect(response.statusCode).toBe(200);
+  };
+
+  it('S23: a failed delivery is retried by the next run in the window', async () => {
+    await setup('https://push.example.test/flaky');
+    pushSender.failWith('https://push.example.test/flaky', 'failed');
+    await tickAt(THURSDAY);
+    expect(pushSender.outbox()).toEqual([]);
+
+    pushSender.failWith('https://push.example.test/flaky', 'sent');
+    await tickAt('2026-10-15T17:01:00Z');
+    expect(pushSender.outbox().map((item) => item.kind)).toEqual(['first']);
+
+    await tickAt('2026-10-15T17:02:00Z');
+    expect(pushSender.outbox()).toHaveLength(1);
+  });
+
+  it('S23: a retry does not notify a device that already got the reminder', async () => {
+    await setup('https://push.example.test/ok', 'https://push.example.test/flaky');
+    pushSender.failWith('https://push.example.test/flaky', 'failed');
+    await tickAt(THURSDAY);
+    expect(pushSender.outbox().map((item) => item.endpoint)).toEqual([
+      'https://push.example.test/ok',
+    ]);
+
+    pushSender.failWith('https://push.example.test/flaky', 'sent');
+    await tickAt('2026-10-15T17:01:00Z');
+    expect(pushSender.outbox().map((item) => item.endpoint)).toEqual([
+      'https://push.example.test/ok',
+      'https://push.example.test/flaky',
+    ]);
+  });
+
+  it('S23: stops retrying when the window ends', async () => {
+    await setup('https://push.example.test/flaky');
+    pushSender.failWith('https://push.example.test/flaky', 'failed');
+    await tickAt(THURSDAY);
+    pushSender.failWith('https://push.example.test/flaky', 'sent');
+    await tickAt('2026-10-15T17:05:00Z');
+    expect(pushSender.outbox()).toEqual([]);
+  });
+
+  it('S23: a reminder due while there is no subscription is sent once one appears in the window', async () => {
+    const headers = await setup();
+    await tickAt(THURSDAY);
+    await harness.app.inject({
+      method: 'POST',
+      url: '/api/push/subscriptions',
+      headers,
+      payload: {
+        endpoint: 'https://push.example.test/late',
+        keys: { p256dh: 'p256dh-key', auth: 'auth-key' },
+      },
+    });
+    await tickAt('2026-10-15T17:02:00Z');
+    expect(pushSender.outbox().map((item) => item.kind)).toEqual(['first']);
+  });
+});
+
 describe('S23: real Web Push against a local push service', () => {
   const requests: { path: string; headers: IncomingMessage['headers']; bytes: number }[] = [];
   let status = 201;

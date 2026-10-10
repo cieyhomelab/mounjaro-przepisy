@@ -4,12 +4,15 @@ import type {
   ImportMissingField,
   ImportPreviewResponse,
 } from '../../shared/contracts/recipeImport';
+import type { Recipe } from '../../shared/contracts/recipe';
+import { buildRecipeInput, importDraftToForm } from '../../shared/domain/recipeForm';
 import { parseSourceUrl } from '../../shared/domain/sourceUrl';
 import type { Database } from '../db/client';
 import { recipePhotos, recipes } from '../db/schema';
 import { FetchError, type PageFetcher } from '../integrations/pageFetcher';
 import { parseRecipePage } from '../integrations/recipeParser';
 import { processPhoto } from './photos';
+import { createRecipe } from './recipes';
 
 /** The whole reading of a page must end within this time (S2), photo included. */
 const TOTAL_BUDGET_MS = 14_500;
@@ -135,4 +138,41 @@ export async function previewImport(
       },
     },
   };
+}
+
+export type SaveFromSearchOutcome =
+  | { kind: 'saved'; recipe: Recipe; dataVersion: number }
+  | { kind: 'partial'; preview: ImportPreviewResponse }
+  | { kind: 'invalid_url' }
+  | { kind: 'duplicate'; recipeId: string }
+  | { kind: 'unavailable' };
+
+/**
+ * Saves the recipe of a search result without a preview (S17): the same reading and the same data
+ * as a link import (S2). A page that does not give everything a recipe needs (the servings
+ * included) is not saved; what was read goes back for the manual form (S3).
+ */
+export async function saveFromSearch(
+  database: Database,
+  fetcher: PageFetcher,
+  accountId: string,
+  address: string,
+  fetchTimeoutMs: number,
+  now: Date,
+): Promise<SaveFromSearchOutcome> {
+  const outcome = await previewImport(database, fetcher, accountId, address, fetchTimeoutMs, now);
+  if (outcome.kind !== 'preview') return outcome;
+  const { preview } = outcome;
+  if (preview.status === 'complete' && preview.missing.length === 0) {
+    const input = buildRecipeInput(importDraftToForm(preview.draft), {
+      photoId: preview.draft.photoId,
+      sourceImport: preview.draft.sourceImport,
+    });
+    if (input.ok) {
+      const created = await createRecipe(database, accountId, input.input, now);
+      if ('duplicateOf' in created) return { kind: 'duplicate', recipeId: created.duplicateOf };
+      return { kind: 'saved', ...created };
+    }
+  }
+  return { kind: 'partial', preview: { ...preview, status: 'partial' } };
 }

@@ -1,16 +1,18 @@
 import { z } from 'zod';
 import type { FastifyInstance } from 'fastify';
-import { searchQuerySchema } from '../../shared/contracts/trustedSite';
+import { searchQuerySchema, searchSaveInputSchema } from '../../shared/contracts/trustedSite';
 import type { Database } from '../db/client';
 import { sendError } from '../errors';
 import { FetchError, type PageFetcher } from '../integrations/pageFetcher';
+import type { Clock } from '../clock';
+import { saveFromSearch } from '../services/recipeImport';
 import { ImageGrants, searchTrustedSites } from '../services/search';
 
 const tokenParams = z.object({ token: z.string().min(1).max(64) });
 
 export function registerSearchRoutes(
   app: FastifyInstance,
-  deps: { database: Database; fetcher: PageFetcher; fetchTimeoutMs: number },
+  deps: { database: Database; clock: Clock; fetcher: PageFetcher; fetchTimeoutMs: number },
 ) {
   const grants = new ImageGrants();
 
@@ -27,6 +29,31 @@ export function registerSearchRoutes(
     );
     if (outcome === 'no_sites') return sendError(reply, 409, 'no_trusted_sites');
     return reply.header('Cache-Control', 'private, no-store').send(outcome);
+  });
+
+  app.post('/api/search/save', async (request, reply) => {
+    const body = searchSaveInputSchema.safeParse(request.body);
+    if (!body.success) return sendError(reply, 400, 'invalid_url');
+    const outcome = await saveFromSearch(
+      deps.database,
+      deps.fetcher,
+      request.session?.accountId ?? '',
+      body.data.url,
+      deps.fetchTimeoutMs,
+      deps.clock.now(),
+    );
+    switch (outcome.kind) {
+      case 'invalid_url':
+        return sendError(reply, 400, 'invalid_url');
+      case 'duplicate':
+        return sendError(reply, 409, 'duplicate_source', undefined, outcome.recipeId);
+      case 'unavailable':
+        return sendError(reply, 502, 'source_unavailable');
+      case 'partial':
+        return reply.send(outcome.preview);
+      case 'saved':
+        return reply.code(201).send({ recipe: outcome.recipe, dataVersion: outcome.dataVersion });
+    }
   });
 
   app.get('/api/search/images/:token', async (request, reply) => {

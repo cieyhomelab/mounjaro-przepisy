@@ -136,8 +136,18 @@ export async function buildApp({
     fetcher,
     fetchTimeoutMs: config.fetchTimeoutMs,
   });
-  registerSearchRoutes(app, { database, fetcher, fetchTimeoutMs: config.fetchTimeoutMs });
-  registerTrustedSiteRoutes(app, { database });
+  registerSearchRoutes(app, {
+    database,
+    clock: appClock,
+    fetcher,
+    fetchTimeoutMs: config.fetchTimeoutMs,
+  });
+  registerTrustedSiteRoutes(app, {
+    database,
+    clock: appClock,
+    fetcher,
+    fetchTimeoutMs: config.fetchTimeoutMs,
+  });
   registerCollectionRoutes(app, { database, clock: appClock });
   await registerPhotoRoutes(app, { database, clock: appClock });
   registerAuthRoutes(app, {

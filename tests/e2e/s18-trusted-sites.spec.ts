@@ -128,4 +128,62 @@ test.describe('S18: edycja listy zaufanych serwisów', () => {
       ['doradcasmaku.pl', true],
     ]);
   });
+
+  test('S18: serwis „przeszukiwalny” trafia na listę jako aktywny, a jego przepisy są w wynikach', async ({
+    page,
+    request,
+  }) => {
+    await logIn(page);
+    await useTestSites(request, []);
+    await page.reload();
+    await openTrustedSites(page);
+
+    await page.getByLabel('Adres serwisu').fill('http://przeszukiwalny.test:8080/');
+    await page.getByRole('button', { name: 'Dodaj serwis' }).click();
+
+    await expect(page.getByText('Przeszukiwalny', { exact: true })).toBeVisible();
+    await expect(page.getByText('przeszukiwalny.test', { exact: true })).toBeVisible();
+    await expect(activeBox(page, 'Przeszukiwalny')).toBeChecked();
+
+    await page.goto('/szukaj');
+    await page.getByLabel('Czego szukasz?').fill('kurczak');
+    await page.getByRole('button', { name: 'Szukaj', exact: true }).click();
+    await expect(page.getByRole('link', { name: 'Kurczak 2' })).toBeVisible();
+  });
+
+  test('S18: serwis „nieprzeszukiwalny” nie zostaje dodany, a użytkownik widzi odesłanie do wklejania linków', async ({
+    page,
+    request,
+  }) => {
+    await logIn(page);
+    await useTestSites(request, []);
+    await page.reload();
+    await openTrustedSites(page);
+
+    await page.getByLabel('Adres serwisu').fill('http://nieprzeszukiwalny.test:8080/');
+    await page.getByRole('button', { name: 'Dodaj serwis' }).click();
+
+    await expect(
+      page.getByText('Przepisy z niego nadal możesz dodawać, wklejając link do przepisu.'),
+    ).toBeVisible();
+    await expect(page.getByRole('checkbox')).toHaveCount(0);
+  });
+
+  test('S18: serwis, który już jest na liście, nie zostaje dodany drugi raz', async ({
+    page,
+    request,
+  }) => {
+    await logIn(page);
+    await useTestSites(request, [FIXTURE_SITES.searchable]);
+    await page.reload();
+    await openTrustedSites(page);
+
+    await page
+      .getByLabel('Adres serwisu')
+      .fill('http://www.przeszukiwalny.test:8080/przepisy/czytelna');
+    await page.getByRole('button', { name: 'Dodaj serwis' }).click();
+
+    await expect(page.getByText('Ten serwis jest już na Twojej liście.')).toBeVisible();
+    await expect(page.getByRole('checkbox')).toHaveCount(1);
+  });
 });

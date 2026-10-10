@@ -48,18 +48,45 @@ function recipePage(title: string, ratingValue: number, bestRating: number, rati
   return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${title}</title><script type="application/ld+json">${JSON.stringify(recipe)}</script></head><body><h1>${title}</h1></body></html>`;
 }
 
+/** Front page of a site that says how it is searched (schema.org SearchAction) and what it is called. */
+const searchableFrontPage = (host: string) => {
+  const site = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Przeszukiwalny',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `http://${host}:8080/szukaj?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+  return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Przeszukiwalny</title><script type="application/ld+json">${JSON.stringify(site)}</script></head><body><h1>Przeszukiwalny</h1></body></html>`;
+};
+
+/** A site without search: every address answers with a page that has no recipe in it. */
+const UNSEARCHABLE_PAGE =
+  '<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Nieprzeszukiwalny</title></head><body><h1>Nieprzeszukiwalny</h1><a href="/o-nas">O nas</a></body></html>';
+
 /** Answers for the search sites; null when the request is not for one of them. */
 function searchSiteAnswer(host: string, url: URL): string | null {
   const query = (url.searchParams.get('q') ?? '').toLowerCase();
   const searching = url.pathname === '/szukaj';
   const number = Number(/^\/przepis\/[a-z]+-(\d+)$/.exec(url.pathname)?.[1]);
+  if (host === 'nieprzeszukiwalny.test') return UNSEARCHABLE_PAGE;
   if (host === 'przeszukiwalny.test') {
+    if (url.pathname === '/') return searchableFrontPage(host);
     if (searching) {
       if (query.includes('kurczak')) {
         return resultsPage(Array.from({ length: 12 }, (_, i) => `/przepis/kurczak-${i + 1}`));
       }
       if (query.includes('obiad')) {
         return resultsPage(['/przepisy/czytelna', '/przepisy/bez-oceny', '/przepisy/nie-przepis']);
+      }
+      if (query.includes('braki')) {
+        return resultsPage(['/przepisy/bez-skladnikow', '/przepisy/bez-liczby-porcji']);
       }
       return resultsPage([]);
     }

@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { OwnCollection } from '../../shared/contracts/collection';
+import type { MealPlanEntry } from '../../shared/contracts/mealPlan';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings } from '../../shared/contracts/snapshot';
@@ -37,6 +38,7 @@ export type CollectionState =
       collections: OwnCollection[];
       cookEvents: CookEvent[];
       trustedSites: TrustedSite[];
+      mealPlan: MealPlanEntry[];
       settings: Settings;
     }
   | { status: 'error'; code: string };
@@ -79,6 +81,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         collections: local.collections,
         cookEvents: local.cookEvents,
         trustedSites: local.trustedSites,
+        mealPlan: local.mealPlan,
         settings: local.settings,
       });
     return local.dataVersion !== null;

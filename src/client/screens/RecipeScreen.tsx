@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { recipeDeletedResponseSchema, type Recipe } from '../../shared/contracts/recipe';
+import { plannedCount } from '../../shared/domain/mealPlan';
 import { isValidServings, parseServingsInput } from '../../shared/domain/portions';
 import { formatSourceRating } from '../../shared/domain/sourceRating';
 import { CookPanel } from '../components/CookPanel';
@@ -22,7 +23,8 @@ const actionClass =
 /** Delete button with a confirmation step; "Anuluj" leaves the recipe untouched. */
 function DeleteRecipe({ recipe }: { recipe: Recipe }) {
   const navigate = useNavigate();
-  const { recipeDeleted } = useCollection();
+  const { state, recipeDeleted } = useCollection();
+  const planned = state.status === 'ready' ? plannedCount(state.mealPlan, recipe.id) : 0;
   const [asking, setAsking] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [errorCode, setErrorCode] = useState<string | null>(null);
@@ -68,6 +70,7 @@ function DeleteRecipe({ recipe }: { recipe: Recipe }) {
       <p>
         Przepis zniknie z kolekcji i ze wszystkich Twoich kolekcji. Tej operacji nie można cofnąć.
       </p>
+      {planned > 0 ? <p>Przepis zniknie też z planera (zaplanowane posiłki: {planned}).</p> : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void confirm()} /> : null}
       <div className="flex flex-wrap gap-2">
         <button

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
+import { mealPlanEntrySchema } from './mealPlan';
 import { recipeSchema } from './recipe';
 import { trustedSiteSchema } from './trustedSite';
 import { API_VERSION } from './session';
@@ -26,6 +27,7 @@ export const snapshotSchema = z.object({
   collections: z.array(collectionSchema),
   cookEvents: z.array(cookEventSchema),
   trustedSites: z.array(trustedSiteSchema),
+  mealPlan: z.array(mealPlanEntrySchema),
 });
 export type Snapshot = z.infer<typeof snapshotSchema>;
 

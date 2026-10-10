@@ -27,6 +27,7 @@ export const snapshotOf = (recipes: Recipe[] = [], dataVersion = 0): Snapshot =>
   collections: [],
   cookEvents: [],
   trustedSites: [],
+  mealPlan: [],
 });
 
 export function recipeOf(overrides: Partial<Recipe> & { id: string; title: string }): Recipe {

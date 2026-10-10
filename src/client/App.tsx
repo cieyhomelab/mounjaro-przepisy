@@ -13,6 +13,7 @@ import { LoginScreen } from './screens/LoginScreen';
 import { OwnCollectionsScreen } from './screens/OwnCollectionsScreen';
 import { MyDataScreen } from './screens/MyDataScreen';
 import { NotFoundScreen } from './screens/NotFoundScreen';
+import { PlannerScreen } from './screens/PlannerScreen';
 import { RecipeEditScreen, RecipeFormScreen } from './screens/RecipeFormScreen';
 import { RecipeScreen } from './screens/RecipeScreen';
 import { SearchScreen } from './screens/SearchScreen';
@@ -45,6 +46,7 @@ export function App() {
               <Route path="przepisy/z-linku" element={<ImportScreen />} />
               <Route path="przepisy/:id/edycja" element={<RecipeEditScreen />} />
               <Route path="przepisy/:id" element={<RecipeScreen />} />
+              <Route path="planer" element={<PlannerScreen />} />
               <Route path="szukaj" element={<SearchScreen />} />
               <Route path="kolekcje" element={<OwnCollectionsScreen />} />
               <Route path="ustawienia" element={<SettingsScreen />} />

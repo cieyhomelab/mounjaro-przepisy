@@ -189,3 +189,18 @@ export const trustedSites = pgTable(
   },
   (table) => [uniqueIndex('trusted_sites_account_host_key').on(table.accountId, table.host)],
 );
+
+/** A recipe planned for a meal of a day (S19). Deleting the recipe removes it from the plan. */
+export const mealPlanEntries = pgTable('meal_plan_entries', {
+  id: uuid('id').primaryKey(),
+  accountId: uuid('account_id')
+    .notNull()
+    .references(() => accounts.id, { onDelete: 'cascade' }),
+  planDate: date('plan_date', { mode: 'string' }).notNull(),
+  slot: text('slot', { enum: ['breakfast', 'lunch', 'dinner', 'snack'] }).notNull(),
+  recipeId: uuid('recipe_id')
+    .notNull()
+    .references(() => recipes.id, { onDelete: 'cascade' }),
+  servings: numeric('servings', { precision: 3, scale: 1, mode: 'number' }).notNull(),
+  createdAt: timestamptz('created_at').notNull(),
+});

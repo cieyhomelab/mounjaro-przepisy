@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Outlet, Route, Routes } from 'react-router';
 import { AppShell } from './components/AppShell';
 import { RequireSession } from './components/RequireSession';
 import { ScrollToTop } from './components/ScrollToTop';
-import { CollectionProvider } from './data/collection';
+import { CollectionProvider, useCollection } from './data/collection';
 import { CollectionViewProvider } from './data/collectionView';
 import { renewStaleSubscription } from './data/push';
 import { SessionProvider } from './data/session';
@@ -30,17 +30,30 @@ import { TrustedSitesScreen } from './screens/TrustedSitesScreen';
 
 /** Local copy of the user's data, kept in step with the server while a session exists. */
 function DataLayout() {
-  useEffect(() => {
-    void renewStaleSubscription();
-  }, []);
-
   return (
     <CollectionProvider>
+      <PushRenewal />
       <CollectionViewProvider>
         <Outlet />
       </CollectionViewProvider>
     </CollectionProvider>
   );
+}
+
+/** Once per start, when the local copy is ready: puts this device back on the server for the reminder. */
+function PushRenewal() {
+  const { state } = useCollection();
+  const ready = state.status === 'ready';
+  const reminderEnabled = state.status === 'ready' && state.settings.reminderEnabled;
+  const done = useRef(false);
+
+  useEffect(() => {
+    if (!ready || done.current) return;
+    done.current = true;
+    void renewStaleSubscription(reminderEnabled);
+  }, [ready, reminderEnabled]);
+
+  return null;
 }
 
 export function App() {

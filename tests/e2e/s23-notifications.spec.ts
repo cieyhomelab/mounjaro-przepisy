@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { resetServer } from './helpers';
+import { logIn, resetServer } from './helpers';
 import {
   DEVICE,
   OFFLINE_MESSAGE,
@@ -8,6 +8,7 @@ import {
   enableReminder,
   kinds,
   open,
+  setNow,
   subscribe,
   tickAt,
 } from './reminderHelpers';
@@ -261,6 +262,61 @@ test.describe('S23: przypomnienie o zastrzyku, zgoda na powiadomienia', () => {
     await registered;
 
     // Only the new subscription is left on the server, so the reminder reaches this device.
+    expect(await tickAt(page, THURSDAY_1900)).toEqual([
+      { endpoint: DEVICE, kind: 'first', body: REMINDER_TEXT },
+    ]);
+  });
+
+  test('S23: po przerwanej rejestracji subskrypcji urządzenie przy kolejnym starcie wraca na serwer', async ({
+    page,
+  }) => {
+    // The browser keeps its subscription across reloads (sessionStorage stands in for it).
+    await page.addInitScript((endpoint) => {
+      const stored = sessionStorage.getItem('mock-key');
+      let key: ArrayBuffer | null = stored
+        ? new Uint8Array(JSON.parse(stored) as number[]).buffer
+        : null;
+      const make = () =>
+        ({
+          endpoint,
+          options: { applicationServerKey: key },
+          unsubscribe: () => {
+            key = null;
+            sessionStorage.removeItem('mock-key');
+            return Promise.resolve(true);
+          },
+          toJSON: () => ({ endpoint, keys: { p256dh: 'p256dh-key', auth: 'auth-key' } }),
+        }) as unknown as PushSubscription;
+      PushManager.prototype.getSubscription = () => Promise.resolve(key ? make() : null);
+      PushManager.prototype.subscribe = (options) => {
+        key = options?.applicationServerKey as ArrayBuffer;
+        sessionStorage.setItem('mock-key', JSON.stringify([...new Uint8Array(key)]));
+        return Promise.resolve(make());
+      };
+    }, DEVICE);
+
+    await setNow(page, THURSDAY_1900);
+    // The server cannot be reached for the registration: the browser subscribes, the server never hears.
+    await page.route('**/api/push/subscriptions', (route) =>
+      route.request().method() === 'POST' ? route.abort() : route.fallback(),
+    );
+    await logIn(page);
+    await enableReminder(page);
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => sessionStorage.getItem('mock-key'))).not.toBeNull();
+    expect(await tickAt(page, THURSDAY_1900)).toEqual([]);
+
+    // The next start registers the subscription the browser already has.
+    await page.unroute('**/api/push/subscriptions');
+    const registered = page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/push/subscriptions') &&
+        response.request().method() === 'POST',
+    );
+    await page.reload();
+    await registered;
+
     expect(await tickAt(page, THURSDAY_1900)).toEqual([
       { endpoint: DEVICE, kind: 'first', body: REMINDER_TEXT },
     ]);

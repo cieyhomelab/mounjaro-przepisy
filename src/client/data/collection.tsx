@@ -67,12 +67,14 @@ const CollectionContext = createContext<CollectionContextValue | null>(null);
 export function CollectionProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<CollectionState>({ status: 'loading' });
   const knownVersion = useRef<number | null>(null);
+  const needsFullSync = useRef(false);
   const running = useRef<Promise<void> | null>(null);
   const photoIds = useRef<string[]>([]);
 
   const reload = useCallback(async () => {
     const local = await readLocalData();
     knownVersion.current = local.dataVersion;
+    needsFullSync.current = local.needsFullSync;
     photoIds.current = local.recipes.flatMap((recipe) => (recipe.photoId ? [recipe.photoId] : []));
     if (local.dataVersion !== null)
       setState({
@@ -91,7 +93,10 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     const version = knownVersion.current;
     try {
       const payload = await apiRequest('/api/snapshot', {
-        headers: version === null ? {} : { 'If-None-Match': snapshotEtag(version) },
+        headers:
+          version === null || needsFullSync.current
+            ? {}
+            : { 'If-None-Match': snapshotEtag(version) },
       });
       // An older client may not understand a newer snapshot: reload before parsing it.
       if (payload !== NOT_MODIFIED && reloadOnVersionMismatch(payload)) return;

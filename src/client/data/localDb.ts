@@ -23,6 +23,7 @@ type SettingsRow = Settings & { key: 'settings' };
 type MetaRow = { key: string; value: number | string };
 
 const META_DATA_VERSION = 'dataVersion';
+const META_FULL_SYNC = 'needsFullSync';
 const META_LAST_CONTACT = 'lastContactAt';
 const META_EMAIL = 'email';
 const META_OFFLINE_STATUS = 'offlineStatus';
@@ -69,6 +70,12 @@ class LocalDatabase extends Dexie {
       settings: 'key',
       meta: 'key',
     });
+    // A copy synced by a client that did not know a store (planner, trusted sites) holds the
+    // current data version but not that store's rows. The flag makes the next sync fetch the whole
+    // snapshot instead of answering 304; the old copy stays readable offline until then.
+    this.version(5)
+      .stores({})
+      .upgrade((tx) => tx.table('meta').put({ key: META_FULL_SYNC, value: 1 }));
   }
 }
 
@@ -82,10 +89,12 @@ export type LocalData = {
   mealPlan: MealPlanEntry[];
   settings: Settings;
   dataVersion: number | null;
+  /** The copy may lack data a client of the past did not know about: fetch the whole snapshot. */
+  needsFullSync: boolean;
 };
 
 export async function readLocalData(): Promise<LocalData> {
-  const [rows, collections, cookEvents, siteRows, mealPlan, settingsRow, version] =
+  const [rows, collections, cookEvents, siteRows, mealPlan, settingsRow, version, fullSync] =
     await Promise.all([
       localDb.recipes.toArray(),
       localDb.collections.toArray(),
@@ -94,6 +103,7 @@ export async function readLocalData(): Promise<LocalData> {
       localDb.mealPlan.toArray(),
       localDb.settings.get('settings'),
       localDb.meta.get(META_DATA_VERSION),
+      localDb.meta.get(META_FULL_SYNC),
     ]);
   // A copy stored before the search text existed gets it now, so it is never missing.
   const recipes = rows.map((row) =>
@@ -116,6 +126,7 @@ export async function readLocalData(): Promise<LocalData> {
       thresholdSmallPortionKcal: settings.thresholdSmallPortionKcal,
     },
     dataVersion: typeof version?.value === 'number' ? version.value : null,
+    needsFullSync: fullSync !== undefined,
   };
 }
 
@@ -135,6 +146,7 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
     );
     await localDb.mealPlan.bulkPut(snapshot.mealPlan);
     await localDb.settings.put({ key: 'settings', ...snapshot.settings });
+    await localDb.meta.delete(META_FULL_SYNC);
     await localDb.meta.bulkPut([
       { key: META_DATA_VERSION, value: snapshot.dataVersion },
       { key: META_LAST_CONTACT, value: Date.now() },

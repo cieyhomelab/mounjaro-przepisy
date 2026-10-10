@@ -21,6 +21,16 @@ describe('parseIngredientLine', () => {
     });
   });
 
+  it('keeps a line whose quantity exceeds the stored limit as text only', () => {
+    expect(parseIngredientLine('10000000000 g mąki')).toEqual({
+      quantity: null,
+      unit: null,
+      name: null,
+      originalText: '10000000000 g mąki',
+    });
+    expect(normalizeIngredient({ originalText: '1000000000 szt. jajek' }).quantity).toBeNull();
+  });
+
   it('accepts a name with no quantity and unit', () => {
     expect(parseIngredientLine('sól do smaku')).toEqual({
       quantity: null,

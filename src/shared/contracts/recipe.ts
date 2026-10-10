@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MAX_QUANTITY } from './shopping';
 
 export const SERVINGS_MIN = 0.5;
 export const SERVINGS_MAX = 99;
@@ -23,7 +24,7 @@ export type Ingredient = z.infer<typeof ingredientSchema>;
 
 /** An ingredient in a request: when quantity, unit and name are all absent the server splits `originalText`. */
 export const ingredientInputSchema = z.object({
-  quantity: z.number().positive().nullable().optional(),
+  quantity: z.number().positive().max(MAX_QUANTITY).nullable().optional(),
   unit: z.string().trim().max(40).nullable().optional(),
   name: z.string().trim().max(200).nullable().optional(),
   originalText: z.string().trim().min(1).max(300),

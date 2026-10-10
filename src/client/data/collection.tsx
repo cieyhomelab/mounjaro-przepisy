@@ -99,6 +99,9 @@ async function flushOutbox(): Promise<void> {
   }
 }
 
+/** The longest wait before the queue is sent again after the server kept refusing it. */
+const MAX_RETRY_DELAY_MS = 5 * 60 * 1000;
+
 const CollectionContext = createContext<CollectionContextValue | null>(null);
 
 /**
@@ -112,6 +115,8 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   const needsFullSync = useRef(false);
   const running = useRef<Promise<void> | null>(null);
   const photoIds = useRef<string[]>([]);
+  const flushFailures = useRef(0);
+  const retryNotBefore = useRef(0);
 
   const reload = useCallback(async () => {
     const local = await readLocalData();
@@ -136,8 +141,18 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   const runSync = useCallback(async () => {
     const version = knownVersion.current;
     try {
-      // Ticks made offline reach the account first, so the snapshot already holds them.
-      await flushOutbox();
+      // Ticks made offline reach the account first, so the snapshot already holds them. A queue
+      // the server cannot take must not keep the device from pulling changes.
+      try {
+        await flushOutbox();
+        flushFailures.current = 0;
+      } catch (error) {
+        if (error instanceof ApiError && error.status !== 401) {
+          flushFailures.current += 1;
+          retryNotBefore.current =
+            performance.now() + Math.min(2000 * 2 ** flushFailures.current, MAX_RETRY_DELAY_MS);
+        } else throw error;
+      }
       const payload = await apiRequest('/api/snapshot', {
         headers:
           version === null || needsFullSync.current
@@ -249,7 +264,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     // Some browsers announce the connection before requests get through; while ticks are
     // waiting, keep trying.
     const retryQueued = window.setInterval(() => {
-      if (isOffline()) return;
+      if (isOffline() || performance.now() < retryNotBefore.current) return;
       void readOutbox().then((queued) => {
         if (queued.length > 0 && active) void sync();
       });

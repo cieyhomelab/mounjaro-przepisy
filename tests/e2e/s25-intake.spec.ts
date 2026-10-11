@@ -125,6 +125,21 @@ test.describe('S25: licznik białka i wody', () => {
     await expect(page.getByText('Dodano do dzisiejszego licznika: 12 g')).toBeVisible();
   });
 
+  test('S25: przepis z 0 g białka pozwala podać białko ręcznie zamiast kończyć się błędem', async ({
+    page,
+    request,
+  }) => {
+    await open(page, request);
+    const id = await seedRecipe(page, { title: 'Bulion', nutritionManual: { proteinG: 0 } });
+    await page.goto(`/przepisy/${id}`);
+    await page.getByRole('button', { name: 'Zjedzone' }).click();
+    await expect(page.getByText('Ten przepis nie dodaje białka do licznika.')).toBeVisible();
+
+    await page.getByLabel('Ilość białka (g)').fill('2');
+    await page.getByRole('button', { name: 'Dodaj do licznika' }).click();
+    await expect(page.getByText('Dodano do dzisiejszego licznika: 2 g')).toBeVisible();
+  });
+
   test('S25: ręcznie dopisane 20 g z opisem „jogurt” zwiększa licznik i widnieje na liście', async ({
     page,
     request,

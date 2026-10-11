@@ -188,7 +188,11 @@ export const SCREENS: readonly Screen[] = [
   simple('ustawienia-progi-filtrow', '/ustawienia/progi-filtrow', 'Progi filtrów'),
   simple('ustawienia-cele', '/ustawienia/cele', 'Cele i szklanka'),
   simple('ustawienia-przypomnienie', '/ustawienia/przypomnienie', 'Przypomnienie o zastrzyku'),
-  simple('ustawienia-zaufane-serwisy', '/ustawienia/zaufane-serwisy', 'Zaufane serwisy'),
+  screen('ustawienia-zaufane-serwisy', 'culinary', async (page) => {
+    await heading('/ustawienia/zaufane-serwisy', 'Zaufane serwisy')(page);
+    // The default list arrives after the heading.
+    await expect(page.getByText('Ania Gotuje')).toBeVisible();
+  }),
   simple('ustawienia-moje-dane', '/ustawienia/moje-dane', 'Moje dane'),
   simple('konto', '/konto', 'Konto'),
   simple('dawki', '/dawki', 'Dziennik dawek', 'health'),

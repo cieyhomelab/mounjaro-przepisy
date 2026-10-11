@@ -26,12 +26,27 @@ const meal = (page: Page, day: string, slot: string) =>
   page.getByRole('region', { name: `${day}: ${slot}` });
 
 async function plan(page: Page, day: string, slot: string, title: string, servings?: string) {
-  await meal(page, day, slot)
-    .getByRole('button', { name: /^Dodaj przepis/ })
-    .click();
-  await page.getByLabel('Przepis', { exact: true }).selectOption({ label: title });
-  if (servings) await page.getByLabel('Liczba porcji', { exact: true }).fill(servings);
-  await page.getByRole('button', { name: 'Dodaj do planera' }).click();
+  // The planner first shows the local copy and re-renders when the snapshot arrives, so opening the
+  // form and choosing the recipe is repeated until it sticks. Everything is scoped to this slot, so a
+  // form of a previous, still-saving addition is never mistaken for this one.
+  const region = meal(page, day, slot);
+  const form = region.getByRole('form', { name: /^Dodaj przepis/ });
+  await expect(async () => {
+    if (!(await form.isVisible())) {
+      await region.getByRole('button', { name: /^Dodaj przepis/ }).click({ timeout: 2000 });
+    }
+    await form
+      .getByLabel('Przepis', { exact: true })
+      .selectOption({ label: title }, { timeout: 2000 });
+    await expect(form.getByLabel('Przepis', { exact: true }).locator('option:checked')).toHaveText(
+      title,
+      { timeout: 2000 },
+    );
+  }).toPass({ timeout: 15000 });
+  if (servings) await form.getByLabel('Liczba porcji', { exact: true }).fill(servings);
+  await form.getByRole('button', { name: 'Dodaj do planera' }).click();
+  // Wait for the save to finish, so the next call does not see this form.
+  await expect(form).toBeHidden();
 }
 
 test.describe('S19: planer posiłków na tydzień', () => {

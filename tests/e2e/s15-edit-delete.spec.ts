@@ -332,4 +332,29 @@ test.describe('S15: dwie zmiany w trakcie synchronizacji', () => {
     await expect(recipeList(page)).toContainText('Pierwszy zmieniony');
     await expect(recipeList(page)).not.toContainText('Drugi');
   });
+
+  test('S15: serwer z niższą wersją danych (odtworzony z kopii) zastępuje lokalną kopię', async ({
+    page,
+  }) => {
+    await logInToCollection(page);
+    await seedRecipe(page, { title: 'Pierwszy' });
+    await seedRecipe(page, { title: 'Drugi' });
+    await page.reload();
+    await expect(recipeList(page).getByRole('listitem')).toHaveCount(2);
+
+    // The server now answers with an older state: one recipe less and a lower data version.
+    await page.route('**/api/snapshot', async (route) => {
+      const headers = route.request().headers();
+      delete headers['if-none-match'];
+      const response = await route.fetch({ headers });
+      const body = (await response.json()) as { dataVersion: number; recipes: { title: string }[] };
+      body.dataVersion -= 5;
+      body.recipes = body.recipes.filter((recipe) => recipe.title !== 'Drugi');
+      await route.fulfill({ response, json: body, headers: { ...response.headers(), etag: '' } });
+    });
+    await page.reload();
+
+    await expect(recipeList(page).getByRole('listitem')).toHaveCount(1);
+    await expect(recipeList(page)).not.toContainText('Drugi');
+  });
 });

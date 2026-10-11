@@ -227,12 +227,22 @@ export async function readLocalData(): Promise<LocalData> {
 
 /**
  * Replaces the whole local copy with a snapshot received from the server. A snapshot older than
- * the copy (read before a change this device has since stored) is left out: returns false.
+ * the copy is left out (returns false) only when this device stored a change after the request for
+ * it was sent, i.e. the local version moved away from `requestedAt`. A lower version fetched with
+ * the local version unchanged (e.g. a server restored from a backup) is the truth and replaces it.
  */
-export async function storeSnapshot(snapshot: Snapshot): Promise<boolean> {
+export async function storeSnapshot(
+  snapshot: Snapshot,
+  requestedAt: number | null = null,
+): Promise<boolean> {
   return localDb.transaction('rw', localDb.tables, async () => {
     const current = await localDb.meta.get(META_DATA_VERSION);
-    if (typeof current?.value === 'number' && snapshot.dataVersion < current.value) return false;
+    if (
+      typeof current?.value === 'number' &&
+      snapshot.dataVersion < current.value &&
+      current.value !== requestedAt
+    )
+      return false;
     await localDb.recipes.clear();
     await localDb.collections.clear();
     await localDb.cookEvents.clear();

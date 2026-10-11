@@ -152,20 +152,20 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   const runSync = useCallback(async () => {
     try {
       // A snapshot that turns out older than a change stored meanwhile is dropped; ask again.
+      // Ticks made offline reach the account first, so the snapshot already holds them. A queue
+      // the server cannot take must not keep the device from pulling changes.
+      try {
+        await flushOutbox();
+        flushFailures.current = 0;
+      } catch (error) {
+        if (error instanceof ApiError && error.status !== 401) {
+          flushFailures.current += 1;
+          retryNotBefore.current =
+            performance.now() + Math.min(2000 * 2 ** flushFailures.current, MAX_RETRY_DELAY_MS);
+        } else throw error;
+      }
       for (let attempt = 0; attempt < 3; attempt += 1) {
         const version = knownVersion.current;
-        // Ticks made offline reach the account first, so the snapshot already holds them. A queue
-        // the server cannot take must not keep the device from pulling changes.
-        try {
-          await flushOutbox();
-          flushFailures.current = 0;
-        } catch (error) {
-          if (error instanceof ApiError && error.status !== 401) {
-            flushFailures.current += 1;
-            retryNotBefore.current =
-              performance.now() + Math.min(2000 * 2 ** flushFailures.current, MAX_RETRY_DELAY_MS);
-          } else throw error;
-        }
         const payload = await apiRequest('/api/snapshot', {
           headers:
             version === null || needsFullSync.current
@@ -176,7 +176,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         if (payload !== NOT_MODIFIED && reloadOnVersionMismatch(payload)) return;
         if (payload === NOT_MODIFIED) await touchContact();
         else {
-          const stored = await storeSnapshot(snapshotSchema.parse(payload));
+          const stored = await storeSnapshot(snapshotSchema.parse(payload), version);
           await reload();
           if (!stored) continue;
         }

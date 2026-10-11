@@ -53,10 +53,22 @@ Reguły recenzji dla tego repozytorium. Uzupełniają ogólną listę kontrolną
 - Filtry, sortowanie, wyszukiwanie w kolekcji, skalowanie i sumowanie listy zakupów wywołują funkcje z `src/shared`; nie ma ich kopii w komponentach.
 - Każda akcja zmieniająca dane ma obsługę stanu offline z komunikatem ze specyfikacji oraz obsługę błędu z możliwością ponowienia; dane formularza zostają po nieudanym zapisie.
 - Teksty interfejsu są po polsku i zgodne co do słowa z komunikatami w specyfikacji.
-- Elementy dotykowe mają co najmniej 44 × 44 px, tekst w trybie gotowania co najmniej 22 px, pola formularzy mają etykiety, a układ działa od szerokości 360 px.
+- Elementy dotykowe mają co najmniej 44 × 44 px, tekst w trybie gotowania co najmniej 22 px, pola formularzy mają etykiety, a układ działa od szerokości 360 px bez przewijania w poziomie.
 - Wylogowanie, wygaśnięcie sesji i odpowiedź 401 czyszczą IndexedDB, Cache Storage i kolejkę zmian offline.
 - Service worker nie buforuje odpowiedzi `/api` poza zdjęciami; zmiana strategii buforowania wymaga testu E2E offline.
 - Hooki zgodne z regułami `react-hooks`; brak efektów służących do wyliczania stanu pochodnego.
+
+### Wygląd i dostępność (od etapu 5)
+
+- Kolory i wymiary pochodzą z tokenów w `src/client/styles.css`. Klasa domyślnej palety Tailwinda, kolor wpisany w komponent albo wariant `dark:` to major; nowy kolor spoza tabeli „Projekt wizualny” specyfikacji to blocker.
+- Kolor `health*` na ekranie kulinarnym (w tym w Ustawieniach) albo brak tła `health-bg` na ekranie zdrowia to niezgodność z kryterium S29, czyli blocker.
+- Wybór motywu jest tylko w `localStorage`. Zapis motywu na koncie, w IndexedDB albo w eksporcie, a także usuwanie go przy wylogowaniu, to blocker (S26 i „Poza zakresem”).
+- Żądanie przeglądarki do obcej domeny (font, ikona, styl, skrypt) i rozluźnienie CSP to blocker.
+- Zmieniony ekran przechodzi testy przekrojowe po katalogu ekranów: pola dotyku 44 × 44 px w 390 px i 1280 px, kontrast axe w obu trybach, brak przewijania poziomego w 360 px. Wyjątek od reguły kontrastu albo pola dotyku dopisany do testu wymaga uzasadnienia opartego na specyfikacji.
+- Nowy ekran jest w `tests/e2e/screens.ts`; usunięty ekran z niego znika.
+- PR zmieniający wygląd ma odświeżone pliki w `docs/screenshots/` i zrzuty przed i po w opisie, w trzech wariantach (390 px jasny, 390 px ciemny, 1280 px). Recenzent ogląda je i porównuje z opisem ekranu w sekcji „Projekt wizualny”; brak zrzutów w PR etapu 5 to blocker.
+- W PR etapu 5 dotychczasowe testy E2E zmieniają się tylko w zakresie dozwolonym przez specyfikację: selektory, dojście do ekranu przez nową nawigację oraz teksty i kroki objęte zmienionymi scenariuszami. Usunięta albo osłabiona asercja zachowania to blocker.
+- Teksty przycisków i komunikatów są zgodne co do słowa ze specyfikacją, także formy żeńskie („Wpiszę sama”, „Jak się czułaś po tym posiłku?”).
 
 ### Testy
 
@@ -74,3 +86,4 @@ Reguły recenzji dla tego repozytorium. Uzupełniają ogólną listę kontrolną
 - Wersja obrazu Playwrighta w `Dockerfile` zgadza się z wersją `@playwright/test` w `package.json`.
 - Nowa usługa w `compose.yml`, nowa baza albo nowy język mają ADR.
 - `package-lock.json` zmienia się tylko razem z `package.json`; nowa zależność jest uzasadniona w opisie PR.
+- `scripts/screenshots.sh` i tryb `E2E_SCREENSHOTS=1` nie zmieniają zachowania zwykłego przebiegu `scripts/test-e2e.sh`; zrzuty powstają na stałych, zmyślonych danych i stałym czasie.

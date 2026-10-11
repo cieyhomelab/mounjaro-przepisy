@@ -862,7 +862,9 @@ Doprecyzowania do etapu 5 (dopisane 2026-10-11 przy uzgadnianiu projektu wizualn
 
 ## Sekcje techniczne
 
-Uzupełnione przez architekta. Wybór stosu z uzasadnieniem i alternatywami: [ADR 0001](../../docs/adr/0001-stos-technologiczny.md). Zasady pracy w repozytorium: [AGENTS.md](../../AGENTS.md).
+Uzupełnione przez architekta. Wybór stosu z uzasadnieniem i alternatywami: [ADR 0001](../../docs/adr/0001-stos-technologiczny.md). Wygląd, motyw i zaplecze testów etapu 5: [ADR 0002](../../docs/adr/0002-wyglad-motyw-i-zaplecze-testow-etapu-5.md). Zasady pracy w repozytorium: [AGENTS.md](../../AGENTS.md).
+
+Etap 5 zmienia wyłącznie klienta. Nie dodaje tabel, tras API, integracji, zmiennych środowiskowych ani usług; opisują go podsekcje oznaczone „etap 5” w każdej z części poniżej.
 
 ### Architektura
 
@@ -893,7 +895,7 @@ flowchart LR
 
 | Komponent | Odpowiedzialność | Granica |
 | --- | --- | --- |
-| Klient (`src/client`) | Ekrany, formularze, tryb gotowania, lokalna kopia danych, service worker | Nie zawiera reguł biznesowych poza wywołaniami `src/shared`; z serwerem rozmawia tylko przez `/api` |
+| Klient (`src/client`) | Ekrany, formularze, tryb gotowania, lokalna kopia danych, service worker; od etapu 5 także tokeny wyglądu, motyw, nawigacja i wspólne elementy interfejsu | Nie zawiera reguł biznesowych poza wywołaniami `src/shared`; z serwerem rozmawia tylko przez `/api` |
 | Logika domenowa (`src/shared`) | Schematy Zod kontraktów; czyste funkcje: filtry, sortowanie, wyszukiwanie w kolekcji, skalowanie porcji, parsowanie linii składnika, wyliczanie wartości odżywczych, normalizacja adresów, generowanie listy zakupów, rotacja miejsc wkłucia, tygodnie i dni w czasie polskim | Bez dostępu do sieci, bazy, zegara i DOM; ten sam kod działa w przeglądarce i na serwerze |
 | API (`src/server/routes`) | Uwierzytelnienie, walidacja wejścia, odpowiedzi | Cienkie trasy; brak logiki domenowej |
 | Serwisy (`src/server/services`) | Transakcje, wersja danych konta, migawka, eksport, usunięcie konta | Jedyny kod piszący do bazy |
@@ -915,15 +917,48 @@ Serwer jest jednym procesem Node: obsługuje `/api`, serwuje zbudowanego klienta
 #### Decyzje przekrojowe
 
 - **Logowanie i dostęp.** Jedno konto. Adres dozwolony pochodzi ze zmiennej `ALLOWED_EMAIL`; z tokenu Google używamy tylko zweryfikowanego adresu e-mail i niczego więcej nie zapisujemy. Wiersz konta powstaje przy pierwszym udanym logowaniu. Adres ekranu, na który wszedł niezalogowany użytkownik, wędruje przez parametr `returnTo` (akceptowane są tylko ścieżki względne).
-- **Ochrona żądań.** Jeden hook Fastify wymaga sesji dla wszystkich tras `/api` poza `/api/health` i `/api/auth/*`. Żądania zmieniające stan muszą mieć nagłówek `Origin` równy `APP_BASE_URL` i treść JSON (wyjątek: przesłanie zdjęcia). Nagłówki bezpieczeństwa i CSP (`default-src 'self'`, obrazy z `'self'`, `blob:` i `data:`) ustawia `@fastify/helmet`.
+- **Ochrona żądań.** Jeden hook Fastify wymaga sesji dla wszystkich tras `/api` poza `/api/health` i `/api/auth/*`. Żądania zmieniające stan muszą mieć nagłówek `Origin` równy `APP_BASE_URL` i treść JSON (wyjątek: przesłanie zdjęcia). Nagłówki bezpieczeństwa i CSP (`default-src 'self'`, obrazy z `'self'`, `blob:` i `data:`) ustawia `@fastify/helmet`. Od etapu 5 CSP ma też jawne `font-src 'self'` i `style-src 'self' 'unsafe-inline'`, bez źródeł `https:`, które dopuszczają domyślne dyrektywy biblioteki; `script-src 'self'` zostaje, więc w `index.html` nie ma skryptów wpisanych w treść.
 - **Pobieranie cudzych stron.** Jeden moduł: tylko `http` i `https`, blokada adresów prywatnych, pętli zwrotnej i link-local po rozwiązaniu DNS (także po przekierowaniach, najwyżej 5), limit czasu `FETCH_TIMEOUT_MS` (domyślnie 12 s, żeby cała operacja zmieściła się w 15 s), limit rozmiaru 5 MB dla HTML i 15 MB dla obrazu, jawny `User-Agent` z nazwą aplikacji. `FETCH_ALLOW_PRIVATE_NETWORK=true` znosi blokadę adresów prywatnych wyłącznie poza produkcją, na potrzeby stron testowych.
 - **Logi.** Logger zapisuje metodę, wzorzec trasy, kod odpowiedzi, czas trwania i identyfikator żądania. Nie zapisuje adresów z parametrami, treści, e-maila ani danych użytkownika.
 - **Szyfrowanie.** W transporcie: TLS na reverse proxy (usługa `caddy` w profilu Compose `tls` albo proxy serwera). W spoczynku: wolumen bazy na zaszyfrowanym dysku serwera; kopie zapasowe szyfrowane `age`. Procedura wdrożenia sprawdza oba warunki.
 - **Kopie zapasowe.** Usługa `backup` w `compose.yml` co 6 godzin wykonuje `pg_dump`, szyfruje wynik kluczem publicznym `BACKUP_AGE_RECIPIENT` i zapisuje w `BACKUP_DIR`; pliki starsze niż 29 dni usuwa, dzięki czemu dane usuniętego konta znikają z kopii przed upływem 30 dni. Właściciel kopiuje `BACKUP_DIR` poza serwer (pliki są zaszyfrowane, więc nadaje się dowolny magazyn). Odtworzenie opisuje `docs/operations.md` i sprawdza skrypt `scripts/restore-drill.sh`.
 - **Czas.** Serwer czyta czas z abstrakcji zegara; poza produkcją zegar można przesunąć przez `/api/__test/clock`. „Dziś”, granice dnia i tygodnia liczone są w strefie Europe/Warsaw funkcjami z `src/shared`.
-- **Wydajność listy.** Kolekcja jest w pamięci jako tablica; filtry, sortowanie i wyszukiwanie to jedno przejście po najwyżej 1000 elementach. Pole do wyszukiwania (tytuł i nazwy składników bez wielkich liter i znaków diakrytycznych) jest wyliczane raz przy zapisie do IndexedDB. Lista renderuje tylko widoczne wiersze (`@tanstack/react-virtual`). Test E2E z 1000 przepisów i czterokrotnym spowolnieniem procesora pilnuje limitu 1 sekundy.
+- **Wydajność listy.** Kolekcja jest w pamięci jako tablica; filtry, sortowanie i wyszukiwanie to jedno przejście po najwyżej 1000 elementach. Pole do wyszukiwania (tytuł i nazwy składników bez wielkich liter i znaków diakrytycznych) jest wyliczane raz przy zapisie do IndexedDB. Lista renderuje tylko widoczne wiersze (własny komponent `VirtualRecipeList` o stałej wysokości wiersza). Test E2E z 1000 przepisów i czterokrotnym spowolnieniem procesora pilnuje limitu 1 sekundy. Od etapu 5 wierszem jest karta ze zdjęciem, a na komputerze rząd kart siatki; wysokość wiersza pozostaje stała dla danej szerokości, a test wydajności musi przechodzić bez zmiany limitu.
 - **Wersja klienta.** Migawka zawiera `apiVersion`. Klient z inną wersją niż serwer przeładowuje się, żeby pobrać nowy kod (patrz `BACKWARD_COMPATIBILITY.md`).
 - **Środowisko testowe.** `compose.e2e.yml` uruchamia aplikację z `APP_ENV=e2e`, atrapami logowania i push oraz usługą `fixtures` ze stronami testowymi. Trasy `/api/__test/*` istnieją tylko poza produkcją: `reset` (czyści bazę), `clock` (ustawia czas), `push-outbox` (lista wysłanych powiadomień atrapy), `scheduler/tick` (wymusza przebieg harmonogramu).
+- **Katalog ekranów i zrzuty (etap 5).** `tests/e2e/screens.ts` zawiera listę wszystkich ekranów aplikacji z funkcją otwierającą każdy z nich na stałych danych przykładowych i stałym czasie oraz z oznaczeniem części (`public`, `culinary`, `health`). Korzystają z niego test „każdy ekran się otwiera”, testy przekrojowe S29 i skrypt `scripts/screenshots.sh`, który zapisuje zrzuty do `docs/screenshots/<wariant>/<ekran>.png` (warianty `mobile-light`, `mobile-dark`, `desktop-light`). Ekran dodany albo usunięty w PR jest w tym samym PR dopisywany do katalogu albo z niego usuwany.
+
+#### Wygląd, motyw i nawigacja (etap 5)
+
+**Tokeny.** Wszystkie kolory z tabeli „Projekt wizualny”, dwa kolory zastępcze, wielkości tekstu, zaokrąglenia, cienie i wymiary są zmiennymi CSS w `src/client/styles.css` o nazwach ze specyfikacji (`--bg`, `--surface`, `--health-bg`, `--radius-md`…). Wartości trybu jasnego są przypisane do `:root`, ciemnego do `html[data-theme='dark']`. Blok `@theme` Tailwinda 4 wystawia je jako klasy (`bg-surface`, `text-ink-muted`, `border-line`, `rounded-md`, `text-display`). Komponenty używają wyłącznie tych klas: bez domyślnej palety Tailwinda, bez kolorów szesnastkowych i bez wariantów `dark:`. Test jednostkowy przeszukuje `src/client` i nie przechodzi, gdy znajdzie klasę domyślnej palety (np. `bg-red-50`) albo kolor wpisany w kod poza `styles.css`.
+
+**Motyw (S26).** Element `<html>` ma zawsze atrybut `data-theme` równy `light` albo `dark`. Wybór użytkownika jest w `localStorage` pod kluczem `mp-theme` (`light` albo `dark`; brak klucza to „System”). Wynik: wybór jawny wygrywa; przy „System” decyduje `matchMedia('(prefers-color-scheme: dark)')`, a gdy przeglądarka go nie obsługuje, wynikiem jest `light`.
+
+- `src/client/public/theme-init.js`: skrypt klasyczny wczytany w `<head>` przed arkuszem stylów aplikacji. Ustawia `data-theme` przed pierwszym malowaniem, także na ekranie logowania i offline (plik jest w pamięci powłoki service workera).
+- `src/client/data/theme.ts`: odczyt i zapis wyboru, przeliczenie wyniku, nasłuch zmiany trybu systemu (zmiana bez przeładowania strony), aktualizacja `<meta name="theme-color">` na kolor `bg` bieżącego trybu. Zmiana motywu nie przechodzi przez mechanizm blokady zmian offline, bo nie jest zmianą danych konta.
+- `clearLocalData` (wylogowanie, 401, usunięcie konta, 30 dni bez kontaktu) nie dotyka `localStorage`.
+
+**Części aplikacji i nawigacja (S27, S29).** Czysta funkcja w `src/client/navigation.ts` przypisuje ścieżce pozycję nawigacji i część aplikacji; ma test jednostkowy dla każdego wiersza tabeli. Powłoka `AppShell` ustawia według niej `aria-current="page"` oraz atrybut `data-area="health"` na `<html>` (dla części kulinarnej atrybut jest usuwany). CSS zmienia tło `<body>` na `health-bg`, gdy atrybut jest obecny.
+
+| Ścieżki | Pozycja nawigacji | Część |
+| --- | --- | --- |
+| `/`, `/przepisy/*`, `/szukaj`, `/kolekcje` | Przepisy | kulinarna |
+| `/planer` | Planer | kulinarna |
+| `/zakupy` | Zakupy | kulinarna |
+| `/zdrowie` (od 5.5), `/dawki`, `/dawki/*`, `/waga`, `/waga/*`, `/licznik` | Zdrowie | zdrowie |
+| `/ustawienia`, `/ustawienia/*`, `/konto`, nieznana ścieżka | brak | kulinarna |
+| `/logowanie`, `/przepisy/:id/gotuj` | poza powłoką (bez nawigacji) | kulinarna |
+
+- Pozycja „Zakupy” prowadzi do `/zakupy` bez parametru `tydzien`, czyli do bieżącego tygodnia; planer nadal przekazuje oglądany tydzień parametrem.
+- Pozycja „Zdrowie” prowadzi do `/dawki` w wycinku 5.1 i do `/zdrowie` od wycinka 5.5. Do tego czasu dziennik wagi i samopoczucia oraz licznik są osiągalne dotychczasowymi odnośnikami z ekranu kolekcji.
+- Kolekcja własna w bocznym menu ustawia filtr kolekcji w istniejącym stanie widoku (`CollectionViewProvider`) i otwiera `/`.
+- `AppShell` renderuje dolny pasek i boczne menu jednocześnie; poniżej 768 px boczne menu, a od 768 px dolny pasek mają `display: none`. Treść ekranu ma dolny odstęp równy wysokości paska z marginesem i `env(safe-area-inset-bottom)`, żeby pasek niczego nie zasłaniał. Przyklejony przycisk „Gotuję” jest pozycjonowany nad paskiem tym samym odstępem.
+- Znacznik „offline” i baner „Dziś zaplanowany zastrzyk” zostają w powłoce, u góry ekranu. Tryb gotowania jest poza powłoką i sam pokazuje znacznik „offline”.
+- „Ustawienia” otwiera przycisk w nagłówku kolekcji. „Wyloguj”, „Konto” i stan danych offline są na ekranie Ustawienia.
+
+**Wspólne elementy.** `src/client/components/ui/` zawiera elementy z sekcji „Wspólne elementy” specyfikacji: przycisk (główny, drugoplanowy, duża akcja), pole formularza z etykietą i komunikatem błędu, chip filtra (`aria-pressed`), przełącznik segmentowy, kartę, komunikat (`role="alert"` na tle `warn-soft`), plakietkę i pasek postępu (`role="progressbar"`). Ekrany składają się z nich zamiast powtarzać listy klas. Pole dotyku 44 × 44 px jest realizowane własnym pudełkiem elementu (wysokość, szerokość, odstęp wewnętrzny), nie pseudoelementem, więc test mierzy je przez `getBoundingClientRect`.
+
+**Fonty i ikony.** Fonty pochodzą z pakietów `@fontsource-variable/bricolage-grotesque` i `@fontsource/atkinson-hyperlegible` (podzbiory `latin` i `latin-ext`, grubości ze specyfikacji), importowanych w `styles.css`. Wzorzec plików service workera w `vite.config.ts` dostaje rozszerzenie `woff2`. Ikony to komponenty `lucide-react`. Manifest PWA dostaje `background_color` i `theme_color` równe `bg` trybu jasnego.
 
 ### Model danych
 
@@ -979,6 +1014,8 @@ Lista zakupów nie jest przechowywana w całości. Pozycje wynikające z planu w
 #### Dane na urządzeniu
 
 IndexedDB (Dexie), baza `mounjaro-przepisy`: magazyny odpowiadające kolekcjom migawki (`recipes`, `collections`, `cookEvents`, `settings`, a w kolejnych etapach `trustedSites`, `mealPlan`, `shoppingChecks`, `shoppingCustomItems`, `doseEntries`, `wellbeingEntries`, `proteinEntries`, `waterEntries`), magazyn `meta` (wersja danych, czas ostatniego kontaktu z serwerem, status danych offline) i `outbox` (kolejka odhaczeń z S20). Zdjęcia są w Cache Storage. Filtry i sortowanie z S6 żyją w pamięci karty i nie są zapisywane.
+
+Etap 5 nie zmienia tabel ani magazynów IndexedDB. Jedyna nowa dana to wybór motywu w `localStorage` pod kluczem `mp-theme` (`light` \| `dark`; brak klucza to „System”). Jest poza kontem, migawką i eksportem, nie jest daną osobową i nie jest usuwana przy wylogowaniu ani usunięciu konta (S26). Stan panelu filtrów (otwarty albo zamknięty), wybrany dzień planera i zakładka ekranu „Dodaj przepis” żyją w pamięci karty albo w adresie i nie są zapisywane.
 
 #### Obsługa danych osobowych
 
@@ -1080,6 +1117,23 @@ Migawka i eksport zyskują `mealPlan[]`, `shoppingChecks[]`, `shoppingCustomItem
 
 Migawka i eksport zyskują `doseEntries[]`, `wellbeingEntries[]`, `proteinEntries[]`, `waterEntries[]` oraz nowe pola `settings`. Proponowane miejsce wkłucia (S22) i baner przypomnienia (S23) wylicza klient funkcjami z `src/shared`.
 
+#### Etap 5
+
+Brak nowych tras i brak zmian w kształcie żądań, odpowiedzi, migawki i eksportu; `apiVersion` się nie zmienia. Nowe zachowania korzystają z istniejących odpowiedzi:
+
+| Zachowanie | Skąd dane |
+| --- | --- |
+| Komunikat na ekranie linku (S3) | `POST /recipes/import-preview` ze `status: "partial"`: klient zostaje na ekranie linku i trzyma `draft` w stanie ekranu; „Wpisz przepis ręcznie” otwiera formularz z tym `draft`, „Spróbuj ponownie” ponawia żądanie. Odpowiedź 502 `source_unavailable` daje komunikat „Strona nie odpowiada” w tym samym układzie |
+| Zapis z wyszukiwania przy niepełnym odczycie (S17) | `POST /search/save` z `status: "partial"` otwiera formularz od razu, jak dotąd |
+| Suma białka dnia w planerze (S19) | Czysta funkcja w `src/shared/domain/mealPlan.ts`: plan dnia i przepisy z IndexedDB → `{ grams, withoutData }` |
+| Nagłówek tygodnia i skróty dni (S19, S20) | Czyste funkcje formatujące w `src/shared/domain/mealPlan.ts` |
+| Licznik „n z m w koszyku” i pasek postępu (S20) | Czysta funkcja w `src/shared/domain/shoppingList.ts` na wyliczonej liście; działa offline |
+| Termin na karcie „Następny zastrzyk” (S28) | Czysta funkcja w `src/shared/domain/reminder.ts`: ustawienia przypomnienia i bieżąca data w czasie polskim → data najbliższego dnia przypomnienia albo brak |
+| Siatka miejsc wkłucia (S28) | Istniejąca reguła propozycji z `src/shared/domain/doseSites.ts` |
+| Karta „Dzisiaj” i przycisk wody (S28) | Istniejące sumy z `src/shared/domain/intake.ts`; `POST /water-entries` |
+
+Nowy adres ekranu: `/zdrowie` (wycinek 5.5). Żaden istniejący adres nie znika: `/przepisy/z-linku` i `/przepisy/nowy` zostają adresami dwóch zakładek ekranu „Dodaj przepis”, a `/dawki/przypomnienie` nadal obsługuje kliknięcie powiadomienia.
+
 #### Trasy testowe (tylko gdy `APP_ENV` jest różne od `production`)
 
 | Metoda i ścieżka | Działanie |
@@ -1103,6 +1157,8 @@ Migawka i eksport zyskują `doseEntries[]`, `wellbeingEntries[]`, `proteinEntrie
 
 Pełna lista zmiennych z opisami: `.env.example`. Testy E2E nie wymagają żadnego sekretu.
 
+Etap 5 nie dodaje integracji ani sekretów. Fonty (`@fontsource-variable/bricolage-grotesque`, `@fontsource/atkinson-hyperlegible`) i ikony (`lucide-react`) są zależnościami budowania klienta: trafiają do paczki aplikacji i przeglądarka nie pobiera niczego z zewnątrz. Narzędzie axe (`@axe-core/playwright`) działa wyłącznie w testach E2E.
+
 Działanie z czterema prawdziwymi serwisami z listy startowej jest sprawdzane ręcznie przy odbiorze etapów 1.2 i 2 (zgodnie ze specyfikacją). Dodatkowo testy oznaczone `@live` pobierają po jednej stronie z każdego serwisu; uruchamia się je ręcznie zmienną `E2E_LIVE=1`, nie w CI.
 
 ### Plan implementacji
@@ -1122,8 +1178,15 @@ Każdy krok kończy się działającą aplikacją i zielonymi skryptami z `scrip
 | 4.2 Przypomnienie | 4.1, 1.4 (service worker) |
 | 4.3 Waga i samopoczucie | 1.1, 1.4, 1.5 |
 | 4.4 Liczniki białka i wody | 1.1, 1.4, 1.5 |
+| 5.1 Podstawy wyglądu, tryb ciemny i nawigacja | etapy 1–4; katalog ekranów i zrzuty bazowe (PR architekta do etapu 5) |
+| 5.2 Kolekcja, przepis i tryb gotowania | 5.1 |
+| 5.3 Dodawanie przepisu i stany ekranów | 5.1 |
+| 5.4 Planer i lista zakupów | 5.1 |
+| 5.5 Zdrowie | 5.1 |
 
-Etapy 2, 3 i 4 nie zależą od siebie. Wycinki 4.1, 4.3 i 4.4 nie zależą od siebie.
+Etapy 2, 3 i 4 nie zależą od siebie. Wycinki 4.1, 4.3 i 4.4 nie zależą od siebie. Wycinki 5.2–5.5 nie zależą od siebie; 5.2 i 5.3 zmieniają ten sam ekran kolekcji w rozłącznych plikach (lista i filtry w 5.2, stany pusty, ładowania i błędu w 5.3).
+
+Kroki etapów 1–4 opisują stan z chwili ich dostarczenia. Tam, gdzie etap 5 zmienia zachowanie, obowiązuje opis etapu 5: przyciski pustej kolekcji (1.1, krok 4), automatyczne otwarcie formularza przy nieczytelnym linku (1.2, krok 4), widok całego tygodnia w planerze i układ listy zakupów (3, kroki 1 i 2) oraz wejście do dzienników zdrowia z ekranu kolekcji (etap 4).
 
 #### Etap 1.1: logowanie i przepisy ręczne
 
@@ -1205,3 +1268,53 @@ Etapy 2, 3 i 4 nie zależą od siebie. Wycinki 4.1, 4.3 i 4.4 nie zależą od si
 1. **Cele i szklanka.** Kolumny w `settings`, ekran ustawień z walidacją. Sprawdzenie: testy E2E kryteriów S25 o celach.
 2. **Licznik białka.** Tabela `protein_entries`, „Zjedzone” w szczegółach przepisu, wpis ręczny, prośba o białko przy „brak danych”, usuwanie dzisiejszych wpisów. Sprawdzenie: testy E2E kryteriów S25 o białku, w tym niezmienność wpisu po edycji i usunięciu przepisu.
 3. **Licznik wody i dni.** Tabela `water_entries`, przycisk dodania, podsumowanie względem celu, zerowanie o północy czasu polskiego, „Poprzedni dzień” tylko do odczytu, rozszerzenie eksportu. Sprawdzenie: testy E2E pozostałych kryteriów S25 z zegarem testowym.
+
+#### Etap 5: zasady wspólne dla wszystkich wycinków
+
+- Dotychczasowe testy E2E przechodzą. Zmieniać w nich wolno tylko selektory, dojście do ekranu przez nową nawigację oraz teksty i kroki objęte zmienionymi scenariuszami (zasada ze specyfikacji).
+- Każdy PR odświeża zrzuty zmienionych ekranów (`scripts/screenshots.sh`) i wstawia do opisu zrzuty przed i po w trzech wariantach, według instrukcji w `AGENTS.md`.
+- Każdy krok utrzymuje testy przekrojowe z kroku 7 wycinka 5.1 dla ekranów, które zmienia, a nowy ekran dopisuje do katalogu ekranów.
+- Żaden krok nie zmienia tras API, schematu bazy ani magazynów IndexedDB.
+
+#### Etap 5.1: podstawy wyglądu, tryb ciemny i nawigacja
+
+1. **Tokeny, fonty i CSP.** Zależności (`@fontsource-variable/bricolage-grotesque`, `@fontsource/atkinson-hyperlegible`, `lucide-react`, `@axe-core/playwright`); zmienne CSS obu trybów i blok `@theme` w `styles.css`; style bazowe (`<body>`: tło `bg`, tekst `ink`, font tekstu; nagłówki: font nagłówków); `woff2` we wzorcu plików service workera; `font-src` i `style-src` w CSP; kolory manifestu. Ekrany mogą po tym kroku wyglądać niespójnie, ale działają. Sprawdzenie: test integracyjny nagłówka CSP (brak `https:` w `font-src` i `style-src`); testy E2E kryteriów S29 o fontach offline i o żądaniach zewnętrznych; build zawiera pliki `woff2` na liście service workera.
+2. **Motyw.** `theme-init.js`, `data/theme.ts`, przełącznik segmentowy „System / Jasny / Ciemny” na ekranie Ustawienia, `theme-color`. Sprawdzenie: testy jednostkowe reguły wyniku; testy E2E wszystkich kryteriów S26 (tryb systemu przez `page.emulateMedia`, zmiana bez przeładowania, ponowne uruchomienie, offline, wylogowanie i usunięcie konta, drugi kontekst przeglądarki jako drugie urządzenie, przeglądarka bez `matchMedia` przez podmianę w `addInitScript`).
+3. **Wspólne elementy.** Komponenty z `src/client/components/ui/`; `ErrorNotice`, `OfflineBadge`, `ReminderBanner` i komunikaty formularzy przepisane na nie (tło `warn-soft` dla roli „alert”, `primary-soft` dla znacznika offline i banera). Sprawdzenie: testy komponentów (role, `aria-pressed`, `aria-invalid`); test E2E kryterium S29 o kolorach komunikatów.
+4. **Nawigacja.** `navigation.ts`, nowy `AppShell` z dolnym paskiem i bocznym menu, lista kolekcji własnych w bocznym menu, przycisk „Ustawienia” w nagłówku kolekcji, „Wyloguj”, „Konto” i stan danych offline na ekranie Ustawienia. Z ekranu kolekcji znikają odnośniki do planera i dziennika dawek (zastępuje je nawigacja); odnośniki do wagi i samopoczucia, licznika oraz kolekcji własnych zostają, żeby te ekrany były osiągalne. Sprawdzenie: test jednostkowy tabeli ścieżek; testy E2E kryteriów S27 poza otwarciem ekranu Zdrowie i poza przyciskiem „Gotuję” (pozycja „Zdrowie” otwiera dziennik dawek).
+5. **Ekrany kulinarne w nowych kolorach.** Wszystkie ekrany części kulinarnej, logowanie i tryb gotowania (tło `cook-bg`) przepisane na tokeny i wspólne elementy, bez zmiany układu. Sprawdzenie: dotychczasowe testy E2E; zrzuty.
+6. **Ekrany zdrowia w nowych kolorach.** Atrybut `data-area`, paleta `health*` na dzienniku dawek, formularzu dawki, dzienniku i formularzu wagi i samopoczucia oraz liczniku; wykres wagi linią `health`. Sprawdzenie: dotychczasowe testy E2E; test jednostkowy przypisania części do ścieżki.
+7. **Testy przekrojowe i strażnik kolorów.** Pomocnicy w `tests/e2e/a11y.ts` i testy po katalogu ekranów: pola dotyku w 390 px i 1280 px, kontrast axe w obu trybach, brak przewijania poziomego w 360 px, brak kolorów `health*` na ekranach kulinarnych i tło `health-bg` na ekranach zdrowia, tło banera o zastrzyku. Test jednostkowy zakazujący domyślnej palety Tailwinda i kolorów wpisanych w kod. Sprawdzenie: te testy są zielone dla wszystkich ekranów z katalogu.
+
+Kroki 1–4 idą po kolei. Kroki 5 i 6 wymagają kroku 3 i są od siebie niezależne. Krok 7 zamyka wycinek.
+
+#### Etap 5.2: kolekcja, przepis i tryb gotowania
+
+1. **Kolekcja.** Nagłówek „Co dziś / ugotujemy?”, wyszukiwarka, rząd chipów kolekcji własnych i „Na gorsze dni”, panel filtrów z przyciskiem „Filtry” i licznikiem (na komputerze stale rozwinięty), karta przepisu ze zdjęciem i plakietkami, siatka kart na komputerze w `VirtualRecipeList`. Licznik włączonych filtrów to czysta funkcja obok stanu widoku. Sprawdzenie: testy E2E zmienionych kryteriów S6 (panel, licznik) i kryterium S29 o plakietce „— białka”; test wydajności z 1000 przepisów.
+2. **Przepis.** Zdjęcie z przyciskiem „Wróć” i plakietką źródła, linie ocen i wartości odżywczych, karta tolerancji z przyciskami „Dobrze”, „Tak sobie”, „Źle” (`aria-pressed`, zapis od razu albo po „Zapisz tolerancję”, „Usuń ocenę tolerancji”), przyklejony przycisk „Gotuję”. Sprawdzenie: testy E2E zmienionych kryteriów S9, kryterium S27 o przycisku nad paskiem i kryterium S29 o źródle na zdjęciu.
+3. **Tryb gotowania.** Ekran składników w pigułkach, numer kroku „X / Y” z opisem dla czytnika ekranu, przyciski „Poprzedni krok” i „Następny krok”, „Składniki” na górze, „Zakończ” na ostatnim kroku, napis „Ekran pozostaje włączony” tylko przy działającej blokadzie wygaszania. Sprawdzenie: testy E2E zmienionych kryteriów S13.
+
+Kroki są od siebie niezależne.
+
+#### Etap 5.3: dodawanie przepisu i stany ekranów
+
+1. **Ekran „Dodaj przepis”.** Przełącznik segmentowy „Z linku / Wpiszę sama” nad dwoma istniejącymi adresami, pole linku z podpowiedzią, przycisk „Odczytaj przepis”, karta „Szukaj w zaufanych serwisach”. Sprawdzenie: testy E2E zmienionych kroków S2 i S4.
+2. **Nieczytelny link.** Komunikat na ekranie linku z przyciskami „Wpisz przepis ręcznie” i „Spróbuj ponownie”, informacja o zachowaniu linku, `aria-invalid` i rola „alert”; formularz otwiera się dopiero po wyborze użytkownika. Zapis z wyszukiwania (S17) nadal otwiera formularz od razu. Sprawdzenie: testy E2E zmienionych kryteriów S3 i kryterium S17 o niepełnym odczycie.
+3. **Stany kolekcji.** Osobne komponenty: ładowanie (nieruchome bloki zastępcze i tekst o roli „status”), pusta kolekcja (dwa przyciski), błąd pełnoekranowy przy pierwszym wczytaniu bez danych lokalnych. Sprawdzenie: testy E2E kryterium S6 o pustej kolekcji oraz kryteriów S29 o ładowaniu (opóźnienie odpowiedzi przez `page.route`) i o błędzie pełnoekranowym.
+4. **Brak zdjęcia.** `RecipeImage` z polem zastępczym (pierwsza litera tytułu ukryta przed czytnikiem ekranu, napis „Brak zdjęcia”), to samo pole po błędzie wczytania pliku, sama litera w miniaturze planera. Sprawdzenie: test komponentu; testy E2E kryteriów S29 o braku zdjęcia.
+
+Kroki są od siebie niezależne.
+
+#### Etap 5.4: planer i lista zakupów
+
+1. **Planer.** Pasek 7 dni z jednym wybranym dniem (`aria-pressed`), nagłówek „Ten tydzień” albo zakres dat, strzałki tygodni, linia sumy białka z dopiskiem o przepisach bez danych, cztery pory z kartami przepisów i przyciskiem „+ Dodaj przepis”, przycisk „Utwórz listę zakupów na tydzień”. Wybrany dzień to stan ekranu: dzień dzisiejszy w bieżącym tygodniu, poniedziałek w innym. Funkcje sumy i formatów w `src/shared/domain/mealPlan.ts`. Sprawdzenie: testy jednostkowe sumy (zaokrąglenie, brak danych, odmiana dopisku) i formatów zakresu dat; testy E2E zmienionych kryteriów S19.
+2. **Lista zakupów.** Nagłówek z zakresem dat, licznik „n z m w koszyku”, pasek postępu, plakietka „Działa offline”, wiersz przełączany tapnięciem w dowolnym miejscu, przekreślenie odhaczonych; wejście z nawigacji zawsze na bieżący tydzień. Sprawdzenie: test jednostkowy licznika; testy E2E zmienionych kryteriów S20, w tym licznik po odhaczeniu offline.
+
+Kroki są od siebie niezależne.
+
+#### Etap 5.5: zdrowie
+
+1. **Ekran Zdrowie.** Adres `/zdrowie`, karty „Następny zastrzyk” (termin z przypomnienia, ostatnia dawka, „Zapisz zastrzyk”), „Miejsce wkłucia” (siatka informacyjna, pola nie są przyciskami), „Dzisiaj” (paski białka i wody, przycisk szklanki), przejścia do dzienników; pozycja „Zdrowie” w nawigacji prowadzi do tego ekranu, a z ekranu kolekcji znikają odnośniki do wagi i samopoczucia oraz licznika; wpis w katalogu ekranów. Funkcja terminu w `src/shared/domain/reminder.ts`. Sprawdzenie: testy jednostkowe terminu (dzień przypomnienia przed i po godzinie, północ, zmiana czasu) i formatów tekstów; testy E2E kryteriów S28, pozostałej części kryterium S27 i kryterium S29 o kolorach dla ekranu Zdrowie.
+2. **Układ dzienników zdrowia.** Formularz wagi i samopoczucia (pięć przycisków samopoczucia z opisem skrajnych wartości, „Zapisz wpis”), dziennik dawek, formularz dawki i licznik z elementami z sekcji „Ekrany zdrowia”; w formularzu dawki żadne miejsce nie jest wyróżnione przed wyborem. Sprawdzenie: dotychczasowe testy E2E S21–S25 ze zmienionymi selektorami; testy przekrojowe.
+
+Kroki są od siebie niezależne.

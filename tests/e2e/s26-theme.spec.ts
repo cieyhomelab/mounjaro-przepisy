@@ -14,6 +14,15 @@ const bodyBackground = (page: Page) =>
 const themeButton = (page: Page, name: string) =>
   page.getByRole('group', { name: 'Motyw' }).getByRole('button', { name, exact: true });
 
+/**
+ * Sets the system mode of `page`. Firefox ignores `emulateMedia` (and the context option) until the
+ * page has navigated once, so the page is opened first; later navigations keep the mode.
+ */
+async function setSystemMode(page: Page, scheme: 'light' | 'dark') {
+  await page.goto('/');
+  await page.emulateMedia({ colorScheme: scheme });
+}
+
 async function openSettings(page: Page) {
   await page.getByRole('link', { name: 'Ustawienia' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Ustawienia' })).toBeVisible();
@@ -29,7 +38,7 @@ test.describe('S26: tryb jasny i ciemny', () => {
   test('S26: system ciemny i motyw „System” dają data-theme="dark" i tło #1C1816', async ({
     page,
   }) => {
-    await page.emulateMedia({ colorScheme: 'dark' });
+    await setSystemMode(page, 'dark');
     await logIn(page);
     await expect(collection(page)).toBeVisible();
 
@@ -40,7 +49,7 @@ test.describe('S26: tryb jasny i ciemny', () => {
   test('S26: system jasny i motyw „System” dają data-theme="light" i tło #FBF8F4', async ({
     page,
   }) => {
-    await page.emulateMedia({ colorScheme: 'light' });
+    await setSystemMode(page, 'light');
     await logIn(page);
     await expect(collection(page)).toBeVisible();
 
@@ -51,7 +60,7 @@ test.describe('S26: tryb jasny i ciemny', () => {
   test('S26: zmiana trybu systemu z jasnego na ciemny przy motywie „System” działa bez przeładowania', async ({
     page,
   }) => {
-    await page.emulateMedia({ colorScheme: 'light' });
+    await setSystemMode(page, 'light');
     await logIn(page);
     await expect(collection(page)).toBeVisible();
     expect(await dataTheme(page)).toBe('light');
@@ -81,7 +90,7 @@ test.describe('S26: tryb jasny i ciemny', () => {
   test('S26: wybór „Jasny” przy ciemnym systemie działa od razu i po ponownym uruchomieniu', async ({
     page,
   }) => {
-    await page.emulateMedia({ colorScheme: 'dark' });
+    await setSystemMode(page, 'dark');
     await logIn(page);
     await expect(collection(page)).toBeVisible();
     expect(await dataTheme(page)).toBe('dark');
@@ -98,7 +107,7 @@ test.describe('S26: tryb jasny i ciemny', () => {
   test('S26: wybór „Ciemny” przy jasnym systemie działa od razu i po ponownym uruchomieniu', async ({
     page,
   }) => {
-    await page.emulateMedia({ colorScheme: 'light' });
+    await setSystemMode(page, 'light');
     await logIn(page);
     await expect(collection(page)).toBeVisible();
 
@@ -115,7 +124,7 @@ test.describe('S26: tryb jasny i ciemny', () => {
     page,
     context,
   }) => {
-    await page.emulateMedia({ colorScheme: 'light' });
+    await setSystemMode(page, 'light');
     await logIn(page);
     await openSettings(page);
     await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
@@ -155,7 +164,7 @@ test.describe('S26: tryb jasny i ciemny', () => {
   test('S26: ekran logowania przy ciemnym systemie i bez wyboru ma data-theme="dark"', async ({
     page,
   }) => {
-    await page.emulateMedia({ colorScheme: 'dark' });
+    await setSystemMode(page, 'dark');
     await page.goto('/');
 
     await expect(loginLink(page)).toBeVisible();
@@ -165,7 +174,7 @@ test.describe('S26: tryb jasny i ciemny', () => {
   test('S26: po wylogowaniu wybrany „Ciemny” obowiązuje na ekranie logowania i po ponownym zalogowaniu', async ({
     page,
   }) => {
-    await page.emulateMedia({ colorScheme: 'light' });
+    await setSystemMode(page, 'light');
     await logIn(page);
     await chooseTheme(page, 'Ciemny');
 
@@ -181,7 +190,7 @@ test.describe('S26: tryb jasny i ciemny', () => {
   test('S26: po usunięciu konta wybrany „Ciemny” obowiązuje na ekranie logowania i po ponownym zalogowaniu', async ({
     page,
   }) => {
-    await page.emulateMedia({ colorScheme: 'light' });
+    await setSystemMode(page, 'light');
     await logIn(page);
     await chooseTheme(page, 'Ciemny');
     await page.goto('/ustawienia/moje-dane');

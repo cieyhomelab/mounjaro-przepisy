@@ -235,3 +235,50 @@ test.describe('S15: usunięcie przepisu', () => {
     expect(((await snapshot.json()) as { recipes: unknown[] }).recipes).toHaveLength(1);
   });
 });
+
+// The service worker would answer the snapshot request itself, out of reach of page.route.
+test.describe('S15: usunięcie w trakcie synchronizacji', () => {
+  test.use({ serviceWorkers: 'block' });
+
+  test('S15: usunięcie w trakcie trwającej synchronizacji nie przywraca przepisu na listę', async ({
+    page,
+  }) => {
+    await logInToCollection(page);
+    await seedRecipe(page, { title: 'Do usunięcia' });
+    await page.reload();
+    await expect(recipeList(page).getByRole('listitem')).toHaveCount(1);
+    // A second recipe appears on the account from elsewhere, so the held snapshot differs from
+    // the one the delete response is consistent with.
+    const other = await page.context().newPage();
+    await other.goto('/');
+    await seedRecipe(other, { title: 'Zostaje' });
+    await other.close();
+
+    // The snapshot is read by the server before the delete but reaches the page only after it.
+    let deleted!: () => void;
+    const deleteDone = new Promise<void>((resolve) => (deleted = resolve));
+    let held = false;
+    await page.route('**/api/snapshot', async (route) => {
+      if (held) return route.continue();
+      held = true;
+      const response = await route.fetch();
+      await deleteDone;
+      await route.fulfill({ response });
+    });
+    page.on('response', (response) => {
+      if (response.request().method() === 'DELETE') deleted();
+    });
+    await page.reload();
+    await expect.poll(() => held).toBe(true);
+    await recipeList(page)
+      .getByRole('link', { name: /Do usunięcia/ })
+      .click();
+    await page.getByRole('button', { name: 'Usuń' }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Usuń' }).click();
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
+    await expect(recipeList(page).getByRole('listitem')).toHaveCount(1);
+    await expect(recipeList(page)).toContainText('Zostaje');
+    await expect(recipeList(page)).not.toContainText('Do usunięcia');
+  });
+});

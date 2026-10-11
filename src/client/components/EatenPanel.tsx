@@ -23,6 +23,11 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
   const [added, setAdded] = useState<number | null>(null);
   const perServing = recipe.nutrition.proteinG.value;
 
+  // No protein value, or one that rounds to 0 g for these servings: the server rejects it, so ask.
+  const needsManual = (servingsValue: number | null) =>
+    perServing === null ||
+    (servingsValue !== null && proteinOfServings(perServing, servingsValue) <= 0);
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (busy) return;
@@ -30,7 +35,7 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
     const servingsValue = parsePositiveInput(servings);
     if (servingsValue === null) return setInvalid('Podaj liczbę porcji większą od zera.');
     let manualGrams: number | null = null;
-    if (perServing === null) {
+    if (needsManual(servingsValue)) {
       manualGrams = parsePositiveInput(grams);
       if (manualGrams === null) return setInvalid('Podaj ilość białka (liczba większa od zera).');
     }
@@ -53,12 +58,12 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
     });
   };
 
+  const servingsParsed = parsePositiveInput(servings);
+  const manual = needsManual(servingsParsed);
   const preview =
-    perServing === null
+    perServing === null || servingsParsed === null
       ? null
-      : parsePositiveInput(servings) === null
-        ? null
-        : proteinOfServings(perServing, parsePositiveInput(servings) ?? 0);
+      : proteinOfServings(perServing, servingsParsed);
 
   return (
     <section aria-labelledby="eaten-heading" className="flex flex-col gap-2">
@@ -86,15 +91,19 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
               onChange={(event) => setServings(event.target.value)}
               className={inputClass}
             />
-            {preview !== null ? (
+            {preview !== null && !manual ? (
               <p className="text-sm text-neutral-600">
                 Do licznika: {formatAmount(preview)} g białka
               </p>
             ) : null}
           </div>
-          {perServing === null ? (
+          {manual ? (
             <div className="flex flex-col gap-1">
-              <p>Ten przepis nie ma danych o białku. Podaj, ile białka zjadłeś.</p>
+              <p>
+                {perServing === null
+                  ? 'Ten przepis nie ma danych o białku. Podaj, ile białka zjadłeś.'
+                  : 'Ten przepis nie dodaje białka do licznika. Podaj, ile białka zjadłeś.'}
+              </p>
               <label htmlFor="eaten-grams" className="font-medium">
                 Ilość białka (g)
               </label>

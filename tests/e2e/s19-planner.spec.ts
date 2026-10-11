@@ -26,10 +26,23 @@ const meal = (page: Page, day: string, slot: string) =>
   page.getByRole('region', { name: `${day}: ${slot}` });
 
 async function plan(page: Page, day: string, slot: string, title: string, servings?: string) {
-  await meal(page, day, slot)
-    .getByRole('button', { name: /^Dodaj przepis/ })
-    .click();
-  await page.getByLabel('Przepis', { exact: true }).selectOption({ label: title });
+  // The planner first shows the local copy and re-renders when the snapshot arrives; a form opened
+  // in between can be dropped or miss the new recipe, so repeat opening and choosing until it sticks.
+  await expect(async () => {
+    const form = page.getByRole('form', { name: /^Dodaj przepis/ });
+    if (!(await form.isVisible())) {
+      await meal(page, day, slot)
+        .getByRole('button', { name: /^Dodaj przepis/ })
+        .click({ timeout: 2000 });
+    }
+    await page
+      .getByLabel('Przepis', { exact: true })
+      .selectOption({ label: title }, { timeout: 2000 });
+    await expect(page.getByLabel('Przepis', { exact: true }).locator('option:checked')).toHaveText(
+      title,
+      { timeout: 2000 },
+    );
+  }).toPass({ timeout: 15000 });
   if (servings) await page.getByLabel('Liczba porcji', { exact: true }).fill(servings);
   await page.getByRole('button', { name: 'Dodaj do planera' }).click();
 }

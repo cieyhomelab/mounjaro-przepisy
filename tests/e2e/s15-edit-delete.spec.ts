@@ -282,3 +282,54 @@ test.describe('S15: usunięcie w trakcie synchronizacji', () => {
     await expect(recipeList(page)).not.toContainText('Do usunięcia');
   });
 });
+
+test.describe('S15: dwie zmiany w trakcie synchronizacji', () => {
+  test.use({ serviceWorkers: 'block' });
+
+  test('S15: spóźniona starsza migawka nie przywraca usuniętego przepisu po dwóch zmianach', async ({
+    page,
+  }) => {
+    await logInToCollection(page);
+    await seedRecipe(page, { title: 'Pierwszy' });
+    await seedRecipe(page, { title: 'Drugi' });
+    await page.reload();
+    await expect(recipeList(page).getByRole('listitem')).toHaveCount(2);
+
+    // The server reads the snapshot after the first change; the answer reaches the page only
+    // after the second one.
+    let edited!: () => void;
+    const editDone = new Promise<void>((resolve) => (edited = resolve));
+    let deleted!: () => void;
+    const deleteDone = new Promise<void>((resolve) => (deleted = resolve));
+    let held = false;
+    await page.route('**/api/snapshot', async (route) => {
+      if (held) return route.continue();
+      held = true;
+      await editDone;
+      const response = await route.fetch();
+      await deleteDone;
+      await route.fulfill({ response });
+    });
+    page.on('response', (response) => {
+      const method = response.request().method();
+      if (method === 'DELETE') deleted();
+      else if (method !== 'GET' && response.url().includes('/api/recipes')) edited();
+    });
+    await page.reload();
+    await expect.poll(() => held).toBe(true);
+
+    await openEdit(page, 'Pierwszy');
+    await page.getByLabel('Tytuł').fill('Pierwszy zmieniony');
+    await page.getByRole('button', { name: 'Zapisz' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Pierwszy zmieniony' })).toBeVisible();
+    await page.getByRole('link', { name: 'Mounjaro Przepisy' }).click();
+    await recipeList(page).getByRole('link', { name: /Drugi/ }).click();
+    await page.getByRole('button', { name: 'Usuń' }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Usuń' }).click();
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
+    await expect(recipeList(page).getByRole('listitem')).toHaveCount(1);
+    await expect(recipeList(page)).toContainText('Pierwszy zmieniony');
+    await expect(recipeList(page)).not.toContainText('Drugi');
+  });
+});

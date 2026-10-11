@@ -225,9 +225,14 @@ export async function readLocalData(): Promise<LocalData> {
   };
 }
 
-/** Replaces the whole local copy with a snapshot received from the server. */
-export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
-  await localDb.transaction('rw', localDb.tables, async () => {
+/**
+ * Replaces the whole local copy with a snapshot received from the server. A snapshot older than
+ * the copy (read before a change this device has since stored) is left out: returns false.
+ */
+export async function storeSnapshot(snapshot: Snapshot): Promise<boolean> {
+  return localDb.transaction('rw', localDb.tables, async () => {
+    const current = await localDb.meta.get(META_DATA_VERSION);
+    if (typeof current?.value === 'number' && snapshot.dataVersion < current.value) return false;
     await localDb.recipes.clear();
     await localDb.collections.clear();
     await localDb.cookEvents.clear();
@@ -266,6 +271,7 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
       { key: META_DATA_VERSION, value: snapshot.dataVersion },
       { key: META_LAST_CONTACT, value: Date.now() },
     ]);
+    return true;
   });
 }
 

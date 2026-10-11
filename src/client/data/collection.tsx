@@ -150,34 +150,39 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const runSync = useCallback(async () => {
-    const version = knownVersion.current;
     try {
-      // Ticks made offline reach the account first, so the snapshot already holds them. A queue
-      // the server cannot take must not keep the device from pulling changes.
-      try {
-        await flushOutbox();
-        flushFailures.current = 0;
-      } catch (error) {
-        if (error instanceof ApiError && error.status !== 401) {
-          flushFailures.current += 1;
-          retryNotBefore.current =
-            performance.now() + Math.min(2000 * 2 ** flushFailures.current, MAX_RETRY_DELAY_MS);
-        } else throw error;
+      // A snapshot that turns out older than a change stored meanwhile is dropped; ask again.
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const version = knownVersion.current;
+        // Ticks made offline reach the account first, so the snapshot already holds them. A queue
+        // the server cannot take must not keep the device from pulling changes.
+        try {
+          await flushOutbox();
+          flushFailures.current = 0;
+        } catch (error) {
+          if (error instanceof ApiError && error.status !== 401) {
+            flushFailures.current += 1;
+            retryNotBefore.current =
+              performance.now() + Math.min(2000 * 2 ** flushFailures.current, MAX_RETRY_DELAY_MS);
+          } else throw error;
+        }
+        const payload = await apiRequest('/api/snapshot', {
+          headers:
+            version === null || needsFullSync.current
+              ? {}
+              : { 'If-None-Match': snapshotEtag(version) },
+        });
+        // An older client may not understand a newer snapshot: reload before parsing it.
+        if (payload !== NOT_MODIFIED && reloadOnVersionMismatch(payload)) return;
+        if (payload === NOT_MODIFIED) await touchContact();
+        else {
+          const stored = await storeSnapshot(snapshotSchema.parse(payload));
+          await reload();
+          if (!stored) continue;
+        }
+        void syncOfflineData(photoIds.current);
+        break;
       }
-      const payload = await apiRequest('/api/snapshot', {
-        headers:
-          version === null || needsFullSync.current
-            ? {}
-            : { 'If-None-Match': snapshotEtag(version) },
-      });
-      // An older client may not understand a newer snapshot: reload before parsing it.
-      if (payload !== NOT_MODIFIED && reloadOnVersionMismatch(payload)) return;
-      if (payload === NOT_MODIFIED) await touchContact();
-      else {
-        await storeSnapshot(snapshotSchema.parse(payload));
-        await reload();
-      }
-      void syncOfflineData(photoIds.current);
     } catch (error) {
       // Offline or failing server: the screens keep showing the local copy when there is one.
       if (knownVersion.current === null) {

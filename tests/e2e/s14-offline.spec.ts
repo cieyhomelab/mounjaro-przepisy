@@ -117,6 +117,18 @@ test.describe('S14: dane offline', () => {
     const id = await seedWithPhoto(page, 'Kurczak z ryżem');
     await seedRecipe(page, { title: 'Zupa' });
     await page.reload();
+    // The "aktualne" status saved by the first sync is shown right after the reload, before the
+    // new recipes and their photo are on the device, so wait for the data itself.
+    await expect(page.getByRole('link', { name: /Kurczak z ryżem/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Zupa/ })).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(async () => {
+          const cache = await caches.open('photos');
+          return (await cache.keys()).length;
+        }),
+      )
+      .toBe(1);
     await waitForOfflineData(page);
 
     await goOffline(context, page);

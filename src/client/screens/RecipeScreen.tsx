@@ -5,6 +5,7 @@ import { plannedCount } from '../../shared/domain/mealPlan';
 import { isValidServings, parseServingsInput } from '../../shared/domain/portions';
 import { formatSourceRating } from '../../shared/domain/sourceRating';
 import { CookPanel } from '../components/CookPanel';
+import { EatenPanel } from '../components/EatenPanel';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { NutritionDetails } from '../components/NutritionDetails';
 import { OwnRating } from '../components/OwnRating';
@@ -152,6 +153,7 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
         </p>
       ) : null}
       <CookPanel recipe={recipe} />
+      <EatenPanel recipe={recipe} />
       <OwnRating recipe={recipe} />
       <ToleranceEditor recipe={recipe} />
       <RecipeOrganizer recipe={recipe} />

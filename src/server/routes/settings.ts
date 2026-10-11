@@ -1,8 +1,12 @@
 import type { FastifyInstance } from 'fastify';
-import { reminderInputSchema, thresholdsInputSchema } from '../../shared/contracts/settings';
+import {
+  goalsInputSchema,
+  reminderInputSchema,
+  thresholdsInputSchema,
+} from '../../shared/contracts/settings';
 import type { Database } from '../db/client';
 import { sendError } from '../errors';
-import { resetThresholds, saveReminder, saveThresholds } from '../services/settings';
+import { resetThresholds, saveGoals, saveReminder, saveThresholds } from '../services/settings';
 
 export function registerSettingsRoutes(app: FastifyInstance, deps: { database: Database }) {
   app.put('/api/settings/thresholds', async (request, reply) => {
@@ -29,6 +33,17 @@ export function registerSettingsRoutes(app: FastifyInstance, deps: { database: D
     return reply.send(
       await saveReminder(deps.database, request.session?.accountId ?? '', body.data),
     );
+  });
+
+  app.put('/api/settings/goals', async (request, reply) => {
+    const body = goalsInputSchema.safeParse(request.body);
+    if (!body.success) {
+      const fields = Object.fromEntries(
+        body.error.issues.map((issue) => [String(issue.path[0] ?? 'body'), 'invalid']),
+      );
+      return sendError(reply, 400, 'validation', fields);
+    }
+    return reply.send(await saveGoals(deps.database, request.session?.accountId ?? '', body.data));
   });
 
   app.post('/api/settings/thresholds/reset', async (request, reply) =>

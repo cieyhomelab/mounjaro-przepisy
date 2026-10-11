@@ -58,6 +58,10 @@ export const settings = pgTable('settings', {
   reminderEnabled: boolean('reminder_enabled').notNull().default(false),
   reminderWeekday: smallint('reminder_weekday').notNull().default(4),
   reminderTime: time('reminder_time', { precision: 0 }).notNull().default('19:00'),
+  // Daily goals and the glass of the counters (S25): empty goals until the user sets them.
+  proteinGoalG: numeric('protein_goal_g', { precision: 7, scale: 1, mode: 'number' }),
+  waterGoalMl: integer('water_goal_ml'),
+  glassMl: integer('glass_ml').notNull().default(250),
 });
 
 const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
@@ -273,6 +277,35 @@ export const wellbeingEntries = pgTable(
   },
   (table) => [primaryKey({ columns: [table.accountId, table.entryDate] })],
 );
+
+/**
+ * An entry of the protein counter (S25). No foreign key to the recipe: the entry keeps the name
+ * and the amount of the moment it was added. Health data: never logged.
+ */
+export const proteinEntries = pgTable('protein_entries', {
+  id: uuid('id').primaryKey(),
+  accountId: uuid('account_id')
+    .notNull()
+    .references(() => accounts.id, { onDelete: 'cascade' }),
+  entryDate: date('entry_date', { mode: 'string' }).notNull(),
+  grams: numeric('grams', { precision: 7, scale: 1, mode: 'number' }).notNull(),
+  sourceKind: text('source_kind', { enum: ['recipe', 'manual'] }).notNull(),
+  recipeTitle: text('recipe_title'),
+  servings: numeric('servings', { precision: 5, scale: 2, mode: 'number' }),
+  description: text('description'),
+  createdAt: timestamptz('created_at').notNull(),
+});
+
+/** A glass of the water counter (S25). Health data: never logged. */
+export const waterEntries = pgTable('water_entries', {
+  id: uuid('id').primaryKey(),
+  accountId: uuid('account_id')
+    .notNull()
+    .references(() => accounts.id, { onDelete: 'cascade' }),
+  entryDate: date('entry_date', { mode: 'string' }).notNull(),
+  ml: integer('ml').notNull(),
+  createdAt: timestamptz('created_at').notNull(),
+});
 
 /** A browser that agreed to notifications (S23). Removed when the push service says it is gone. */
 export const pushSubscriptions = pgTable('push_subscriptions', {

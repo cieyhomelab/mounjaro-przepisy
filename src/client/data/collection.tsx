@@ -10,6 +10,7 @@ import {
 } from 'react';
 import type { OwnCollection } from '../../shared/contracts/collection';
 import type { DoseEntry } from '../../shared/contracts/dose';
+import type { ProteinEntry, WaterEntry } from '../../shared/contracts/intake';
 import type { WellbeingEntry } from '../../shared/contracts/wellbeing';
 import type { MealPlanEntry } from '../../shared/contracts/mealPlan';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
@@ -51,6 +52,8 @@ export type CollectionState =
       shoppingCustomItems: ShoppingCustomItem[];
       doseEntries: DoseEntry[];
       wellbeingEntries: WellbeingEntry[];
+      proteinEntries: ProteinEntry[];
+      waterEntries: WaterEntry[];
       settings: Settings;
     }
   | { status: 'error'; code: string };
@@ -139,6 +142,8 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         shoppingCustomItems: local.shoppingCustomItems,
         doseEntries: local.doseEntries,
         wellbeingEntries: local.wellbeingEntries,
+        proteinEntries: local.proteinEntries,
+        waterEntries: local.waterEntries,
         settings: local.settings,
       });
     return local.dataVersion !== null;

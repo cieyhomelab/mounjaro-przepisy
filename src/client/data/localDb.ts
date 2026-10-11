@@ -3,12 +3,14 @@ import type { OwnCollection } from '../../shared/contracts/collection';
 import type { MealPlanEntry } from '../../shared/contracts/mealPlan';
 import type { CookEvent } from '../../shared/contracts/cookEvent';
 import type { DoseEntry } from '../../shared/contracts/dose';
+import type { ProteinEntry, WaterEntry } from '../../shared/contracts/intake';
 import type { WellbeingEntry } from '../../shared/contracts/wellbeing';
 import type { Recipe } from '../../shared/contracts/recipe';
 import type { Settings, Snapshot } from '../../shared/contracts/snapshot';
 import type { ShoppingCheck, ShoppingCustomItem } from '../../shared/contracts/shopping';
 import type { TrustedSite } from '../../shared/contracts/trustedSite';
 import { DEFAULT_THRESHOLDS, buildSearchText } from '../../shared/domain/recipeList';
+import { DEFAULT_GOALS } from '../../shared/domain/intake';
 import { DEFAULT_REMINDER } from '../../shared/domain/reminder';
 import { PHOTO_CACHE } from './offlineCache';
 
@@ -61,6 +63,8 @@ class LocalDatabase extends Dexie {
   shoppingCustomItems!: EntityTable<ShoppingCustomItem, 'id'>;
   doseEntries!: EntityTable<DoseEntry, 'id'>;
   wellbeingEntries!: EntityTable<WellbeingEntry, 'date'>;
+  proteinEntries!: EntityTable<ProteinEntry, 'id'>;
+  waterEntries!: EntityTable<WaterEntry, 'id'>;
   outbox!: EntityTable<OutboxEntry, 'seq'>;
   settings!: EntityTable<SettingsRow, 'key'>;
   meta!: EntityTable<MetaRow, 'key'>;
@@ -118,6 +122,10 @@ class LocalDatabase extends Dexie {
     this.version(8)
       .stores({ wellbeingEntries: 'date' })
       .upgrade((tx) => tx.table('meta').put({ key: META_FULL_SYNC, value: 1 }));
+    // Protein and water counters and their goals (S25).
+    this.version(9)
+      .stores({ proteinEntries: 'id', waterEntries: 'id' })
+      .upgrade((tx) => tx.table('meta').put({ key: META_FULL_SYNC, value: 1 }));
   }
 }
 
@@ -133,6 +141,8 @@ export type LocalData = {
   shoppingCustomItems: ShoppingCustomItem[];
   doseEntries: DoseEntry[];
   wellbeingEntries: WellbeingEntry[];
+  proteinEntries: ProteinEntry[];
+  waterEntries: WaterEntry[];
   settings: Settings;
   dataVersion: number | null;
   /** The copy may lack data a client of the past did not know about: fetch the whole snapshot. */
@@ -150,6 +160,8 @@ export async function readLocalData(): Promise<LocalData> {
     customItems,
     doseEntries,
     wellbeingEntries,
+    proteinEntries,
+    waterEntries,
     settingsRow,
     version,
     fullSync,
@@ -163,6 +175,8 @@ export async function readLocalData(): Promise<LocalData> {
     localDb.shoppingCustomItems.toArray(),
     localDb.doseEntries.toArray(),
     localDb.wellbeingEntries.toArray(),
+    localDb.proteinEntries.toArray(),
+    localDb.waterEntries.toArray(),
     localDb.settings.get('settings'),
     localDb.meta.get(META_DATA_VERSION),
     localDb.meta.get(META_FULL_SYNC),
@@ -172,7 +186,7 @@ export async function readLocalData(): Promise<LocalData> {
     typeof row.searchText === 'string' ? row : withSearchText(row),
   );
   // A copy stored before the reminder existed has none of its fields: the defaults fill in.
-  const settings = { ...DEFAULT_THRESHOLDS, ...DEFAULT_REMINDER, ...settingsRow };
+  const settings = { ...DEFAULT_THRESHOLDS, ...DEFAULT_REMINDER, ...DEFAULT_GOALS, ...settingsRow };
   return {
     recipes,
     collections: collections.sort((a, b) => a.name.localeCompare(b.name, 'pl')),
@@ -191,6 +205,8 @@ export async function readLocalData(): Promise<LocalData> {
     shoppingCustomItems: customItems,
     doseEntries,
     wellbeingEntries,
+    proteinEntries,
+    waterEntries,
     settings: {
       thresholdProteinG: settings.thresholdProteinG,
       thresholdFatG: settings.thresholdFatG,
@@ -200,6 +216,9 @@ export async function readLocalData(): Promise<LocalData> {
       reminderEnabled: settings.reminderEnabled,
       reminderWeekday: settings.reminderWeekday,
       reminderTime: settings.reminderTime,
+      proteinGoalG: settings.proteinGoalG,
+      waterGoalMl: settings.waterGoalMl,
+      glassMl: settings.glassMl,
     },
     dataVersion: typeof version?.value === 'number' ? version.value : null,
     needsFullSync: fullSync !== undefined,
@@ -218,6 +237,8 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
     await localDb.shoppingCustomItems.clear();
     await localDb.doseEntries.clear();
     await localDb.wellbeingEntries.clear();
+    await localDb.proteinEntries.clear();
+    await localDb.waterEntries.clear();
     await localDb.recipes.bulkPut(snapshot.recipes.map(withSearchText));
     await localDb.collections.bulkPut(snapshot.collections);
     await localDb.cookEvents.bulkPut(snapshot.cookEvents);
@@ -234,6 +255,8 @@ export async function storeSnapshot(snapshot: Snapshot): Promise<void> {
     await localDb.shoppingCustomItems.bulkPut(snapshot.shoppingCustomItems);
     await localDb.doseEntries.bulkPut(snapshot.doseEntries);
     await localDb.wellbeingEntries.bulkPut(snapshot.wellbeingEntries);
+    await localDb.proteinEntries.bulkPut(snapshot.proteinEntries);
+    await localDb.waterEntries.bulkPut(snapshot.waterEntries);
     // Ticks made here and not yet sent stay on top of what the server says.
     for (const entry of await localDb.outbox.orderBy('seq').toArray())
       await applyEntryLocally(entry, new Date().toISOString());
@@ -278,6 +301,10 @@ export type LocalChange = {
   removeDoseEntryId?: string;
   wellbeingEntry?: WellbeingEntry;
   removeWellbeingDate?: string;
+  proteinEntry?: ProteinEntry;
+  removeProteinEntryId?: string;
+  waterEntry?: WaterEntry;
+  removeWaterEntryId?: string;
 };
 
 /** Stores a confirmed change of own collections or cookings together with the new data version. */
@@ -312,6 +339,11 @@ export async function storeChange(change: LocalChange, dataVersion: number): Pro
     if (change.wellbeingEntry) await localDb.wellbeingEntries.put(change.wellbeingEntry);
     if (change.removeWellbeingDate)
       await localDb.wellbeingEntries.delete(change.removeWellbeingDate);
+    if (change.proteinEntry) await localDb.proteinEntries.put(change.proteinEntry);
+    if (change.removeProteinEntryId)
+      await localDb.proteinEntries.delete(change.removeProteinEntryId);
+    if (change.waterEntry) await localDb.waterEntries.put(change.waterEntry);
+    if (change.removeWaterEntryId) await localDb.waterEntries.delete(change.removeWaterEntryId);
     await localDb.meta.put({ key: META_DATA_VERSION, value: dataVersion });
   });
 }

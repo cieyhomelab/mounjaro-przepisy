@@ -11,6 +11,8 @@ import { AccountScreen } from './screens/AccountScreen';
 import { DoseFormScreen } from './screens/DoseFormScreen';
 import { DoseLogScreen } from './screens/DoseLogScreen';
 import { DoseReminderScreen } from './screens/DoseReminderScreen';
+import { GoalsScreen } from './screens/GoalsScreen';
+import { IntakeScreen } from './screens/IntakeScreen';
 import { WellbeingFormScreen } from './screens/WellbeingFormScreen';
 import { WellbeingLogScreen } from './screens/WellbeingLogScreen';
 import { ReminderScreen } from './screens/ReminderScreen';
@@ -80,10 +82,12 @@ export function App() {
               <Route path="dawki/:id/edycja" element={<DoseFormScreen />} />
               <Route path="waga" element={<WellbeingLogScreen />} />
               <Route path="waga/nowy" element={<WellbeingFormScreen />} />
+              <Route path="licznik" element={<IntakeScreen />} />
               <Route path="szukaj" element={<SearchScreen />} />
               <Route path="kolekcje" element={<OwnCollectionsScreen />} />
               <Route path="ustawienia" element={<SettingsScreen />} />
               <Route path="ustawienia/progi-filtrow" element={<ThresholdsScreen />} />
+              <Route path="ustawienia/cele" element={<GoalsScreen />} />
               <Route path="ustawienia/przypomnienie" element={<ReminderScreen />} />
               <Route path="ustawienia/zaufane-serwisy" element={<TrustedSitesScreen />} />
               <Route path="ustawienia/moje-dane" element={<MyDataScreen />} />

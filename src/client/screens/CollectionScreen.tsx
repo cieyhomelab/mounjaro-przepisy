@@ -177,6 +177,9 @@ export function CollectionScreen() {
             <Link to="/waga" className="inline-flex min-h-11 items-center underline">
               Waga i samopoczucie
             </Link>
+            <Link to="/licznik" className="inline-flex min-h-11 items-center underline">
+              Licznik białka i wody
+            </Link>
             <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
               Kolekcje własne
             </Link>

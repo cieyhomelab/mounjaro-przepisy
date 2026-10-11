@@ -39,3 +39,26 @@ export const reminderInputSchema = z.object({
   time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
 });
 export type ReminderInput = z.infer<typeof reminderInputSchema>;
+
+/** The largest goal the form accepts; it only bounds the columns. */
+export const GOAL_MAX = 100_000;
+
+const goalValue = (decimals: number) =>
+  z
+    .number()
+    .positive()
+    .max(GOAL_MAX)
+    .refine(
+      (value) => Math.abs(value * 10 ** decimals - Math.round(value * 10 ** decimals)) < 1e-9,
+      {
+        message: 'too_many_decimals',
+      },
+    );
+
+/** Request body of PUT /api/settings/goals: a goal may be cleared (null); the glass is a whole number of ml. */
+export const goalsInputSchema = z.object({
+  proteinGoalG: goalValue(1).nullable(),
+  waterGoalMl: goalValue(0).nullable(),
+  glassMl: goalValue(0),
+});
+export type GoalsInput = z.infer<typeof goalsInputSchema>;

@@ -173,6 +173,9 @@ test.describe('S15: usunięcie przepisu', () => {
     await seedRecipe(page, { title: 'Do usunięcia' });
     await seedRecipe(page, { title: 'Zostaje' });
     await page.reload();
+    // The list is first drawn from the device and the sync started by the reload may still be
+    // writing the new recipes, so wait for both before acting on the collection.
+    await expect(recipeList(page).getByRole('listitem')).toHaveCount(2);
     await recipeList(page)
       .getByRole('link', { name: /Do usunięcia/ })
       .click();
@@ -186,6 +189,7 @@ test.describe('S15: usunięcie przepisu', () => {
     await expect(recipeList(page).getByRole('listitem')).toHaveCount(1);
     await expect(recipeList(page)).toContainText('Zostaje');
     await page.reload();
+    await expect(recipeList(page).getByRole('listitem')).toHaveCount(1);
     await expect(recipeList(page)).not.toContainText('Do usunięcia');
     const snapshot = await page.request.get('/api/snapshot');
     expect(((await snapshot.json()) as { recipes: unknown[] }).recipes).toHaveLength(1);

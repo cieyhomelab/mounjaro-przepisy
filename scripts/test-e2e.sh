@@ -8,6 +8,9 @@
 # - Loads secrets from ${SH_SECRETS_DIR:-$HOME/.sh-secrets}/mounjaro-przepisy.env when present;
 #   works without them, external integrations run in mock mode.
 # - On failure, traces and screenshots are copied to test-results/e2e-<id>/.
+# - With E2E_SCREENSHOTS=1 the runner saves screen screenshots (tests/e2e/screens.spec.ts); they are
+#   copied to docs/screenshots/ after the run, also when tests failed. Existing files are
+#   overwritten, others are kept. scripts/screenshots.sh wraps this.
 #
 # Extra arguments are passed to Playwright, e.g. scripts/test-e2e.sh --project mobile-chromium
 set -euo pipefail
@@ -46,5 +49,10 @@ if [ "$status" -ne 0 ]; then
   docker cp "${RUNNER}:/e2e/test-results/." "test-results/${PROJECT}/" >/dev/null 2>&1 || true
   compose logs --no-color app | tail -n 100 >"test-results/${PROJECT}/app.log" 2>&1 || true
   echo "E2E failed; artifacts in test-results/${PROJECT}/"
+fi
+
+if [ "${E2E_SCREENSHOTS:-}" = "1" ]; then
+  mkdir -p docs/screenshots
+  docker cp "${RUNNER}:/e2e/screenshots/." docs/screenshots/ >/dev/null 2>&1 || true
 fi
 exit "$status"

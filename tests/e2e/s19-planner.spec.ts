@@ -18,8 +18,15 @@ async function openPlanner(page: Page, request: Parameters<typeof setServerClock
 }
 
 const goToPlanner = async (page: Page) => {
-  await page.getByRole('link', { name: 'Planer', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Planer' })).toBeVisible();
+  // Right after a reload the app may still be hydrating, and a click landing in between is lost, so
+  // the click is repeated until the planner shows.
+  const heading = page.getByRole('heading', { level: 1, name: 'Planer' });
+  await expect(async () => {
+    if (!(await heading.isVisible())) {
+      await page.getByRole('link', { name: 'Planer', exact: true }).click({ timeout: 2000 });
+    }
+    await expect(heading).toBeVisible({ timeout: 3000 });
+  }).toPass({ timeout: 15000 });
 };
 
 const meal = (page: Page, day: string, slot: string) =>

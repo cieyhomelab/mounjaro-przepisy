@@ -67,6 +67,9 @@ describe('filter thresholds', () => {
       reminderEnabled: false,
       reminderWeekday: 4,
       reminderTime: '19:00',
+      proteinGoalG: null,
+      waterGoalMl: null,
+      glassMl: 250,
     });
     expect((await snapshot(jar)).settings).toEqual(body.settings);
   });
@@ -102,6 +105,9 @@ describe('filter thresholds', () => {
       reminderEnabled: false,
       reminderWeekday: 4,
       reminderTime: '19:00',
+      proteinGoalG: null,
+      waterGoalMl: null,
+      glassMl: 250,
     });
   });
 

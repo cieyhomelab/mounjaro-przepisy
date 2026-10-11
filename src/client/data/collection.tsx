@@ -194,6 +194,13 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     return running.current;
   }, [runSync]);
 
+  // A change the server confirmed must not end up behind a snapshot that was requested before it:
+  // wait for the sync already running, then pull again.
+  const syncAfterChange = useCallback(async () => {
+    await running.current;
+    await sync();
+  }, [sync]);
+
   const recipeSaved = useCallback(
     async (recipe: Recipe, dataVersion: number) => {
       if (knownVersion.current !== null && dataVersion === knownVersion.current + 1) {
@@ -202,9 +209,9 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         void syncOfflineData(photoIds.current);
         return;
       }
-      await sync();
+      await syncAfterChange();
     },
-    [reload, sync],
+    [reload, syncAfterChange],
   );
 
   const recipeDeleted = useCallback(
@@ -215,9 +222,9 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         void syncOfflineData(photoIds.current);
         return;
       }
-      await sync();
+      await syncAfterChange();
     },
-    [reload, sync],
+    [reload, syncAfterChange],
   );
 
   const settingsSaved = useCallback(
@@ -228,9 +235,9 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         void syncOfflineData(photoIds.current);
         return;
       }
-      await sync();
+      await syncAfterChange();
     },
-    [reload, sync],
+    [reload, syncAfterChange],
   );
 
   const changeSaved = useCallback(
@@ -241,9 +248,9 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
         void syncOfflineData(photoIds.current);
         return;
       }
-      await sync();
+      await syncAfterChange();
     },
-    [reload, sync],
+    [reload, syncAfterChange],
   );
 
   const checkItem = useCallback(

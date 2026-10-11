@@ -5,18 +5,20 @@
 # tylko czeka na podtaski i po restarcie wznawia się na węźle, na którym stał.
 #
 # Role nie dzielą plików. Przekazują sobie pracę przez GitHub (PR, komentarze
-# z prefiksem 🤖) i przez ostatnią linię raportu podtaska, którą czytają
-# węzły `if`:
-#   STAN: STOP          rola zatrzymała pracę (blocked, czeka na merge itp.)
-#   WYNIK: PASS / FAIL  tester
-#   WERDYKT: APPROVE / CHANGES  reviewer
+# z prefiksem 🤖) i przez linię stanu na początku wyniku raportu podtaska. Węzły `if`
+# szukają jej zaraz po „(cezar: …); ” w podsumowaniu, czyli tylko w złożonym raporcie:
+#   STAN: GOTOWE / STAN: STOP        inżynier
+#   WYNIK: PASS / WYNIK: FAIL        tester (STAN: STOP przy problemie ze środowiskiem)
+#   WERDYKT: APPROVE / CHANGES       reviewer (STAN: STOP przy problemie z CI)
+# Raport bez żadnej z tych linii to awaria podtaska: eskalacja do właściciela.
+# Licznik test-rounds liczy każde odesłanie po testach w całym przebiegu (także po rundach recenzji
+# i odesłanie „praca niedokończona”).
 #
-# Znacznik [sh-v2] w poleceniu przełącza skille w tryb v2.
 # Uruchamiać z flagą Autonomous.
 
 version: 2
 name: sh-delivery
-description: Issue -> PR przez podtaski (dispatch). Inżynier, tester i reviewer bez limitu 30 minut; po 3 nieudanych rundach etykieta blocked.
+description: Issue -> PR przez podtaski (dispatch). Inżynier, tester i reviewer bez limitu 30 minut; po 3 nieudanych rundach albo przy awarii podtaska etykieta blocked.
 
 nodes:
   - id: start
@@ -28,14 +30,19 @@ nodes:
     name: Inżynier
     model: sonnet
     prompt: |
-      [sh-v2] Wczytaj skill sh-inzynier (narzędzie Skill) i postępuj według niego, w tym według sekcji „Tryb v2”.
+      Wczytaj skill sh-inzynier (narzędzie Skill) i postępuj według niego.
 
       Zadanie: {{task}}
+
+  - id: impl-ok
+    type: if
+    name: PR gotowy do testów?
+    condition: { kind: output, ref: impl.summary, op: contains, value: "); STAN: GOTOWE" }
 
   - id: impl-stop
     type: if
     name: Inżynier zatrzymał pracę?
-    condition: { kind: output, ref: impl.summary, op: contains, value: "STAN: STOP" }
+    condition: { kind: output, ref: impl.summary, op: contains, value: "); STAN: STOP" }
 
   # ---------- Tester ----------
   - id: test
@@ -43,19 +50,24 @@ nodes:
     name: Tester
     model: sonnet
     prompt: |
-      [sh-v2] Wczytaj skill sh-tester (narzędzie Skill) i postępuj według niego, w tym według sekcji „Tryb v2”.
+      Wczytaj skill sh-tester (narzędzie Skill) i postępuj według niego.
 
       Przetestuj PR przygotowany dla zadania: {{task}}
 
   - id: test-pass
     type: if
     name: Testy zielone?
-    condition: { kind: output, ref: test.summary, op: contains, value: "WYNIK: PASS" }
+    condition: { kind: output, ref: test.summary, op: contains, value: "); WYNIK: PASS" }
+
+  - id: test-fail
+    type: if
+    name: Testy czerwone?
+    condition: { kind: output, ref: test.summary, op: contains, value: "); WYNIK: FAIL" }
 
   - id: test-stop
     type: if
     name: Tester zatrzymał pracę?
-    condition: { kind: output, ref: test.summary, op: contains, value: "STAN: STOP" }
+    condition: { kind: output, ref: test.summary, op: contains, value: "); STAN: STOP" }
 
   - id: test-rounds
     type: loop
@@ -67,18 +79,23 @@ nodes:
     name: Inżynier – poprawki po testach
     model: sonnet
     prompt: |
-      [sh-v2] Wczytaj skill sh-inzynier (narzędzie Skill) i postępuj według niego, w tym według sekcji „Tryb v2”.
+      Wczytaj skill sh-inzynier (narzędzie Skill) i postępuj według niego.
 
       Runda poprawek po testach {{nodes.test-rounds.iteration}} z {{nodes.test-rounds.max}} (tryb 1).
       Raport testera: {{nodes.test.summary}}
-      Pełny raport jest w ostatnim komentarzu „🤖 Tester:” w PR.
+      Pełny raport jest w najnowszym komentarzu „🤖 Tester:” w PR.
 
       Zadanie: {{task}}
+
+  - id: fix-test-ok
+    type: if
+    name: PR gotowy do testów?
+    condition: { kind: output, ref: fix-test.summary, op: contains, value: "); STAN: GOTOWE" }
 
   - id: fix-test-stop
     type: if
     name: Inżynier zatrzymał pracę?
-    condition: { kind: output, ref: fix-test.summary, op: contains, value: "STAN: STOP" }
+    condition: { kind: output, ref: fix-test.summary, op: contains, value: "); STAN: STOP" }
 
   # ---------- Reviewer ----------
   - id: review
@@ -86,19 +103,24 @@ nodes:
     name: Reviewer
     model: opus
     prompt: |
-      [sh-v2] Wczytaj skill sh-reviewer (narzędzie Skill) i postępuj według niego, w tym według sekcji „Tryb v2”.
+      Wczytaj skill sh-reviewer (narzędzie Skill) i postępuj według niego.
 
       Zrecenzuj PR przygotowany dla zadania: {{task}}
 
   - id: review-ok
     type: if
     name: Recenzja zaakceptowana?
-    condition: { kind: output, ref: review.summary, op: contains, value: "WERDYKT: APPROVE" }
+    condition: { kind: output, ref: review.summary, op: contains, value: "); WERDYKT: APPROVE" }
+
+  - id: review-changes
+    type: if
+    name: Recenzja żąda zmian?
+    condition: { kind: output, ref: review.summary, op: contains, value: "); WERDYKT: CHANGES" }
 
   - id: review-stop
     type: if
     name: Reviewer zatrzymał pracę?
-    condition: { kind: output, ref: review.summary, op: contains, value: "STAN: STOP" }
+    condition: { kind: output, ref: review.summary, op: contains, value: "); STAN: STOP" }
 
   - id: review-rounds
     type: loop
@@ -110,18 +132,23 @@ nodes:
     name: Inżynier – poprawki po recenzji
     model: sonnet
     prompt: |
-      [sh-v2] Wczytaj skill sh-inzynier (narzędzie Skill) i postępuj według niego, w tym według sekcji „Tryb v2”.
+      Wczytaj skill sh-inzynier (narzędzie Skill) i postępuj według niego.
 
       Runda poprawek po recenzji {{nodes.review-rounds.iteration}} z {{nodes.review-rounds.max}} (tryb 1).
       Werdykt reviewera: {{nodes.review.summary}}
-      Pełny werdykt jest w ostatnim komentarzu „🤖 Reviewer:” w PR.
+      Pełny werdykt jest w najnowszym komentarzu „🤖 Reviewer:” w PR.
 
       Zadanie: {{task}}
+
+  - id: fix-review-ok
+    type: if
+    name: PR gotowy do testów?
+    condition: { kind: output, ref: fix-review.summary, op: contains, value: "); STAN: GOTOWE" }
 
   - id: fix-review-stop
     type: if
     name: Inżynier zatrzymał pracę?
-    condition: { kind: output, ref: fix-review.summary, op: contains, value: "STAN: STOP" }
+    condition: { kind: output, ref: fix-review.summary, op: contains, value: "); STAN: STOP" }
 
   # ---------- Eskalacje do właściciela ----------
   - id: esc-test
@@ -129,12 +156,12 @@ nodes:
     name: Eskalacja – testy
     model: haiku
     prompt: |
-      [sh-v2] Nie wczytuj żadnego skilla. Jesteś bramką testów software house'u.
+      Nie wczytuj żadnego skilla. Jesteś bramką testów software house'u.
       Testy nie przechodzą po 3 rundach poprawek. Ostatni raport testera: {{nodes.test.summary}}
 
       1. Ustal repozytorium: `gh repo view --json nameWithOwner -q .nameWithOwner`.
       2. Ustal numer issue z zadania poniżej i znajdź jego otwarty PR: `gh pr list --repo {repo} --state open --json number,headRefName,body` (gałąź zaczyna się od feat/{issue}- lub fix/{issue}-, albo opis zawiera „Closes #{issue}”).
-      3. Dodaj etykietę `blocked` do PR (gdy PR nie ma, do issue): `gh pr edit {numer} --repo {repo} --add-label blocked`.
+      3. Dodaj etykietę `blocked` do PR: `gh pr edit {numer} --repo {repo} --add-label blocked`; gdy PR nie ma, do issue: `gh issue edit {numer} --repo {repo} --add-label blocked`.
       4. Skomentuj tam: „🤖 Bramka testów: Testy nie przechodzą po 3 rundach poprawek. Ostatni raport testera jest w komentarzach powyżej. Potrzebna decyzja właściciela.”
       5. Uruchom `sh-notify blocked {repo} {numer}`.
       6. Zakończ: `node "$CEZ_BIN" task report --status done --result "Eskalowano do właściciela"`, a w ostatniej linii odpowiedzi napisz CEZ:DONE.
@@ -147,12 +174,12 @@ nodes:
     name: Eskalacja – recenzja
     model: haiku
     prompt: |
-      [sh-v2] Nie wczytuj żadnego skilla. Jesteś bramką recenzji software house'u.
+      Nie wczytuj żadnego skilla. Jesteś bramką recenzji software house'u.
       Reviewer nadal odrzuca PR po 3 rundach poprawek. Ostatni werdykt: {{nodes.review.summary}}
 
       1. Ustal repozytorium: `gh repo view --json nameWithOwner -q .nameWithOwner`.
       2. Ustal numer issue z zadania poniżej i znajdź jego otwarty PR: `gh pr list --repo {repo} --state open --json number,headRefName,body` (gałąź zaczyna się od feat/{issue}- lub fix/{issue}-, albo opis zawiera „Closes #{issue}”).
-      3. Dodaj etykietę `blocked` do PR (gdy PR nie ma, do issue): `gh pr edit {numer} --repo {repo} --add-label blocked`.
+      3. Dodaj etykietę `blocked` do PR: `gh pr edit {numer} --repo {repo} --add-label blocked`; gdy PR nie ma, do issue: `gh issue edit {numer} --repo {repo} --add-label blocked`.
       4. Skomentuj tam: „🤖 Bramka recenzji: Recenzja nadal odrzuca PR po 3 rundach poprawek. Potrzebna decyzja właściciela.”
       5. Uruchom `sh-notify blocked {repo} {numer}`.
       6. Zakończ: `node "$CEZ_BIN" task report --status done --result "Eskalowano do właściciela"`, a w ostatniej linii odpowiedzi napisz CEZ:DONE.
@@ -162,11 +189,11 @@ nodes:
 
   - id: esc-crash
     type: dispatch
-    name: Eskalacja – podtask przerwany
+    name: Eskalacja – podtask bez wyniku
     model: haiku
     prompt: |
-      [sh-v2] Nie wczytuj żadnego skilla. Jesteś bramką software house'u.
-      Jeden z podtasków workflow sh-delivery zakończył się błędem (awaria, anulowanie albo restart), zanim oddał wynik.
+      Nie wczytuj żadnego skilla. Jesteś bramką software house'u.
+      Jeden z podtasków workflow sh-delivery zakończył się błędem albo bez linii stanu w raporcie (awaria, anulowanie, restart albo pominięty raport).
       Raporty, które dotarły:
       - Inżynier: {{nodes.impl.summary}}
       - Tester: {{nodes.test.summary}}
@@ -177,7 +204,7 @@ nodes:
       1. Ustal repozytorium: `gh repo view --json nameWithOwner -q .nameWithOwner`.
       2. Ustal numer issue z zadania poniżej i znajdź jego otwarty PR (gałąź feat/{issue}- lub fix/{issue}-, albo opis z „Closes #{issue}”).
       3. Dodaj etykietę `blocked` do PR (gdy PR nie ma, do issue).
-      4. Skomentuj tam: „🤖 Bramka: Przebieg przerwany, podtask zakończył się błędem: {jednozdaniowy opis z raportów}. Zdejmij blocked, żeby kierownik wznowił pracę.”
+      4. Skomentuj tam: „🤖 Bramka: Przebieg przerwany, podtask zakończył się bez wyniku: {jednozdaniowy opis z raportów}. Zdejmij blocked, żeby kierownik wznowił pracę.”
       5. Uruchom `sh-notify blocked {repo} {numer}`.
       6. Zakończ: `node "$CEZ_BIN" task report --status done --result "Eskalowano do właściciela"`, a w ostatniej linii odpowiedzi napisz CEZ:DONE.
       Nie zmieniasz kodu i niczego nie commitujesz. Nie zadajesz pytań.
@@ -203,38 +230,48 @@ nodes:
 edges:
   - { from: start, to: impl }
 
-  - { from: impl.done, to: impl-stop }
+  - { from: impl.done, to: impl-ok }
   - { from: impl.failed, to: esc-crash }
+  - { from: impl-ok.true, to: test }
+  - { from: impl-ok.false, to: impl-stop }
   - { from: impl-stop.true, to: stopped }
-  - { from: impl-stop.false, to: test }
+  - { from: impl-stop.false, to: esc-crash }
 
   - { from: test.done, to: test-pass }
   - { from: test.failed, to: esc-crash }
   - { from: test-pass.true, to: review }
-  - { from: test-pass.false, to: test-stop }
+  - { from: test-pass.false, to: test-fail }
+  - { from: test-fail.true, to: test-rounds }
+  - { from: test-fail.false, to: test-stop }
   - { from: test-stop.true, to: stopped }
-  - { from: test-stop.false, to: test-rounds }
+  - { from: test-stop.false, to: esc-crash }
   - { from: test-rounds.repeat, to: fix-test }
   - { from: test-rounds.exhausted, to: esc-test }
 
-  - { from: fix-test.done, to: fix-test-stop }
+  - { from: fix-test.done, to: fix-test-ok }
   - { from: fix-test.failed, to: esc-crash }
+  - { from: fix-test-ok.true, to: test }
+  - { from: fix-test-ok.false, to: fix-test-stop }
   - { from: fix-test-stop.true, to: stopped }
-  - { from: fix-test-stop.false, to: test }
+  - { from: fix-test-stop.false, to: esc-crash }
 
   - { from: review.done, to: review-ok }
   - { from: review.failed, to: esc-crash }
   - { from: review-ok.true, to: approved }
-  - { from: review-ok.false, to: review-stop }
+  - { from: review-ok.false, to: review-changes }
+  - { from: review-changes.true, to: review-rounds }
+  - { from: review-changes.false, to: review-stop }
   - { from: review-stop.true, to: stopped }
-  - { from: review-stop.false, to: review-rounds }
+  - { from: review-stop.false, to: esc-crash }
   - { from: review-rounds.repeat, to: fix-review }
   - { from: review-rounds.exhausted, to: esc-review }
 
-  - { from: fix-review.done, to: fix-review-stop }
+  - { from: fix-review.done, to: fix-review-ok }
   - { from: fix-review.failed, to: esc-crash }
+  - { from: fix-review-ok.true, to: test }
+  - { from: fix-review-ok.false, to: fix-review-stop }
   - { from: fix-review-stop.true, to: stopped }
-  - { from: fix-review-stop.false, to: test }
+  - { from: fix-review-stop.false, to: esc-crash }
 
   - { from: esc-test, to: escalated }
   - { from: esc-test.failed, to: escalated }

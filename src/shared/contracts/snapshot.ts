@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
 import { doseEntrySchema } from './dose';
+import { proteinEntrySchema, waterEntrySchema } from './intake';
 import { wellbeingEntrySchema } from './wellbeing';
 import { mealPlanEntrySchema } from './mealPlan';
 import { recipeSchema } from './recipe';
@@ -19,6 +20,11 @@ export const settingsSchema = z.object({
   reminderEnabled: z.boolean(),
   reminderWeekday: z.number().int().min(1).max(7),
   reminderTime: z.string().regex(/^\d{2}:\d{2}$/),
+  /** The daily goals of the counters (S25): empty until the user sets them; the app never proposes them. */
+  proteinGoalG: z.number().nullable(),
+  waterGoalMl: z.number().nullable(),
+  /** The size of the glass the water button adds, in ml. */
+  glassMl: z.number().int(),
 });
 export type Settings = z.infer<typeof settingsSchema>;
 
@@ -39,6 +45,8 @@ export const snapshotSchema = z.object({
   shoppingCustomItems: z.array(shoppingCustomItemSchema),
   doseEntries: z.array(doseEntrySchema),
   wellbeingEntries: z.array(wellbeingEntrySchema),
+  proteinEntries: z.array(proteinEntrySchema),
+  waterEntries: z.array(waterEntrySchema),
 });
 export type Snapshot = z.infer<typeof snapshotSchema>;
 

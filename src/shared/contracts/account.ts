@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { collectionSchema } from './collection';
 import { cookEventSchema } from './cookEvent';
 import { doseEntrySchema } from './dose';
+import { proteinEntrySchema, waterEntrySchema } from './intake';
 import { wellbeingEntrySchema } from './wellbeing';
 import { mealPlanEntrySchema } from './mealPlan';
 import { recipeSchema } from './recipe';
@@ -61,5 +62,9 @@ export const accountExportSchema = z.object({
   doseEntries: z.array(doseEntrySchema),
   /** The weight and mood journal: date, weight, mood and note of every entry. */
   wellbeingEntries: z.array(wellbeingEntrySchema),
+  /** The protein counter: every entry with the recipe name and amount of the moment it was added. */
+  proteinEntries: z.array(proteinEntrySchema),
+  /** The water counter: every glass added. The daily goals and the glass size are in `settings`. */
+  waterEntries: z.array(waterEntrySchema),
 });
 export type AccountExport = z.infer<typeof accountExportSchema>;

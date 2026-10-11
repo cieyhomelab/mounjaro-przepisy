@@ -57,6 +57,14 @@ export function SettingsScreen() {
         </li>
         <li>
           <Link
+            to="/ustawienia/cele"
+            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+          >
+            Cele i szklanka
+          </Link>
+        </li>
+        <li>
+          <Link
             to="/ustawienia/przypomnienie"
             className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
           >

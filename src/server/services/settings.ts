@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
-import type { ReminderInput, ThresholdsInput } from '../../shared/contracts/settings';
+import type { GoalsInput, ReminderInput, ThresholdsInput } from '../../shared/contracts/settings';
 import type { Settings } from '../../shared/contracts/snapshot';
+import { DEFAULT_GOALS } from '../../shared/domain/intake';
 import { DEFAULT_REMINDER } from '../../shared/domain/reminder';
 import { DEFAULT_THRESHOLDS } from '../../shared/domain/recipeList';
 import type { Database } from '../db/client';
@@ -22,8 +23,11 @@ export function toSettings(row: Row | undefined): Settings {
         reminderWeekday: row.reminderWeekday,
         // The column is a time of day: "19:00:00".
         reminderTime: row.reminderTime.slice(0, 5),
+        proteinGoalG: row.proteinGoalG,
+        waterGoalMl: row.waterGoalMl,
+        glassMl: row.glassMl,
       }
-    : { ...DEFAULT_THRESHOLDS, ...DEFAULT_REMINDER };
+    : { ...DEFAULT_THRESHOLDS, ...DEFAULT_REMINDER, ...DEFAULT_GOALS };
 }
 
 async function writeSettings(
@@ -59,6 +63,15 @@ export function saveReminder(database: Database, accountId: string, input: Remin
     reminderEnabled: input.enabled,
     reminderWeekday: input.weekday,
     reminderTime: input.time,
+  });
+}
+
+/** Saves the daily goals and the glass of the counters (S25). */
+export function saveGoals(database: Database, accountId: string, input: GoalsInput) {
+  return writeSettings(database, accountId, {
+    proteinGoalG: input.proteinGoalG,
+    waterGoalMl: input.waterGoalMl,
+    glassMl: input.glassMl,
   });
 }
 

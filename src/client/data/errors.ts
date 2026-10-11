@@ -8,6 +8,8 @@ const messages: Record<string, string> = {
   forbidden_origin: 'Nie udało się wykonać tej akcji. Odśwież aplikację i spróbuj ponownie.',
   push_unavailable:
     'Powiadomienia nie są jeszcze skonfigurowane na serwerze, więc to urządzenie ich nie dostanie.',
+  protein_required: 'Ten przepis nie ma wartości białka. Podaj, ile białka zjadłeś.',
+  past_day: 'Wpisów z poprzednich dni nie można zmieniać.',
   not_found: 'Nie znaleziono tych danych.',
   conflict: 'Te dane zmieniły się w międzyczasie. Odśwież i spróbuj ponownie.',
   payload_too_large: 'Przesyłane dane są za duże.',

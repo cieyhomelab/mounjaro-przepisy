@@ -5,6 +5,7 @@ import type { Database } from '../db/client';
 import { accounts } from '../db/schema';
 import { listCollections } from './collections';
 import { listDoseEntries } from './doseEntries';
+import { listProteinEntries, listWaterEntries } from './intake';
 import { listWellbeingEntries } from './wellbeing';
 import { listMealPlan } from './mealPlan';
 import { listCookEvents } from './recipeDetails';
@@ -49,6 +50,8 @@ export async function buildSnapshot(
         shoppingCustomItems: await listShoppingCustomItems(tx, accountId),
         doseEntries: await listDoseEntries(tx, accountId),
         wellbeingEntries: await listWellbeingEntries(tx, accountId),
+        proteinEntries: await listProteinEntries(tx, accountId),
+        waterEntries: await listWaterEntries(tx, accountId),
       };
     },
     { isolationLevel: 'repeatable read', accessMode: 'read only' },

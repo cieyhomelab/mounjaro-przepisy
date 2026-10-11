@@ -1,1 +1,157 @@
 @import 'tailwindcss';
+@import '@fontsource/atkinson-hyperlegible/latin-400.css';
+@import '@fontsource/atkinson-hyperlegible/latin-700.css';
+@import '@fontsource/atkinson-hyperlegible/latin-ext-400.css';
+@import '@fontsource/atkinson-hyperlegible/latin-ext-700.css';
+
+/* Headings: the variable Bricolage Grotesque files from the Fontsource package, under the plain family name. */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500 800;
+  src: url('@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-ext-wght-normal.woff2')
+    format('woff2-variations');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500 800;
+  src: url('@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2')
+    format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Design tokens ("Mąka i jagody"). Light values on :root, dark values under data-theme='dark'. */
+:root {
+  --bg: #fbf8f4;
+  --surface: #ffffff;
+  --surface-muted: #f1ebe3;
+  --line: #e6ded4;
+  --ink: #2b2320;
+  --ink-muted: #6b5e57;
+  --primary: #3e4a7a;
+  --on-primary: #ffffff;
+  --primary-soft: #e4e8f5;
+  --on-primary-soft: #2b3459;
+  --accent: #9a5b34;
+  --warn-soft: #f7e6da;
+  --on-warn-soft: #5e3118;
+  --cook-bg: #e4e8f5;
+  --nav: #2b2320;
+  --on-nav: #e8e0d8;
+  --health-bg: #f4f6f2;
+  --health: #3f6553;
+  --on-health: #ffffff;
+  --health-soft: #e4ede7;
+  --on-health-soft: #22302a;
+  --health-line: #dce5df;
+  --nav-shadow: 0 8px 24px rgb(43 35 32 / 0.22);
+}
+
+html[data-theme='dark'] {
+  --bg: #1c1816;
+  --surface: #28221f;
+  --surface-muted: #322b27;
+  --line: #3a322d;
+  --ink: #f4eee8;
+  --ink-muted: #bdb0a7;
+  --primary: #a9b5e8;
+  --on-primary: #1a2140;
+  --primary-soft: #2e3550;
+  --on-primary-soft: #dce2f7;
+  --accent: #e0a47a;
+  --warn-soft: #4a2e1e;
+  --on-warn-soft: #f7e6da;
+  --cook-bg: #1a1e2e;
+  --nav: #322b27;
+  --on-nav: #e8e0d8;
+  --health-bg: #171c19;
+  --health: #8fbba5;
+  --on-health: #13221b;
+  --health-soft: #24302a;
+  --on-health-soft: #e4ede7;
+  --health-line: #2f3b34;
+  --nav-shadow: 0 8px 24px rgb(0 0 0 / 0.4);
+}
+
+/* Tailwind utilities read the tokens through var(), so a theme change needs no other rule. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary-soft: var(--on-primary-soft);
+  --color-accent: var(--accent);
+  --color-warn-soft: var(--warn-soft);
+  --color-on-warn-soft: var(--on-warn-soft);
+  --color-cook-bg: var(--cook-bg);
+  --color-nav: var(--nav);
+  --color-on-nav: var(--on-nav);
+  --color-health-bg: var(--health-bg);
+  --color-health: var(--health);
+  --color-on-health: var(--on-health);
+  --color-health-soft: var(--health-soft);
+  --color-on-health-soft: var(--on-health-soft);
+  --color-health-line: var(--health-line);
+  --shadow-nav: var(--nav-shadow);
+}
+
+@theme {
+  --color-empty-icon: #f2d3ac;
+  --color-no-photo: #f2e3b3;
+  --color-on-fixed: #2b2320;
+
+  --font-heading: 'Bricolage Grotesque', 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+
+  --text-display: 36px;
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.02em;
+  --text-title: 30px;
+  --text-title--line-height: 1.08;
+  --text-cook: 27px;
+  --text-cook--line-height: 1.38;
+  --text-cook-ingredient: 22px;
+  --text-cook-step: 120px;
+  --text-cook-step--line-height: 0.85;
+
+  --radius-sm: 14px;
+  --radius-md: 20px;
+  --radius-lg: 26px;
+  --radius-hero: 36px;
+
+  --shadow-card: 0 1px 2px rgb(43 35 32 / 0.06);
+
+  --spacing-touch: 44px;
+  --spacing-action: 60px;
+  --spacing-cook-button: 76px;
+}
+
+@layer base {
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+  }
+}

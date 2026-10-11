@@ -89,6 +89,9 @@ export async function buildApp({
       directives: {
         'default-src': ["'self'"],
         'img-src': ["'self'", 'blob:', 'data:'],
+        // Fonts, icons and styles come from the app itself; React sets style attributes inline.
+        'font-src': ["'self'"],
+        'style-src': ["'self'", "'unsafe-inline'"],
         // Plain-http deployments (local, e2e) must not be upgraded to https.
         'upgrade-insecure-requests': null,
       },

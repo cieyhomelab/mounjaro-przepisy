@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { ThemeSetting } from '../components/ThemeSetting';
 import { useOfflineStatus, type OfflineStatus } from '../data/offline';
 
 const formatSyncedAt = (at: number) =>
@@ -88,6 +89,7 @@ export function SettingsScreen() {
           </Link>
         </li>
       </ul>
+      <ThemeSetting />
       <OfflineData status={status} />
     </section>
   );

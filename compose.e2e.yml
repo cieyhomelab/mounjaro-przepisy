@@ -48,6 +48,7 @@ services:
     environment:
       E2E_BASE_URL: http://localhost:3000
       CI: ${CI:-}
+      E2E_SCREENSHOTS: ${E2E_SCREENSHOTS:-}
     depends_on:
       app:
         condition: service_healthy

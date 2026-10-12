@@ -207,7 +207,7 @@ test.describe('S14: dane offline', () => {
 
     await page.getByRole('link', { name: 'Gotuj' }).click();
     await expect(page.getByText('offline', { exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
     await expect(page.getByText('Usmaż kurczaka.')).toBeVisible();
   });
 
@@ -331,7 +331,7 @@ test.describe('S14: blokada zmian offline', () => {
     await goOffline(context, page);
     await page.goto(`/przepisy/${id}/gotuj`);
 
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
     await page.getByRole('button', { name: 'Zakończ' }).click();
 
     await expect(page.getByRole('button', { name: 'Ugotowane' })).toBeDisabled();

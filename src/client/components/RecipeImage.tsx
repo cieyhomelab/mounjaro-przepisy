@@ -23,7 +23,7 @@ export function RecipeImage({
       role="img"
       aria-label="Brak zdjęcia"
       viewBox="0 0 64 64"
-      className={`${className} bg-neutral-100 text-neutral-400`}
+      className={`${className} bg-no-photo text-on-fixed`}
     >
       <g fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
         <path d="M12 34h40c0 10-8 18-20 18S12 44 12 34z" />

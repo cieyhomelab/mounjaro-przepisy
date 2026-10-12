@@ -4,6 +4,7 @@ import type { Recipe } from '../../shared/contracts/recipe';
 import { formatKcal, formatProtein } from '../../shared/domain/recipeList';
 import { formatSourceRating } from '../../shared/domain/sourceRating';
 import { RecipeImage } from './RecipeImage';
+import { Badge } from './ui/Badge';
 
 /** Height of one list row in px, including the gap below it. Rows have a fixed height so only the visible ones need to exist. */
 const ROW_HEIGHT = 104;
@@ -29,7 +30,7 @@ function RecipeListItem({
     >
       <Link
         to={`/przepisy/${recipe.id}`}
-        className="flex h-24 items-center gap-3 overflow-hidden rounded-lg border border-neutral-200 p-2"
+        className="flex h-24 items-center gap-3 overflow-hidden rounded-lg border border-line p-2"
       >
         <RecipeImage
           photoId={recipe.photoId}
@@ -40,21 +41,25 @@ function RecipeListItem({
           <span className="flex items-center gap-2">
             <span className="truncate font-semibold">{recipe.title}</span>
             {recipe.kind === 'manual' ? (
-              <span className="shrink-0 rounded-full bg-neutral-200 px-2 text-sm">ręczny</span>
+              <span className="shrink-0 rounded-full bg-surface-muted px-2 text-sm">ręczny</span>
             ) : null}
             {recipe.worseDays ? (
-              <span className="shrink-0 rounded-full bg-amber-100 px-2 text-sm">Na gorsze dni</span>
+              <Badge tone="warn" className="shrink-0">
+                Na gorsze dni
+              </Badge>
             ) : null}
             {recipe.tolerance === 'bad' ? (
-              <span className="shrink-0 rounded-full bg-red-100 px-2 text-sm">źle toleruję</span>
+              <Badge tone="warn" className="shrink-0">
+                źle toleruję
+              </Badge>
             ) : null}
           </span>
-          <span className="flex flex-wrap gap-x-4 text-neutral-700">
+          <span className="flex flex-wrap gap-x-4 text-ink-muted">
             <span>Białko: {formatProtein(recipe)}</span>
             <span>Kalorie: {formatKcal(recipe)}</span>
           </span>
           {recipe.kind === 'link' || sourceRating !== null || ownRating !== null ? (
-            <span className="flex flex-wrap gap-x-4 text-sm text-neutral-600">
+            <span className="flex flex-wrap gap-x-4 text-sm text-ink-muted">
               {recipe.kind === 'link' || sourceRating !== null ? (
                 <span>Ocena ze źródła: {formatSourceRating(recipe)}</span>
               ) : null}

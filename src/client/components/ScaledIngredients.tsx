@@ -21,7 +21,7 @@ export function ScaledIngredients({
           <li key={index}>
             {scaled.text}
             {scaled.status === 'unscaled' ? (
-              <span className="text-neutral-700"> (ilość nieprzeliczona)</span>
+              <span className="text-ink-muted"> (ilość nieprzeliczona)</span>
             ) : null}
           </li>
         );

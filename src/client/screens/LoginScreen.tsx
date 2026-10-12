@@ -4,6 +4,7 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { OfflineBadge } from '../components/OfflineBadge';
 import { useSession } from '../data/session';
 import { FieldError } from '../components/ui/FieldError';
+import { ButtonAnchor } from '../components/ui/ButtonLink';
 
 const loginMessages: Record<string, string> = {
   konto: 'To konto nie ma dostępu',
@@ -28,12 +29,12 @@ export function LoginScreen() {
       ) : null}
       {failure ? <FieldError>{failure}</FieldError> : null}
       {/* A plain link: the whole sign-in is a chain of redirects handled by the server. */}
-      <a
+      <ButtonAnchor
         href={`/api/auth/google/start?returnTo=${encodeURIComponent(returnTo)}`}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-neutral-900 px-6 font-medium text-white"
+        className="px-6"
       >
         Zaloguj przez Google
-      </a>
+      </ButtonAnchor>
     </main>
   );
 }

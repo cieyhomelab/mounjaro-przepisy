@@ -14,9 +14,10 @@ import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
 import { FieldError } from '../components/ui/FieldError';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
+import { Button } from '../components/ui/Button';
+import { ConfirmPanel } from '../components/ui/ConfirmPanel';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
 
 const PROBLEMS: Record<CollectionNameProblem, string> = {
   empty: 'Podaj nazwę kolekcji.',
@@ -68,33 +69,24 @@ function NameForm({
     <form onSubmit={(event) => void submit(event)} noValidate className="flex flex-col gap-2">
       <label className="flex flex-col gap-1 font-medium">
         {fieldLabel}
-        <input
+        <Input
           type="text"
           value={name}
           aria-invalid={problem ? true : undefined}
           onChange={(event) => setName(event.target.value)}
-          className="min-h-11 rounded-lg border border-neutral-300 px-3 font-normal"
+          className="font-normal"
         />
       </label>
       {problem ? <FieldError>{PROBLEMS[problem]}</FieldError> : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void submit()} /> : null}
       <div className="flex flex-wrap gap-2">
-        <button
-          type="submit"
-          disabled={busy}
-          className={`${buttonClass} bg-neutral-900 text-white`}
-        >
+        <Button type="submit" disabled={busy}>
           {submitLabel}
-        </button>
+        </Button>
         {onCancel ? (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={onCancel}
-            className={`${buttonClass} border border-neutral-400`}
-          >
+          <Button disabled={busy} onClick={onCancel} variant="secondary">
             Anuluj
-          </button>
+          </Button>
         ) : null}
       </div>
     </form>
@@ -130,29 +122,27 @@ function CollectionRow({
     });
 
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3">
+    <Card as="li" compact className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-semibold">{collection.name}</span>
-        <span className="text-neutral-600">Przepisy: {recipeCount}</span>
+        <span className="text-ink-muted">Przepisy: {recipeCount}</span>
       </div>
       {mode === 'view' ? (
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
+          <Button
             onClick={() => setMode('rename')}
             aria-label={`Zmień nazwę kolekcji ${collection.name}`}
-            className={`${buttonClass} border border-neutral-400`}
+            variant="secondary"
           >
             Zmień nazwę
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             onClick={() => setMode('delete')}
             aria-label={`Usuń kolekcję ${collection.name}`}
-            className={`${buttonClass} border border-red-800 text-red-900`}
+            variant="danger-outline"
           >
             Usuń
-          </button>
+          </Button>
         </div>
       ) : null}
       {mode === 'rename' ? (
@@ -166,38 +156,23 @@ function CollectionRow({
         />
       ) : null}
       {mode === 'delete' ? (
-        <div
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby={`delete-${collection.id}`}
-          className="flex flex-col gap-3 rounded-lg border border-red-800 bg-red-50 p-4"
+        <ConfirmPanel
+          titleId={`delete-${collection.id}`}
+          title={<>Usunąć kolekcję „{collection.name}”?</>}
         >
-          <h2 id={`delete-${collection.id}`} className="text-lg font-semibold">
-            Usunąć kolekcję „{collection.name}”?
-          </h2>
           <p>Przepisy z tej kolekcji pozostaną w Twojej kolekcji.</p>
           {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void remove()} /> : null}
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void remove()}
-              className={`${buttonClass} bg-red-800 text-white`}
-            >
+            <Button disabled={busy} onClick={() => void remove()} variant="danger">
               Potwierdź usunięcie
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setMode('view')}
-              className={`${buttonClass} border border-neutral-400`}
-            >
+            </Button>
+            <Button disabled={busy} onClick={() => setMode('view')} variant="secondary">
               Anuluj
-            </button>
+            </Button>
           </div>
-        </div>
+        </ConfirmPanel>
       ) : null}
-    </li>
+    </Card>
   );
 }
 
@@ -219,7 +194,7 @@ export function OwnCollectionsScreen() {
       </Link>
       <h1 className="text-2xl font-semibold">Kolekcje własne</h1>
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}
@@ -236,7 +211,7 @@ export function OwnCollectionsScreen() {
             onSave={create}
           />
           {state.collections.length === 0 ? (
-            <p className="text-neutral-600">Nie masz jeszcze kolekcji własnych.</p>
+            <p className="text-ink-muted">Nie masz jeszcze kolekcji własnych.</p>
           ) : (
             <ul aria-label="Kolekcje własne" className="flex flex-col gap-2">
               {state.collections.map((collection) => (

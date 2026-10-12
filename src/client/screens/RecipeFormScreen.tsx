@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import {
   recipeResponseSchema,
   type Recipe,
@@ -21,6 +21,10 @@ import { useCollection } from '../data/collection';
 import { isOffline } from '../data/offline';
 import { Field } from '../components/ui/Field';
 import { FieldError } from '../components/ui/FieldError';
+import { Button } from '../components/ui/Button';
+import { ButtonLink } from '../components/ui/ButtonLink';
+import { Input, inputClassName } from '../components/ui/Input';
+import { Notice } from '../components/ui/Notice';
 
 type FieldErrors = Partial<Record<RecipeField, RecipeFieldCode>>;
 
@@ -47,11 +51,6 @@ const fieldMessages: Record<RecipeField, Record<RecipeFieldCode, string>> = {
   fatG: { required: 'Podaj liczbę.', invalid: 'Podaj liczbę nieujemną.' },
   fiberG: { required: 'Podaj liczbę.', invalid: 'Podaj liczbę nieujemną.' },
 };
-
-const inputClass = 'min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2';
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
-const secondaryButton = `${buttonClass} border border-neutral-400`;
 
 /** Editable list of text lines (ingredients or steps) with add and remove buttons. */
 function LineList({
@@ -86,7 +85,7 @@ function LineList({
           value,
           'aria-invalid': Boolean(error),
           disabled,
-          className: inputClass,
+          className: `${inputClassName} w-full`,
           onChange: (event: { target: { value: string } }) =>
             onChange(values.map((item, i) => (i === index ? event.target.value : item))),
         };
@@ -94,31 +93,31 @@ function LineList({
           // Rows have no identity of their own; the position is the key.
           <div key={index} className="flex items-start gap-2">
             <div className="flex flex-1 flex-col gap-1">
-              <label htmlFor={id} className="text-sm text-neutral-700">
+              <label htmlFor={id} className="text-sm text-ink-muted">
                 {itemLabel} {index + 1}
               </label>
               {multiline ? <textarea rows={2} {...common} /> : <input type="text" {...common} />}
             </div>
-            <button
-              type="button"
-              className={`${secondaryButton} mt-7`}
+            <Button
+              variant="secondary"
+              className="mt-7"
               onClick={() => onChange(values.filter((_, i) => i !== index))}
               disabled={disabled || values.length === 1}
             >
               Usuń {itemLabel.toLowerCase()} {index + 1}
-            </button>
+            </Button>
           </div>
         );
       })}
       {error ? <FieldError id={errorId}>{error}</FieldError> : null}
-      <button
-        type="button"
-        className={`${secondaryButton} self-start`}
+      <Button
+        variant="secondary"
+        className="self-start"
         disabled={disabled}
         onClick={() => onChange([...values, ''])}
       >
         {addLabel}
-      </button>
+      </Button>
     </fieldset>
   );
 }
@@ -236,11 +235,7 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
             ? 'Podgląd przepisu'
             : 'Nowy przepis'}
       </h1>
-      {draft?.notice ? (
-        <p role="status" className="rounded-lg bg-amber-50 p-3 text-amber-950">
-          {draft.notice}
-        </p>
-      ) : null}
+      {draft?.notice ? <Notice role="status">{draft.notice}</Notice> : null}
       {draft?.mode === 'preview' ? (
         <div className="flex flex-col gap-2">
           <RecipeImage
@@ -260,10 +255,10 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
       <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
         <Field id="title" label="Tytuł" error={message('title')}>
           {(describedBy, invalid) => (
-            <input
+            <Input
               id="title"
               type="text"
-              className={inputClass}
+              className="w-full"
               value={values.title}
               disabled={recipeKept}
               aria-invalid={invalid}
@@ -274,11 +269,11 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
         </Field>
         <Field id="servings" label="Liczba porcji" error={message('servings')}>
           {(describedBy, invalid) => (
-            <input
+            <Input
               id="servings"
               type="text"
               inputMode="decimal"
-              className={inputClass}
+              className="w-full"
               value={values.servings}
               disabled={recipeKept}
               aria-invalid={invalid}
@@ -298,7 +293,7 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
           disabled={recipeKept}
           onChange={(next) => set('ingredients', next)}
         />
-        <p className="-mt-3 text-sm text-neutral-600">
+        <p className="-mt-3 text-sm text-ink-muted">
           Jeden składnik w wierszu, np. „200 g piersi z kurczaka” albo „sól do smaku”.
         </p>
         <LineList
@@ -318,21 +313,21 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
           hint={existing?.photoId ? 'Bez wyboru pliku zostanie dotychczasowe zdjęcie.' : undefined}
         >
           {() => (
-            <input
+            <Input
               id="photo"
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              className={inputClass}
+              className="w-full"
               onChange={(event) => setPhoto(event.target.files?.[0] ?? null)}
             />
           )}
         </Field>
         <Field id="sourceUrl" label="Link do źródła (opcjonalnie)" error={message('sourceUrl')}>
           {(describedBy, invalid) => (
-            <input
+            <Input
               id="sourceUrl"
               type="url"
-              className={inputClass}
+              className="w-full"
               value={values.sourceUrl}
               disabled={recipeKept || existing?.kind === 'link' || draft?.mode === 'preview'}
               aria-invalid={invalid}
@@ -343,7 +338,7 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
         </Field>
         <fieldset className="flex flex-col gap-3">
           <legend className="font-medium">Wartości odżywcze na porcję (opcjonalnie)</legend>
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-ink-muted">
             Zostaw pole puste, aby użyć wartości ze strony źródłowej albo wyliczonej ze składników.
           </p>
           {(
@@ -362,11 +357,11 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
               error={message(key)}
             >
               {(describedBy, invalid) => (
-                <input
+                <Input
                   id={`nutrition-${key}`}
                   type="text"
                   inputMode="decimal"
-                  className={inputClass}
+                  className="w-full"
                   value={values.nutrition[key]}
                   disabled={recipeKept}
                   aria-invalid={invalid}
@@ -389,16 +384,12 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
           </div>
         ) : null}
         <div className="flex flex-wrap gap-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className={`${buttonClass} bg-neutral-900 text-white disabled:opacity-60`}
-          >
+          <Button type="submit" disabled={saving}>
             Zapisz
-          </button>
-          <Link to={existing ? `/przepisy/${existing.id}` : '/'} className={secondaryButton}>
+          </Button>
+          <ButtonLink to={existing ? `/przepisy/${existing.id}` : '/'} variant="secondary">
             Anuluj
-          </Link>
+          </ButtonLink>
         </div>
       </form>
     </section>
@@ -415,7 +406,7 @@ export function RecipeEditScreen() {
   const { state, sync } = useCollection();
   if (state.status === 'loading') {
     return (
-      <p role="status" className="text-neutral-600">
+      <p role="status" className="text-ink-muted">
         Ładowanie…
       </p>
     );

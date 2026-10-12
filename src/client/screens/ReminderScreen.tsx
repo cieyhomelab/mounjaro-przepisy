@@ -9,7 +9,7 @@ import { useCollection } from '../data/collection';
 import { enableNotifications, isSubscribed, pushState, type PushState } from '../data/push';
 import { useAction } from '../data/useAction';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { Input, inputClassName } from '../components/ui/Input';
 import { Notice } from '../components/ui/Notice';
 
 const WEEKDAYS = ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota', 'niedziela'];
@@ -92,6 +92,7 @@ function ReminderForm({ settings }: { settings: Settings }) {
           id="reminder-weekday"
           value={weekday}
           onChange={(event) => setWeekday(Number(event.target.value))}
+          className={inputClassName}
         >
           {WEEKDAYS.map((name, index) => (
             <option key={name} value={index + 1}>

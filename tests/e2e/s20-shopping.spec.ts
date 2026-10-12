@@ -194,6 +194,114 @@ test.describe('S20: lista zakupów z planera', () => {
     await expect(page.getByRole('checkbox')).toHaveCount(2);
   });
 
+  test('S20: wybranie „Zakupy” w nawigacji otwiera bieżący tydzień z zakresem dat, także po oglądaniu innego', async ({
+    page,
+    request,
+  }) => {
+    await openApp(page, request);
+    await page.goto('/zakupy?tydzien=2026-10-19');
+    await expect(page.getByText('19–25 października 2026')).toBeVisible();
+
+    await page.getByRole('link', { name: 'Zakupy', exact: true }).click();
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Lista zakupów' })).toBeVisible();
+    await expect(page.getByText('12–18 października 2026')).toBeVisible();
+    await expect(page).toHaveURL(/\/zakupy$/);
+  });
+
+  test('S20: lista z planera z oglądanym następnym tygodniem pokazuje jego zakres dat', async ({
+    page,
+    request,
+  }) => {
+    await openApp(page, request);
+    await page.goto('/planer?tydzien=2026-10-19');
+
+    await page.getByRole('link', { name: /lista zakupów/i }).click();
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Lista zakupów' })).toBeVisible();
+    await expect(page.getByText('19–25 października 2026')).toBeVisible();
+  });
+
+  test('S20: nagłówek pokazuje licznik „n z m w koszyku” i pasek postępu, także po odhaczeniu offline', async ({
+    page,
+    context,
+    request,
+  }) => {
+    await openApp(page, request);
+    const recipe = await seedRecipe(page, {
+      title: 'Sałatka',
+      servings: 1,
+      ingredients: ['1 ogórek', '1 pomidor', '1 rzodkiewka', '1 cebula', '1 papryka'],
+    });
+    await plan(page, recipe, '2026-10-14', 1);
+    await page.reload();
+    await openList(page);
+    await expect(page.getByText('0 z 5 w koszyku')).toBeVisible();
+    await item(page, 'cebula 1').click();
+    await item(page, 'ogórek 1').click();
+
+    await expect(page.getByText('2 z 5 w koszyku')).toBeVisible();
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
+
+    await waitForOfflineData(page);
+    await goOffline(context, page);
+    await page.goto('/zakupy');
+    await item(page, 'pomidor 1').click();
+
+    await expect(page.getByText('3 z 5 w koszyku')).toBeVisible();
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '60');
+  });
+
+  test('S20: licznik liczy także własne pozycje, a przy liście bez pozycji licznika i paska nie ma', async ({
+    page,
+    request,
+  }) => {
+    await openApp(page, request);
+    await page.goto('/zakupy');
+    await expect(page.getByText('Zaplanuj posiłki, żeby wygenerować listę')).toBeVisible();
+    await expect(page.getByText(/w koszyku/)).toHaveCount(0);
+    await expect(page.getByRole('progressbar')).toHaveCount(0);
+
+    await addOwn(page, 'papier do pieczenia');
+
+    await expect(page.getByText('0 z 1 w koszyku')).toBeVisible();
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
+  });
+
+  test('S20: lista pokazuje plakietkę „Działa offline”', async ({ page, request }) => {
+    await openApp(page, request);
+    await page.goto('/zakupy');
+
+    await expect(page.getByText('Działa offline', { exact: true })).toBeVisible();
+  });
+
+  test('S20: tapnięcie dowolnego miejsca wiersza przełącza odhaczenie, a odhaczona nazwa jest przekreślona', async ({
+    page,
+    request,
+  }) => {
+    await openApp(page, request);
+    const recipe = await seedRecipe(page, {
+      title: 'Sałatka',
+      servings: 1,
+      ingredients: ['1 ogórek', '1 pomidor'],
+    });
+    await plan(page, recipe, '2026-10-14', 1);
+    await page.reload();
+    await openList(page);
+
+    const row = toBuy(page).getByRole('listitem').filter({ hasText: 'ogórek 1' });
+    const box = await row.locator('label').boundingBox();
+    if (!box) throw new Error('row has no box');
+    // The far right edge of the row, well away from the check box and the text.
+    await page.mouse.click(box.x + box.width - 6, box.y + box.height / 2);
+
+    await expect(bought(page).getByRole('checkbox', { name: 'ogórek 1' })).toBeChecked();
+    await expect(bought(page).getByText('ogórek 1')).toHaveCSS(
+      'text-decoration-line',
+      'line-through',
+    );
+  });
+
   test('S20: odhaczona pozycja przechodzi do części odhaczonej, a ponowne tapnięcie cofa odhaczenie', async ({
     page,
     request,

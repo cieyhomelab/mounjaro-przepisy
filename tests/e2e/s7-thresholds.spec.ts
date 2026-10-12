@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { logIn, resetServer, seedRecipe } from './helpers';
+import { logIn, resetServer, seedRecipe, goToSettings, goHome } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -14,7 +14,7 @@ const FIELD_LABELS = {
 };
 
 async function openThresholds(page: Page) {
-  await page.getByRole('link', { name: 'Ustawienia' }).click();
+  await goToSettings(page);
   await page.getByRole('link', { name: 'Progi filtrów' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Progi filtrów' })).toBeVisible();
 }
@@ -47,7 +47,7 @@ test.describe('S7: progi filtrów', () => {
     await page.getByLabel(FIELD_LABELS.protein).fill('30');
     await page.getByRole('button', { name: 'Zapisz' }).click();
     await expect(page.getByText('Zapisano progi.')).toBeVisible();
-    await page.getByRole('link', { name: 'Mounjaro Przepisy' }).click();
+    await goHome(page);
     await page.getByRole('button', { name: 'Wysokie białko' }).click();
 
     const items = page.getByRole('list', { name: 'Przepisy' }).getByRole('listitem');

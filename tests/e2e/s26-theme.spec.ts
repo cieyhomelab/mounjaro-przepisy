@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
-import { logIn, resetServer } from './helpers';
+import { logIn, resetServer, goToSettings } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -24,7 +24,7 @@ async function setSystemMode(page: Page, scheme: 'light' | 'dark') {
 }
 
 async function openSettings(page: Page) {
-  await page.getByRole('link', { name: 'Ustawienia' }).click();
+  await goToSettings(page);
   await expect(page.getByRole('heading', { level: 1, name: 'Ustawienia' })).toBeVisible();
 }
 
@@ -178,6 +178,7 @@ test.describe('S26: tryb jasny i ciemny', () => {
     await logIn(page);
     await chooseTheme(page, 'Ciemny');
 
+    await goToSettings(page);
     await page.getByRole('button', { name: 'Wyloguj' }).click();
 
     await expect(loginLink(page)).toBeVisible();

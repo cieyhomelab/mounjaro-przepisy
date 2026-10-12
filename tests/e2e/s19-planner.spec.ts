@@ -1,5 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
-import { logIn, resetServer, seedRecipe, setServerClock } from './helpers';
+import { logIn, resetServer, seedRecipe, setServerClock, goToSettings } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -239,7 +239,7 @@ test.describe('S19: planer posiłków na tydzień', () => {
     await goToPlanner(page);
     await plan(page, 'środa, 14 października', 'Obiad', 'Zupa dyniowa');
     await expect(page.getByRole('link', { name: 'Zupa dyniowa' })).toBeVisible();
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
     // Under load the service worker may not control the page yet, and the offline reload below
     // relies on it to serve the app shell, so wait until it does.

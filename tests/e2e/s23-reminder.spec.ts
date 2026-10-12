@@ -1,5 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
-import { apiCall, resetServer, setServerClock } from './helpers';
+import { apiCall, resetServer, setServerClock, goToSettings } from './helpers';
 import {
   FRIDAY_1900,
   FRIDAY_MORNING,
@@ -225,7 +225,7 @@ test.describe('S23: przypomnienie o zastrzyku, dotknięcie powiadomienia', () =>
     context,
   }) => {
     await open(page, THURSDAY_1900);
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
     await goOffline(context, page);
 

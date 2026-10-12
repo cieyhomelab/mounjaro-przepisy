@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { logIn, resetServer, seedRecipe } from './helpers';
+import { logIn, resetServer, seedRecipe, goToSettings } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -9,7 +9,7 @@ const HEADING_FONT = 'Bricolage Grotesque';
 const TEXT_FONT = 'Atkinson Hyperlegible';
 
 async function waitForOfflineData(page: Page) {
-  await page.getByRole('link', { name: 'Ustawienia' }).click();
+  await goToSettings(page);
   await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
 }
 

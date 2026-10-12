@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
-import { logIn, resetServer, setServerClock } from './helpers';
+import { logIn, resetServer, setServerClock, goToSettings } from './helpers';
 import { readZip } from './zipReader';
 
 test.beforeEach(async ({ request }) => {
@@ -270,7 +270,7 @@ test.describe('S24: dziennik wagi i samopoczucia', () => {
     await open(page, request);
     await seed(page, '2026-10-07', { weightKg: 82.5, mood: 4, note: 'rano' });
     await page.reload();
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await page.getByRole('link', { name: 'Moje dane' }).click();
 
     const download = page.waitForEvent('download');

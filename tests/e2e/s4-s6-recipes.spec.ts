@@ -1,5 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
-import { TINY_PNG, fillRecipeForm, logIn, resetServer, seedRecipe } from './helpers';
+import {
+  TINY_PNG,
+  fillRecipeForm,
+  logIn,
+  resetServer,
+  seedRecipe,
+  goHome,
+  goToSettings,
+} from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -91,8 +99,9 @@ test.describe('S6: lista kolekcji', () => {
     await expect(recipeList(page).getByRole('listitem')).toHaveCount(1);
 
     await context.setOffline(true);
+    await goToSettings(page);
     await page.getByRole('link', { name: 'Konto' }).click();
-    await page.getByRole('link', { name: 'Mounjaro Przepisy' }).click();
+    await goHome(page);
 
     await expect(recipeList(page).getByRole('listitem')).toContainText('Kurczak');
   });

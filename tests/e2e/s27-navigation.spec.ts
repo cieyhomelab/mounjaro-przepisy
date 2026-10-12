@@ -57,13 +57,19 @@ test.describe('S27: nawigacja', () => {
     await page.reload();
     await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
 
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     const navTop = (await mainNav(page).boundingBox())?.y ?? 0;
-    const lastBottom = await page.evaluate(() => {
-      const last = document.querySelector('main section')?.lastElementChild;
-      return last ? last.getBoundingClientRect().bottom : Number.POSITIVE_INFINITY;
-    });
-    expect(lastBottom).toBeLessThanOrEqual(navTop);
+    // The list is virtual and the page grows as it renders, so scroll until the end is reached.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          window.scrollTo(0, document.documentElement.scrollHeight);
+          const last = document.querySelector('main section')?.lastElementChild;
+          const atEnd =
+            window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1;
+          return atEnd && last ? last.getBoundingClientRect().bottom : Number.POSITIVE_INFINITY;
+        }),
+      )
+      .toBeLessThanOrEqual(navTop);
   });
 
   test('S27: na 1280 px jest boczne menu z nazwą aplikacji, czterema pozycjami i kolekcjami własnymi, bez dolnego paska', async ({
@@ -188,9 +194,12 @@ test.describe('S27: nawigacja', () => {
     await expect(page.getByRole('button', { name: 'Wyloguj' })).toBeVisible();
   });
 
-  test('S27: nawigacja główna nie zawiera „Ustawienia”, „Konto” ani „Wyloguj”', async ({ page }) => {
+  test('S27: nawigacja główna nie zawiera „Ustawienia”, „Konto” ani „Wyloguj”', async ({
+    page,
+  }) => {
+    await loggedIn(page);
     for (const size of [PHONE, DESKTOP]) {
-      await loggedIn(page, size);
+      await page.setViewportSize(size);
       const nav = mainNav(page);
       await expect(nav.getByRole('link')).toHaveCount(4);
       for (const name of ['Ustawienia', 'Konto', 'Wyloguj']) {
@@ -201,12 +210,14 @@ test.describe('S27: nawigacja', () => {
   });
 
   test('S27: w trybie gotowania nie ma ani dolnego paska, ani bocznego menu', async ({ page }) => {
+    await loggedIn(page);
+    const id = await seedRecipe(page, { title: 'Zupa do gotowania' });
     for (const size of [PHONE, DESKTOP]) {
       await page.setViewportSize(size);
-      await logIn(page);
-      const id = await seedRecipe(page, { title: `Zupa ${size.width}` });
       await page.goto(`/przepisy/${id}/gotuj`);
-      await expect(page.getByRole('heading', { level: 1, name: `Zupa ${size.width}` })).toBeVisible();
+      await expect(
+        page.getByRole('heading', { level: 1, name: 'Zupa do gotowania' }),
+      ).toBeVisible();
       await expect(page.getByRole('navigation')).toHaveCount(0);
       await expect(page.getByRole('complementary')).toHaveCount(0);
     }
@@ -227,7 +238,7 @@ test.describe('S27: nawigacja', () => {
     const box = await page.getByRole('status').filter({ hasText: 'offline' }).boundingBox();
     expect(box?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(120);
 
-    await page.getByRole('link', { name: 'Gotuję' }).click();
+    await page.getByRole('link', { name: 'Gotuj' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Zupa offline' })).toBeVisible();
     expect(page.url()).toContain(`/przepisy/${id}/gotuj`);
     await expect(page.getByRole('status').filter({ hasText: 'offline' })).toBeVisible();

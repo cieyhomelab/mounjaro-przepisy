@@ -8,7 +8,7 @@ export function WeightChart({ entries }: { entries: readonly WellbeingEntry[] })
   const chart = weightChart(entries, BOX);
   if (!chart) {
     return (
-      <p className="rounded-md border border-health-line bg-surface p-3 text-ink text-ink-muted">
+      <p className="rounded-md border border-health-line bg-surface p-3 text-ink-muted">
         Dodaj co najmniej dwa pomiary, żeby zobaczyć wykres
       </p>
     );

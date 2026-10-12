@@ -160,3 +160,10 @@ html[data-theme='dark'] {
 html[data-area='health'] body {
   background-color: var(--health-bg);
 }
+
+/* The medical notice takes the health palette only on the health screens. */
+html[data-area='health'] .medical-notice {
+  background-color: var(--health-soft);
+  color: var(--on-health-soft);
+  border-radius: var(--radius-md, 0.375rem);
+}

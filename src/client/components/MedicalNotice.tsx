@@ -2,6 +2,11 @@
 export const MEDICAL_NOTICE =
   'Aplikacja nie jest wyrobem medycznym i nie zastępuje zaleceń lekarza. Dawkę ustala lekarz.';
 
+/** Neutral on the culinary screens; the health palette comes from `html[data-area='health']` (styles.css). */
 export function MedicalNotice() {
-  return <p className="rounded-md bg-health-soft p-3 text-on-health-soft">{MEDICAL_NOTICE}</p>;
+  return (
+    <p className="medical-notice rounded-lg bg-neutral-100 p-3 text-neutral-900">
+      {MEDICAL_NOTICE}
+    </p>
+  );
 }

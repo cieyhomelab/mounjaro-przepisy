@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { apiCall, logIn, resetServer, seedRecipe } from './helpers';
+import { apiCall, filterButton, logIn, resetServer, seedRecipe, toggleFilter } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -7,8 +7,6 @@ test.beforeEach(async ({ request }) => {
 
 const items = (page: Page) => page.getByRole('list', { name: 'Przepisy' }).getByRole('listitem');
 const titles = (page: Page) => items(page).locator('span.truncate').allTextContents();
-const filterButton = (page: Page, name: string) =>
-  page.getByRole('group', { name: 'Filtry' }).getByRole('button', { name });
 const level = (page: Page, name: string) =>
   page.getByRole('radiogroup', { name: 'Ocena tolerancji' }).getByRole('radio', { name });
 
@@ -88,7 +86,7 @@ test.describe('S9: tolerancja', () => {
     await page.reload();
     await expect(items(page).first()).toBeVisible();
 
-    await filterButton(page, 'Dobrze toleruję').click();
+    await toggleFilter(page, 'Dobrze toleruję');
 
     await expect(filterButton(page, 'Dobrze toleruję')).toHaveAttribute('aria-pressed', 'true');
     await expect.poll(() => titles(page)).toEqual(['Dobry']);
@@ -103,7 +101,7 @@ test.describe('S9: tolerancja', () => {
     await apiCall(page, 'PUT', `/api/recipes/${first}/tolerance`, { level: 'good', symptoms: [] });
     await apiCall(page, 'PUT', `/api/recipes/${second}/tolerance`, { level: 'good', symptoms: [] });
     await page.reload();
-    await filterButton(page, 'Dobrze toleruję').click();
+    await toggleFilter(page, 'Dobrze toleruję');
     await expect
       .poll(() => titles(page).then((all) => [...all].sort()))
       .toEqual(['Drugi', 'Pierwszy']);
@@ -162,7 +160,7 @@ test.describe('S10: tag „Na gorsze dni”', () => {
     await page.reload();
     await expect(items(page).first()).toBeVisible();
 
-    await filterButton(page, 'Na gorsze dni').click();
+    await toggleFilter(page, 'Na gorsze dni');
 
     await expect.poll(() => titles(page)).toEqual(['Z tagiem']);
   });
@@ -173,7 +171,7 @@ test.describe('S10: tag „Na gorsze dni”', () => {
     await seedRecipe(page, { title: 'Inny' });
     await apiCall(page, 'PUT', `/api/recipes/${tagged}/worse-days`, { enabled: true });
     await page.reload();
-    await filterButton(page, 'Na gorsze dni').click();
+    await toggleFilter(page, 'Na gorsze dni');
     await expect.poll(() => titles(page)).toEqual(['Z tagiem']);
 
     await items(page).first().getByRole('link').click();

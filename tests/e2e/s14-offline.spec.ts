@@ -2,6 +2,7 @@ import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import {
   TINY_PNG,
   logIn,
+  openFilterPanel,
   resetServer,
   seedRecipe,
   setServerClockAhead,
@@ -197,6 +198,7 @@ test.describe('S14: dane offline', () => {
     await expect(page.getByRole('link', { name: /Kurczak/ })).toBeVisible();
     await expect(page.getByRole('link', { name: /Sałatka/ })).toHaveCount(0);
     await page.getByRole('searchbox', { name: 'Szukaj w kolekcji' }).fill('');
+    await openFilterPanel(page);
     await page.getByLabel('Sortowanie').selectOption({ label: 'Kalorie rosnąco' });
     await expect(page.getByLabel('Sortowanie')).toHaveValue('kcalAsc');
     await expect(page.getByRole('link', { name: /Sałatka/ })).toBeVisible();

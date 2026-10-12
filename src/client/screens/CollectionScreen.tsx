@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { Plus, Settings, SlidersHorizontal } from 'lucide-react';
 import {
   FILTER_IDS,
   FILTER_LABELS,
@@ -16,7 +17,7 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { VirtualRecipeList } from '../components/VirtualRecipeList';
 import { WeeklyCounter } from '../components/WeeklyCounter';
 import { useCollection } from '../data/collection';
-import { useCollectionView } from '../data/collectionView';
+import { countActiveFilters, useCollectionView } from '../data/collectionView';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { inputClassName } from '../components/ui/Input';
@@ -45,60 +46,102 @@ function EmptyCollection() {
   );
 }
 
-/** Search field, the five Mounjaro filters and the sorting choice. */
-function ListControls({ collections }: { collections: { id: string; name: string }[] }) {
-  const { filters, sort, query, collectionId, toggleFilter, setSort, setQuery, setCollectionId } =
+/** The filters in the panel: the five Mounjaro ones and "Dobrze toleruję". "Na gorsze dni" is in the chip row. */
+const PANEL_FILTER_IDS = FILTER_IDS.filter((id) => id !== 'worseDays');
+
+/** Search field, the "Filtry" button with its counter, the row of quick chips and the filter panel. */
+function ListControls({
+  collections,
+  activeCollection,
+}: {
+  collections: { id: string; name: string }[];
+  activeCollection: string | null;
+}) {
+  const { filters, sort, query, toggleFilter, setSort, setQuery, setCollectionId } =
     useCollectionView();
+  const [panelOpen, setPanelOpen] = useState(false);
+  const active = countActiveFilters(filters, activeCollection);
   return (
     <div className="flex flex-col gap-3">
-      <Input
-        type="search"
-        aria-label="Szukaj w kolekcji"
-        placeholder="Szukaj po tytule lub składniku"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-      />
-      <div role="group" aria-label="Filtry" className="flex flex-wrap gap-2">
-        {FILTER_IDS.map((id) => {
-          const on = filters.includes(id);
-          return (
-            <Chip key={id} pressed={on} onClick={() => toggleFilter(id)}>
+      <div className="flex items-center gap-2">
+        <Input
+          type="search"
+          aria-label="Szukaj w kolekcji"
+          placeholder="Szukaj po tytule lub składniku"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          className="min-h-[50px] min-w-0 flex-1 rounded-full border-transparent bg-surface-muted px-5"
+        />
+        {/* On a wide screen the panel is always open, so there is nothing to toggle. */}
+        <Button
+          variant="secondary"
+          aria-expanded={panelOpen}
+          aria-controls="filter-panel"
+          onClick={() => setPanelOpen((open) => !open)}
+          className="shrink-0 gap-2 rounded-full md:hidden"
+        >
+          <SlidersHorizontal aria-hidden="true" className="size-5" />
+          <span>Filtry</span>
+          {active > 0 ? (
+            <span
+              aria-label={`włączonych: ${active}`}
+              className="inline-flex min-w-6 items-center justify-center rounded-full bg-accent px-1.5 text-sm font-bold text-on-primary"
+            >
+              {active}
+            </span>
+          ) : null}
+        </Button>
+      </div>
+      <div
+        role="group"
+        aria-label="Kolekcje i tagi"
+        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+      >
+        <Chip
+          tone="soft"
+          pressed={filters.includes('worseDays')}
+          onClick={() => toggleFilter('worseDays')}
+          className="shrink-0"
+        >
+          {FILTER_LABELS.worseDays}
+        </Chip>
+        {collections.map((collection) => (
+          <Chip
+            key={collection.id}
+            tone="soft"
+            pressed={activeCollection === collection.id}
+            onClick={() =>
+              setCollectionId(activeCollection === collection.id ? null : collection.id)
+            }
+            className="shrink-0"
+          >
+            {collection.name}
+          </Chip>
+        ))}
+      </div>
+      <div id="filter-panel" className={`${panelOpen ? 'flex' : 'hidden'} flex-col gap-3 md:flex`}>
+        <div role="group" aria-label="Filtry" className="flex flex-wrap gap-2">
+          {PANEL_FILTER_IDS.map((id) => (
+            <Chip key={id} pressed={filters.includes(id)} onClick={() => toggleFilter(id)}>
               {FILTER_LABELS[id]}
             </Chip>
-          );
-        })}
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
+          ))}
+        </div>
         <label className="flex flex-wrap items-center gap-2">
-          <span className="font-medium">Kolekcja własna</span>
+          <span className="font-medium">Sortowanie</span>
           <select
-            value={collectionId ?? ''}
-            onChange={(event) => setCollectionId(event.target.value || null)}
+            value={sort}
+            onChange={(event) => setSort(event.target.value as SortKey)}
             className={`${inputClassName}`}
           >
-            <option value="">Wszystkie przepisy</option>
-            {collections.map((collection) => (
-              <option key={collection.id} value={collection.id}>
-                {collection.name}
+            {SORT_KEYS.map((key) => (
+              <option key={key} value={key}>
+                {SORT_LABELS[key]}
               </option>
             ))}
           </select>
         </label>
       </div>
-      <label className="flex flex-wrap items-center gap-2">
-        <span className="font-medium">Sortowanie</span>
-        <select
-          value={sort}
-          onChange={(event) => setSort(event.target.value as SortKey)}
-          className={`${inputClassName}`}
-        >
-          {SORT_KEYS.map((key) => (
-            <option key={key} value={key}>
-              {SORT_LABELS[key]}
-            </option>
-          ))}
-        </select>
-      </label>
     </div>
   );
 }
@@ -134,33 +177,47 @@ export function CollectionScreen() {
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Kolekcja</h1>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          {state.status === 'ready' ? (
-            <>
-              <Link to="/waga" className="inline-flex min-h-11 items-center underline">
-                Waga i samopoczucie
-              </Link>
-              <Link to="/licznik" className="inline-flex min-h-11 items-center underline">
-                Licznik białka i wody
-              </Link>
-              <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
-                Kolekcje własne
-              </Link>
-            </>
-          ) : null}
-          {/* Always present: the only way to Settings (and "Wyloguj"), also when the collection did not load. */}
-          <Link to="/ustawienia" className="inline-flex min-h-11 items-center underline">
-            Ustawienia
-          </Link>
+      <div className="flex items-start justify-between gap-2">
+        <h1 className="text-display font-extrabold">
+          <span className="sr-only">Kolekcja: </span>
+          Co dziś
+          <br />
+          ugotujemy?
+        </h1>
+        <div className="flex items-center gap-2">
           {state.status === 'ready' && state.recipes.length > 0 ? (
-            <Button aria-expanded={adding} onClick={() => setAdding((open) => !open)}>
-              Dodaj przepis
+            <Button
+              aria-label="Dodaj przepis"
+              aria-expanded={adding}
+              onClick={() => setAdding((open) => !open)}
+              className="size-[52px] rounded-full p-0"
+            >
+              <Plus aria-hidden="true" className="size-6" />
             </Button>
           ) : null}
+          {/* Always present: the only way to Settings (and "Wyloguj"), also when the collection did not load. */}
+          <Link
+            to="/ustawienia"
+            aria-label="Ustawienia"
+            className="inline-flex size-[52px] items-center justify-center rounded-full border border-line bg-surface"
+          >
+            <Settings aria-hidden="true" className="size-6" />
+          </Link>
         </div>
       </div>
+      {state.status === 'ready' ? (
+        <div className="flex flex-wrap items-center gap-x-4">
+          <Link to="/waga" className="inline-flex min-h-11 items-center underline">
+            Waga i samopoczucie
+          </Link>
+          <Link to="/licznik" className="inline-flex min-h-11 items-center underline">
+            Licznik białka i wody
+          </Link>
+          <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
+            Kolekcje własne
+          </Link>
+        </div>
+      ) : null}
       {adding ? <AddRecipeChoices /> : null}
       {state.status === 'loading' ? (
         <p role="status" className="text-ink-muted">
@@ -173,7 +230,7 @@ export function CollectionScreen() {
       {state.status === 'ready' && state.recipes.length === 0 ? <EmptyCollection /> : null}
       {state.status === 'ready' ? <WeeklyCounter cookEvents={state.cookEvents} /> : null}
       {state.status === 'ready' && state.recipes.length > 0 ? (
-        <ListControls collections={state.collections} />
+        <ListControls collections={state.collections} activeCollection={activeCollection} />
       ) : null}
       {state.status === 'ready' && state.recipes.length > 0 && shown.length === 0 ? (
         <NoMatches onClear={clearFilters} />

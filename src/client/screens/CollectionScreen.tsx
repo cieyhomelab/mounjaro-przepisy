@@ -11,6 +11,7 @@ import {
   sortRecipes,
   type SortKey,
 } from '../../shared/domain/recipeList';
+import { Chip } from '../components/ui/Chip';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { VirtualRecipeList } from '../components/VirtualRecipeList';
 import { WeeklyCounter } from '../components/WeeklyCounter';
@@ -78,17 +79,9 @@ function ListControls({ collections }: { collections: { id: string; name: string
         {FILTER_IDS.map((id) => {
           const on = filters.includes(id);
           return (
-            <button
-              key={id}
-              type="button"
-              aria-pressed={on}
-              onClick={() => toggleFilter(id)}
-              className={`${buttonClass} border border-neutral-900 ${
-                on ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-900'
-              }`}
-            >
+            <Chip key={id} pressed={on} onClick={() => toggleFilter(id)}>
               {FILTER_LABELS[id]}
-            </button>
+            </Chip>
           );
         })}
       </div>

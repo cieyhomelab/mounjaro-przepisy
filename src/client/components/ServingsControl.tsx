@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SERVINGS_MAX, SERVINGS_MIN, SERVINGS_STEP } from '../../shared/contracts/recipe';
 import { parseServingsInput } from '../../shared/domain/portions';
+import { FieldError } from './ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-neutral-400 px-3 text-lg font-medium disabled:opacity-60';
@@ -68,9 +69,9 @@ export function ServingsControl({
         </button>
       </div>
       {invalid ? (
-        <p id="scale-servings-error" role="alert" className="text-red-900">
+        <FieldError id="scale-servings-error">
           Liczba porcji musi być od 0,5 do 99, z krokiem 0,5.
-        </p>
+        </FieldError>
       ) : null}
     </div>
   );

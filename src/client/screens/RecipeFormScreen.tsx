@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import {
   recipeResponseSchema,
@@ -19,6 +19,8 @@ import { RecipeImage } from '../components/RecipeImage';
 import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { isOffline } from '../data/offline';
+import { Field } from '../components/ui/Field';
+import { FieldError } from '../components/ui/FieldError';
 
 type FieldErrors = Partial<Record<RecipeField, RecipeFieldCode>>;
 
@@ -50,36 +52,6 @@ const inputClass = 'min-h-11 w-full rounded-lg border border-neutral-400 px-3 py
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
 const secondaryButton = `${buttonClass} border border-neutral-400`;
-
-function Field({
-  id,
-  label,
-  hint,
-  error,
-  children,
-}: {
-  id: string;
-  label: string;
-  hint?: string | undefined;
-  error?: string | undefined;
-  children: (describedBy: string | undefined, invalid: boolean) => ReactNode;
-}) {
-  const describedBy = error ? `${id}-error` : undefined;
-  return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="font-medium">
-        {label}
-      </label>
-      {hint ? <p className="text-sm text-neutral-600">{hint}</p> : null}
-      {children(describedBy, Boolean(error))}
-      {error ? (
-        <p id={describedBy} className="text-red-800">
-          {error}
-        </p>
-      ) : null}
-    </div>
-  );
-}
 
 /** Editable list of text lines (ingredients or steps) with add and remove buttons. */
 function LineList({
@@ -138,11 +110,7 @@ function LineList({
           </div>
         );
       })}
-      {error ? (
-        <p id={errorId} className="text-red-800">
-          {error}
-        </p>
-      ) : null}
+      {error ? <FieldError id={errorId}>{error}</FieldError> : null}
       <button
         type="button"
         className={`${secondaryButton} self-start`}

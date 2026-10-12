@@ -12,6 +12,7 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { isOffline } from '../data/offline';
+import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
@@ -134,11 +135,7 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
               />
               <span className="text-neutral-600">{FIELDS[field].unit}</span>
             </div>
-            {error ? (
-              <p id={`threshold-${field}-error`} role="alert" className="text-red-800">
-                {error}
-              </p>
-            ) : null}
+            {error ? <FieldError id={`threshold-${field}-error`}>{error}</FieldError> : null}
           </div>
         );
       })}

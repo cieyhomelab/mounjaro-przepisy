@@ -21,6 +21,7 @@ import { MedicalNotice } from '../components/MedicalNotice';
 import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
+import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
@@ -187,9 +188,7 @@ function ManualProteinForm() {
         />
       </div>
       {invalid ? (
-        <p role="alert" className="text-red-900">
-          Podaj ilość białka (liczba większa od zera) i opis.
-        </p>
+        <FieldError>Podaj ilość białka (liczba większa od zera) i opis.</FieldError>
       ) : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
       <button

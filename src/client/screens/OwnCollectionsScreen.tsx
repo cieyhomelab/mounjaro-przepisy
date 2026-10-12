@@ -13,6 +13,7 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
+import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
@@ -75,11 +76,7 @@ function NameForm({
           className="min-h-11 rounded-lg border border-neutral-300 px-3 font-normal"
         />
       </label>
-      {problem ? (
-        <p role="alert" className="text-red-800">
-          {PROBLEMS[problem]}
-        </p>
-      ) : null}
+      {problem ? <FieldError>{PROBLEMS[problem]}</FieldError> : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void submit()} /> : null}
       <div className="flex flex-wrap gap-2">
         <button

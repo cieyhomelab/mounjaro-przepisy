@@ -5,6 +5,7 @@ import { errorMessage } from '../data/errors';
 import { useSession } from '../data/session';
 import { OfflineBadge } from './OfflineBadge';
 import { ReminderBanner } from './ReminderBanner';
+import { FieldError } from './ui/FieldError';
 
 const linkClass = 'inline-flex min-h-11 min-w-11 items-center rounded-lg px-3 font-medium';
 
@@ -45,11 +46,7 @@ export function AppShell() {
           </button>
         </nav>
       </header>
-      {logoutError ? (
-        <p role="alert" className="bg-red-50 px-4 py-3 text-red-900">
-          {errorMessage(logoutError)}
-        </p>
-      ) : null}
+      {logoutError ? <FieldError>{errorMessage(logoutError)}</FieldError> : null}
       <ReminderBanner />
       <main className="flex-1 p-4">
         <Outlet />

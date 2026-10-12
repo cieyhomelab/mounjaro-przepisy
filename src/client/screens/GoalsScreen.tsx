@@ -8,6 +8,7 @@ import { MedicalNotice } from '../components/MedicalNotice';
 import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
+import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
@@ -75,11 +76,7 @@ function GoalsForm({ settings }: { settings: Settings }) {
         className={inputClass}
       />
       {hint ? <p className="text-sm text-neutral-600">{hint}</p> : null}
-      {invalid.has(key) ? (
-        <p id={`${id}-error`} role="alert" className="text-red-900">
-          {INVALID_MESSAGE}
-        </p>
-      ) : null}
+      {invalid.has(key) ? <FieldError id={`${id}-error`}>{INVALID_MESSAGE}</FieldError> : null}
     </div>
   );
 

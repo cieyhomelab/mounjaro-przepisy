@@ -18,6 +18,7 @@ import { useCollection } from '../data/collection';
 import { OFFLINE_MESSAGE } from '../data/errors';
 import { isOffline } from '../data/offline';
 import { useAction } from '../data/useAction';
+import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
@@ -131,11 +132,7 @@ export function WellbeingLogScreen() {
           >
             Dodaj wpis
           </button>
-          {offlineNotice ? (
-            <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-900">
-              {OFFLINE_MESSAGE}
-            </p>
-          ) : null}
+          {offlineNotice ? <FieldError>{OFFLINE_MESSAGE}</FieldError> : null}
           <WeightChart entries={state.wellbeingEntries} />
           {state.wellbeingEntries.length === 0 ? (
             <p className="text-neutral-700">Dziennik jest pusty. Dodaj pierwszy wpis.</p>

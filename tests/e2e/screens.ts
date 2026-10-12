@@ -200,5 +200,32 @@ export const SCREENS: readonly Screen[] = [
   simple('waga', '/waga', 'Waga i samopoczucie', 'health'),
   simple('waga-nowy', '/waga/nowy', 'Nowy wpis wagi i samopoczucia', 'health'),
   simple('licznik', '/licznik', 'Licznik białka i wody', 'health'),
+  screen('przepis-nowy-blad-pola', 'culinary', async (page) => {
+    await heading('/przepisy/nowy', 'Nowy przepis')(page);
+    await page.getByRole('button', { name: 'Zapisz' }).click();
+    await expect(page.locator('[aria-invalid="true"]').first()).toBeVisible();
+  }),
+  screen('przepis-z-linku-blad-odczytu', 'culinary', async (page) => {
+    await heading('/przepisy/z-linku', 'Dodaj przepis z linku')(page);
+    await page
+      .getByLabel('Adres strony z przepisem')
+      .fill('http://fixtures.test:8080/przepisy/niedostepna');
+    await page.getByRole('button', { name: 'Odczytaj przepis' }).click();
+    await expect(page.getByRole('alert')).toContainText('Strona nie odpowiada', {
+      timeout: 15_000,
+    });
+  }),
+  screen('kolekcja-offline', 'culinary', async (page) => {
+    await heading('/', 'Kolekcja')(page);
+    await page.context().setOffline(true);
+    await expect(page.getByRole('status').filter({ hasText: /^offline$/ })).toBeVisible();
+  }),
+  screen('kolekcja-baner-zastrzyku', 'culinary', async (page) => {
+    // Same setting every time it opens, so reopening the screen changes nothing: the reminder day is
+    // today (Wednesday) at 08:00 and no dose is entered for it.
+    await enableReminder(page, 3, '08:00');
+    await heading('/', 'Kolekcja')(page);
+    await expect(page.getByRole('status', { name: 'Przypomnienie o zastrzyku' })).toBeVisible();
+  }),
   simple('nie-znaleziono', '/tego-nie-ma', 'Nie znaleziono ekranu'),
 ];

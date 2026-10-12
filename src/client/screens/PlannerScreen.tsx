@@ -15,6 +15,7 @@ import { useCollection, type CollectionState } from '../data/collection';
 import { OFFLINE_MESSAGE } from '../data/errors';
 import { isOffline } from '../data/offline';
 import { useAction } from '../data/useAction';
+import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
@@ -100,9 +101,7 @@ function AddToMeal({
         />
       </div>
       {servings === null ? (
-        <p role="alert" className="text-red-900">
-          Liczba porcji musi być od 0,5 do 99, z krokiem 0,5.
-        </p>
+        <FieldError>Liczba porcji musi być od 0,5 do 99, z krokiem 0,5.</FieldError>
       ) : null}
       {errorCode ? (
         <ErrorNotice code={errorCode} onRetry={() => void retry().then((ok) => ok && onDone())} />
@@ -243,9 +242,7 @@ export function PlannerScreen() {
                           </ul>
                         ) : null}
                         {offlineNotice?.date === day.date && offlineNotice.slot === slot ? (
-                          <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-900">
-                            {OFFLINE_MESSAGE}
-                          </p>
+                          <FieldError>{OFFLINE_MESSAGE}</FieldError>
                         ) : null}
                         {isAdding ? (
                           <AddToMeal

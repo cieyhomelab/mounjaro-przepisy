@@ -12,7 +12,7 @@ const ROW_HEIGHT = 304;
 const MIN_CARD_WIDTH = 260;
 const GAP = 16;
 /** Rows kept above and below the visible ones, so a quick scroll does not show a gap. */
-const OVERSCAN = 2;
+const OVERSCAN = 3;
 
 function RecipeListItem({
   recipe,

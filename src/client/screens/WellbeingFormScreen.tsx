@@ -14,8 +14,8 @@ import { useAction } from '../data/useAction';
 import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
-const inputClass = 'min-h-11 rounded-lg border border-neutral-400 px-3';
+  'inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center rounded-md px-4 font-medium disabled:opacity-60';
+const inputClass = 'min-h-touch rounded-md border border-line bg-surface px-3 text-ink';
 
 type FieldErrors = Partial<Record<'form' | 'date' | 'weight', string>>;
 
@@ -47,7 +47,7 @@ export function WellbeingFormScreen() {
   const { state, changeSaved, sync } = useCollection();
   if (state.status === 'loading') {
     return (
-      <p role="status" className="text-neutral-600">
+      <p role="status" className="text-ink-muted">
         Ładowanie…
       </p>
     );
@@ -140,7 +140,7 @@ function WellbeingForm({
 
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">
+      <h1 className="text-title font-heading">
         {existingDate ? 'Edycja wpisu wagi i samopoczucia' : 'Nowy wpis wagi i samopoczucia'}
       </h1>
       <MedicalNotice />
@@ -165,7 +165,7 @@ function WellbeingForm({
           />
         </Field>
         {existingDate ? (
-          <p role="status" className="rounded-lg border border-neutral-300 p-3">
+          <p role="status" className="rounded-md border border-health-line bg-surface p-3 text-ink">
             Ten dzień ma już wpis. Zapis go zaktualizuje.
           </p>
         ) : null}
@@ -184,7 +184,7 @@ function WellbeingForm({
         <fieldset className="flex flex-col gap-1">
           <legend className="font-medium">Samopoczucie</legend>
           {[1, 2, 3, 4, 5].map((option) => (
-            <label key={option} className="flex min-h-11 cursor-pointer items-center gap-3">
+            <label key={option} className="flex min-h-touch cursor-pointer items-center gap-3">
               <input
                 type="radio"
                 name="wellbeing-mood"
@@ -202,7 +202,7 @@ function WellbeingForm({
             <button
               type="button"
               onClick={() => setMood(null)}
-              className={`${buttonClass} self-start border border-neutral-400`}
+              className={`${buttonClass} self-start border border-health-line bg-surface text-ink`}
             >
               Wyczyść samopoczucie
             </button>
@@ -215,7 +215,7 @@ function WellbeingForm({
             maxLength={500}
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            className="rounded-lg border border-neutral-400 px-3 py-2"
+            className="rounded-md border border-line bg-surface px-3 py-2 text-ink"
           />
         </Field>
         {errors.form ? <FieldError>{errors.form}</FieldError> : null}
@@ -229,11 +229,14 @@ function WellbeingForm({
           <button
             type="submit"
             disabled={busy}
-            className={`${buttonClass} bg-neutral-900 text-white`}
+            className={`${buttonClass} bg-health text-on-health`}
           >
             Zapisz wpis
           </button>
-          <Link to="/waga" className={`${buttonClass} border border-neutral-400`}>
+          <Link
+            to="/waga"
+            className={`${buttonClass} border border-health-line bg-surface text-ink`}
+          >
             Anuluj
           </Link>
         </div>

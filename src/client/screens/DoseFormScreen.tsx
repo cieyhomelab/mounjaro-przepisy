@@ -22,8 +22,8 @@ import { useAction } from '../data/useAction';
 import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
-const inputClass = 'min-h-11 rounded-lg border border-neutral-400 px-3';
+  'inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center rounded-md px-4 font-medium disabled:opacity-60';
+const inputClass = 'min-h-touch rounded-md border border-line bg-surface px-3 text-ink';
 
 type FieldErrors = Partial<Record<'date' | 'doseMg' | 'site', string>>;
 
@@ -55,7 +55,7 @@ export function DoseFormScreen() {
   const { state, changeSaved, sync } = useCollection();
   if (state.status === 'loading') {
     return (
-      <p role="status" className="text-neutral-600">
+      <p role="status" className="text-ink-muted">
         Ładowanie…
       </p>
     );
@@ -66,8 +66,8 @@ export function DoseFormScreen() {
   if (id && !existing) {
     return (
       <section className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold">Nie znaleziono wpisu</h1>
-        <Link to="/dawki" className="inline-flex min-h-11 items-center underline">
+        <h1 className="text-title font-heading">Nie znaleziono wpisu</h1>
+        <Link to="/dawki" className="inline-flex min-h-touch items-center underline">
           Wróć do dziennika dawek
         </Link>
       </section>
@@ -133,12 +133,12 @@ function DoseForm({
 
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">
+      <h1 className="text-title font-heading">
         {existing ? 'Edycja wpisu dawki' : 'Nowy wpis dawki'}
       </h1>
       <MedicalNotice />
       {suggestion ? (
-        <div className="flex flex-col gap-1 rounded-lg border border-neutral-300 p-3">
+        <div className="flex flex-col gap-1 rounded-md border border-health-line bg-surface p-3 text-ink">
           <p>
             Ostatnie wkłucie: {SITE_LABELS[suggestion.last.site]},{' '}
             {formatDoseDay(suggestion.last.date)}
@@ -184,7 +184,7 @@ function DoseForm({
         >
           <legend className="font-medium">Miejsce wkłucia</legend>
           {INJECTION_SITES.map((option) => (
-            <label key={option} className="flex min-h-11 cursor-pointer items-center gap-3">
+            <label key={option} className="flex min-h-touch cursor-pointer items-center gap-3">
               <input
                 type="radio"
                 name="dose-site"
@@ -205,7 +205,7 @@ function DoseForm({
             maxLength={500}
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            className="rounded-lg border border-neutral-400 px-3 py-2"
+            className="rounded-md border border-line bg-surface px-3 py-2 text-ink"
           />
         </Field>
         {errorCode ? (
@@ -218,11 +218,14 @@ function DoseForm({
           <button
             type="submit"
             disabled={busy}
-            className={`${buttonClass} bg-neutral-900 text-white`}
+            className={`${buttonClass} bg-health text-on-health`}
           >
             Zapisz wpis
           </button>
-          <Link to="/dawki" className={`${buttonClass} border border-neutral-400`}>
+          <Link
+            to="/dawki"
+            className={`${buttonClass} border border-health-line bg-surface text-ink`}
+          >
             Anuluj
           </Link>
         </div>

@@ -8,7 +8,7 @@ export function WeightChart({ entries }: { entries: readonly WellbeingEntry[] })
   const chart = weightChart(entries, BOX);
   if (!chart) {
     return (
-      <p className="rounded-lg border border-neutral-300 p-3 text-neutral-700">
+      <p className="rounded-md border border-health-line bg-surface p-3 text-ink-muted">
         Dodaj co najmniej dwa pomiary, żeby zobaczyć wykres
       </p>
     );
@@ -22,33 +22,33 @@ export function WeightChart({ entries }: { entries: readonly WellbeingEntry[] })
         role="img"
         aria-label={`Wykres wagi od ${formatWellbeingDay(first?.date ?? '')} do ${formatWellbeingDay(last?.date ?? '')}, od ${formatWeight(first?.weightKg ?? 0)} do ${formatWeight(last?.weightKg ?? 0)} kg`}
         viewBox={`0 0 ${BOX.width} ${BOX.height}`}
-        className="w-full rounded-lg border border-neutral-300"
+        className="w-full rounded-md border border-health-line bg-surface"
       >
         <polyline
           points={path}
           fill="none"
-          stroke="currentColor"
+          className="stroke-health"
           strokeWidth="2"
           strokeLinejoin="round"
         />
         {chart.points.map((point) => (
           <circle
+            className="fill-health"
             key={point.date}
             data-testid="weight-point"
             cx={point.x}
             cy={point.y}
             r="3.5"
-            fill="currentColor"
           />
         ))}
-        <text x="4" y={BOX.padding} fontSize="11" fill="currentColor">
+        <text x="4" y={BOX.padding} fontSize="11" className="fill-ink">
           {formatWeight(chart.maxKg)}
         </text>
-        <text x="4" y={BOX.height - BOX.padding + 12} fontSize="11" fill="currentColor">
+        <text x="4" y={BOX.height - BOX.padding + 12} fontSize="11" className="fill-ink">
           {formatWeight(chart.minKg)}
         </text>
       </svg>
-      <figcaption className="text-sm text-neutral-700">Waga w kg</figcaption>
+      <figcaption className="text-sm text-ink-muted">Waga w kg</figcaption>
     </figure>
   );
 }

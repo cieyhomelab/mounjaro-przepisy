@@ -12,6 +12,7 @@ import { errorMessage } from '../data/errors';
 import { RecipeForm, type FormDraft } from './RecipeFormScreen';
 import { isOffline } from '../data/offline';
 import { FieldError } from '../components/ui/FieldError';
+import { Button } from '../components/ui/Button';
 import { Notice } from '../components/ui/Notice';
 
 const inputClass = 'min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2';
@@ -130,15 +131,9 @@ export function ImportScreen() {
         <Notice className="flex flex-col items-start gap-3">
           <p>{errorMessage('source_unavailable')}</p>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => void read()}
-              className={`${buttonClass} bg-red-800 text-white`}
-            >
-              Spróbuj ponownie
-            </button>
-            <button
-              type="button"
+            <Button onClick={() => void read()}>Spróbuj ponownie</Button>
+            <Button
+              variant="secondary"
               onClick={() =>
                 setDraft({
                   mode: 'manual',
@@ -147,10 +142,9 @@ export function ImportScreen() {
                   sourceImport: null,
                 })
               }
-              className={`${buttonClass} border border-red-800 text-red-900`}
             >
               Wpisz przepis ręcznie
-            </button>
+            </Button>
           </div>
         </Notice>
       ) : null}

@@ -1,4 +1,9 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
+import { FieldError } from '../components/ui/FieldError';
+import { ApiError } from '../data/api';
+import { errorMessage } from '../data/errors';
+import { useSession } from '../data/session';
 import { ThemeSetting } from '../components/ThemeSetting';
 import { useOfflineStatus, type OfflineStatus } from '../data/offline';
 
@@ -44,6 +49,18 @@ function OfflineData({ status }: { status: OfflineStatus }) {
 /** Settings home: the filter thresholds and the state of the offline data. */
 export function SettingsScreen() {
   const status = useOfflineStatus();
+  const { logout } = useSession();
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+
+  const handleLogout = async () => {
+    setLogoutError(null);
+    try {
+      await logout();
+    } catch (error) {
+      setLogoutError(error instanceof ApiError ? error.code : 'internal');
+    }
+  };
+
   return (
     <section className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold">Ustawienia</h1>
@@ -88,9 +105,27 @@ export function SettingsScreen() {
             Moje dane
           </Link>
         </li>
+        <li>
+          <Link
+            to="/konto"
+            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+          >
+            Konto
+          </Link>
+        </li>
       </ul>
       <ThemeSetting />
       <OfflineData status={status} />
+      <div className="flex flex-col items-start gap-2">
+        {logoutError ? <FieldError>{errorMessage(logoutError)}</FieldError> : null}
+        <button
+          type="button"
+          onClick={() => void handleLogout()}
+          className="inline-flex min-h-11 min-w-11 cursor-pointer items-center rounded-lg border border-neutral-400 px-4 font-medium"
+        >
+          Wyloguj
+        </button>
+      </div>
     </section>
   );
 }

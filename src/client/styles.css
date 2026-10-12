@@ -155,3 +155,8 @@ html[data-theme='dark'] {
     font-family: var(--font-heading);
   }
 }
+
+/* The health part of the app (set on <html> by AppShell) has its own page background. */
+html[data-area='health'] body {
+  background-color: var(--health-bg);
+}

@@ -161,12 +161,6 @@ export function CollectionScreen() {
         <h1 className="text-2xl font-semibold">Kolekcja</h1>
         {state.status === 'ready' ? (
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <Link to="/planer" className="inline-flex min-h-11 items-center underline">
-              Planer
-            </Link>
-            <Link to="/dawki" className="inline-flex min-h-11 items-center underline">
-              Dziennik dawek
-            </Link>
             <Link to="/waga" className="inline-flex min-h-11 items-center underline">
               Waga i samopoczucie
             </Link>
@@ -175,6 +169,9 @@ export function CollectionScreen() {
             </Link>
             <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
               Kolekcje własne
+            </Link>
+            <Link to="/ustawienia" className="inline-flex min-h-11 items-center underline">
+              Ustawienia
             </Link>
             {state.recipes.length > 0 ? (
               <button

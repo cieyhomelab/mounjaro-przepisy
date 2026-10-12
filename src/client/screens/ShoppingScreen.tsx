@@ -32,6 +32,7 @@ function Row({ row, week }: { row: ShoppingRow; week: string }) {
   const { changeSaved, checkItem } = useCollection();
   const { run, retry, busy, errorCode } = useAction();
   const text = formatShoppingItem(row);
+  const quantity = text.slice(row.name.length).trim();
 
   const toggle = () =>
     void checkItem({
@@ -52,14 +53,24 @@ function Row({ row, week }: { row: ShoppingRow; week: string }) {
   return (
     <li className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        <label className="flex min-h-11 flex-1 cursor-pointer items-center gap-3 rounded-lg bg-surface-muted px-3 py-2">
+        <label className="flex min-h-row flex-1 cursor-pointer items-center gap-3 rounded-lg bg-surface px-3 py-2">
           <input
             type="checkbox"
             checked={row.checked}
             onChange={toggle}
-            className="size-6 shrink-0"
+            className="size-6 shrink-0 accent-primary"
           />
-          <span className={row.checked ? 'text-ink-muted line-through' : ''}>{text}</span>
+          <span className={row.checked ? 'text-ink-muted line-through' : 'text-ink'}>
+            {row.name}
+          </span>
+          {quantity ? (
+            <>
+              {' '}
+              <span data-testid="shopping-quantity" className="text-accent">
+                {quantity}
+              </span>
+            </>
+          ) : null}
         </label>
         {row.custom ? (
           <Button
@@ -190,7 +201,7 @@ export function ShoppingScreen() {
 
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Lista zakupów</h1>
+      <h1 className="text-2xl font-semibold">Zakupy</h1>
       <Link
         to={week === currentWeek ? '/planer' : `/planer?${WEEK_PARAM}=${week}`}
         className="inline-flex min-h-11 items-center self-start underline"

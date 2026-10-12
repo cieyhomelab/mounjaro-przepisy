@@ -32,7 +32,7 @@ async function openList(page: Page) {
     await expect(planner).toBeVisible({ timeout: 2000 });
   }).toPass();
   await page.getByRole('link', { name: 'Lista zakupów' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Lista zakupów' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Zakupy' })).toBeVisible();
 }
 
 const item = (page: Page, name: string) => page.getByRole('checkbox', { name, exact: true });
@@ -204,7 +204,7 @@ test.describe('S20: lista zakupów z planera', () => {
 
     await page.getByRole('link', { name: 'Zakupy', exact: true }).click();
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Lista zakupów' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Zakupy' })).toBeVisible();
     await expect(page.getByText('12–18 października 2026')).toBeVisible();
     await expect(page).toHaveURL(/\/zakupy$/);
   });
@@ -218,7 +218,7 @@ test.describe('S20: lista zakupów z planera', () => {
 
     await page.getByRole('link', { name: /lista zakupów/i }).click();
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Lista zakupów' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Zakupy' })).toBeVisible();
     await expect(page.getByText('19–25 października 2026')).toBeVisible();
   });
 
@@ -268,6 +268,53 @@ test.describe('S20: lista zakupów z planera', () => {
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
   });
 
+  test('S20: wiersz pozycji ma tło „surface”, co najmniej 50 px, pole wyboru w „primary” i ilość w „accent”', async ({
+    page,
+    request,
+  }) => {
+    await openApp(page, request);
+    const soup = await seedRecipe(page, {
+      title: 'Zupa dyniowa',
+      servings: 1,
+      ingredients: ['200 g dyni'],
+    });
+    await plan(page, soup, '2026-10-14', 1);
+    await page.reload();
+    await openList(page);
+
+    const row = page.getByRole('list', { name: 'Do kupienia' }).getByRole('listitem').first();
+    const label = row.locator('label');
+    const styles = await page.evaluate(() => {
+      const resolve = (token: string, property: 'color' | 'backgroundColor') => {
+        const probe = document.createElement('i');
+        probe.style[property] = `var(${token})`;
+        document.body.append(probe);
+        const value = getComputedStyle(probe)[property];
+        probe.remove();
+        return value;
+      };
+      const label = document.querySelector('[aria-label="Do kupienia"] label')!;
+      const checkbox = label.querySelector('input')!.getBoundingClientRect();
+      return {
+        surface: resolve('--surface', 'backgroundColor'),
+        accent: resolve('--accent', 'color'),
+        primary: resolve('--primary', 'color'),
+        background: getComputedStyle(label).backgroundColor,
+        quantity: getComputedStyle(label.querySelector('[data-testid="shopping-quantity"]')!).color,
+        accentColor: getComputedStyle(label.querySelector('input')!).accentColor,
+        height: label.getBoundingClientRect().height,
+        checkbox: [checkbox.width, checkbox.height],
+      };
+    });
+
+    expect(styles.background).toBe(styles.surface);
+    expect(styles.quantity).toBe(styles.accent);
+    expect(styles.accentColor).toBe(styles.primary);
+    expect(styles.height).toBeGreaterThanOrEqual(50);
+    expect(styles.checkbox).toEqual([24, 24]);
+    await expect(label).toContainText('dyni 200 g');
+  });
+
   test('S20: lista pokazuje plakietkę „Działa offline”', async ({ page, request }) => {
     await openApp(page, request);
     await page.goto('/zakupy');
@@ -296,7 +343,7 @@ test.describe('S20: lista zakupów z planera', () => {
     await page.mouse.click(box.x + box.width - 6, box.y + box.height / 2);
 
     await expect(bought(page).getByRole('checkbox', { name: 'ogórek 1' })).toBeChecked();
-    await expect(bought(page).getByText('ogórek 1')).toHaveCSS(
+    await expect(bought(page).getByText('ogórek', { exact: true })).toHaveCSS(
       'text-decoration-line',
       'line-through',
     );
@@ -328,7 +375,7 @@ test.describe('S20: lista zakupów z planera', () => {
       'pomidor 1',
       'rzodkiewka 1',
     ]);
-    await expect(toBuy(page).getByText('ogórek 1')).toHaveCount(0);
+    await expect(toBuy(page).getByText('ogórek', { exact: true })).toHaveCount(0);
     // The tick is kept on the account: it survives a reload.
     await expect.poll(async () => (await serverChecks(page)).length).toBe(1);
     await page.reload();
@@ -425,7 +472,7 @@ test.describe('S20: lista zakupów z planera', () => {
     await goOffline(context, page);
     await page.goto('/zakupy');
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Lista zakupów' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Zakupy' })).toBeVisible();
     await expect(toBuy(page).getByRole('checkbox', { name: 'ogórek 1' })).not.toBeChecked();
     await expect(toBuy(page).getByRole('checkbox', { name: 'sznurek' })).not.toBeChecked();
     await expect(bought(page).getByRole('checkbox', { name: 'pomidor 1' })).toBeChecked();

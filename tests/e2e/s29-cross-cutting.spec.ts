@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 import {
-  APP_SCREENS,
   SCHEMES,
   bodyBackground,
   contrastViolations,
@@ -30,7 +29,9 @@ test.describe('S29: testy przekrojowe po katalogu ekranów', () => {
     expect(SCREENS.some((screen) => screen.area === 'health')).toBe(true);
   });
 
-  for (const width of [390, 1280]) {
+  // Each pass walks the catalogue once (a fresh context per screen) and runs every check that
+  // shares its viewport and colour scheme, so the whole catalogue is opened 4 times, not 11.
+  for (const width of [1280]) {
     test(`S29: pola dotyku mają co najmniej 44 × 44 px na każdym ekranie (${width} px)`, async ({
       browser,
     }, testInfo) => {
@@ -39,21 +40,6 @@ test.describe('S29: testy przekrojowe po katalogu ekranów', () => {
         await openScreen(page, screen, { width });
         for (const small of await smallTouchTargets(page)) {
           failures.push(`${screen.id}: ${small.target} ${small.width}×${small.height}`);
-        }
-      });
-      expect(failures).toEqual([]);
-    });
-  }
-
-  for (const scheme of SCHEMES) {
-    test(`S29: kontrast axe (color-contrast) bez naruszeń na każdym ekranie (${scheme})`, async ({
-      browser,
-    }, testInfo) => {
-      const failures: string[] = [];
-      await forEachScreen(browser, testInfo, SCREENS, async (page, screen) => {
-        await openScreen(page, screen, { width: 390, scheme });
-        for (const violation of await contrastViolations(page)) {
-          failures.push(`${screen.id}: ${violation}`);
         }
       });
       expect(failures).toEqual([]);
@@ -71,58 +57,58 @@ test.describe('S29: testy przekrojowe po katalogu ekranów', () => {
   });
 
   for (const scheme of SCHEMES) {
-    test(`S29: ekrany kulinarne nie mają kolorów health* (${scheme})`, async ({
+    test(`S29: ekran 390 px (${scheme}): pola dotyku, kontrast axe, kolory health*, baner zastrzyku`, async ({
       browser,
     }, testInfo) => {
-      const failures: string[] = [];
-      const culinary = SCREENS.filter((screen) => screen.area !== 'health');
-      await forEachScreen(browser, testInfo, culinary, async (page, screen) => {
-        await openScreen(page, screen, { width: 390, scheme });
-        const colors = await healthColors(page);
-        expect(new Set(colors).size, 'tokeny health mają cztery różne kolory').toBe(4);
-        for (const found of await elementsWithColors(page, colors)) {
-          failures.push(`${screen.id}: ${found}`);
-        }
-      });
-      expect(failures).toEqual([]);
-    });
-
-    test(`S29: ekrany zdrowia mają tło body health-bg (${scheme})`, async ({
-      browser,
-    }, testInfo) => {
-      const failures: string[] = [];
-      const health = SCREENS.filter((screen) => screen.area === 'health');
-      await forEachScreen(browser, testInfo, health, async (page, screen) => {
-        await openScreen(page, screen, { width: 390, scheme });
-        const [, healthBg] = await healthColors(page);
-        const actual = await bodyBackground(page);
-        if (actual !== healthBg) failures.push(`${screen.id}: ${actual}, oczekiwano ${healthBg}`);
-      });
-      expect(failures).toEqual([]);
-    });
-
-    test(`S29: baner „Dziś zaplanowany zastrzyk” ma tło primary-soft na każdym ekranie (${scheme})`, async ({
-      browser,
-    }, testInfo) => {
-      const failures: string[] = [];
-      await forEachScreen(browser, testInfo, APP_SCREENS, async (page, screen) => {
+      const touch: string[] = [];
+      const contrast: string[] = [];
+      const healthLeaks: string[] = [];
+      const healthBackground: string[] = [];
+      const banners: string[] = [];
+      await forEachScreen(browser, testInfo, SCREENS, async (page, screen) => {
+        const withSession = screen.area !== 'public';
         await page.setViewportSize({ width: 390, height: 844 });
         await page.emulateMedia({ colorScheme: scheme });
         const data = await prepareScreens(page, screen);
-        // The reminder day is today (Wednesday) at 08:00 with no dose entered. It is set before the
-        // measured screen opens, and the collection is opened once so the settings reach the local
-        // copy before the screen is drawn (an offline screen cannot fetch them later).
-        await enableReminder(page, 3, '08:00');
         const banner = page.getByRole('status', { name: 'Przypomnienie o zastrzyku' });
-        await page.goto('/');
-        await expect(banner, 'baner zastrzyku po synchronizacji').toBeVisible();
+        if (withSession) {
+          // The reminder day is today (Wednesday) at 08:00 with no dose entered. It is set before
+          // the measured screen opens, and the collection is opened once so the settings reach the
+          // local copy before the screen is drawn (an offline screen cannot fetch them later).
+          await enableReminder(page, 3, '08:00');
+          await page.goto('/');
+          await expect(banner, 'baner zastrzyku po synchronizacji').toBeVisible();
+        }
         await screen.open(page, data);
+        await expect(page.locator('html')).toHaveAttribute('data-theme', scheme);
+
+        for (const small of await smallTouchTargets(page)) {
+          touch.push(`${screen.id}: ${small.target} ${small.width}×${small.height}`);
+        }
+        for (const violation of await contrastViolations(page)) {
+          contrast.push(`${screen.id}: ${violation}`);
+        }
+
+        const colors = await healthColors(page);
+        expect(new Set(colors).size, 'tokeny health mają cztery różne kolory').toBe(4);
+        if (screen.area === 'health') {
+          const actual = await bodyBackground(page);
+          if (actual !== colors[1]) {
+            healthBackground.push(`${screen.id}: ${actual}, oczekiwano ${colors[1]}`);
+          }
+        } else {
+          for (const found of await elementsWithColors(page, colors)) {
+            healthLeaks.push(`${screen.id}: ${found}`);
+          }
+        }
+
+        if (!withSession) return;
         if (WITHOUT_APP_SHELL.has(screen.id)) {
           await expect(banner, `${screen.id}: ekran bez AppShell`).toHaveCount(0);
           return;
         }
         await expect(banner, `${screen.id}: baner zastrzyku`).toBeVisible();
-        const colors = await banner.evaluate((el) => {
+        const background = await banner.evaluate((el) => {
           const probe = document.createElement('div');
           probe.style.backgroundColor = 'var(--primary-soft)';
           document.body.append(probe);
@@ -130,11 +116,15 @@ test.describe('S29: testy przekrojowe po katalogu ekranów', () => {
           probe.remove();
           return { actual: getComputedStyle(el).backgroundColor, expected };
         });
-        if (colors.actual !== colors.expected) {
-          failures.push(`${screen.id}: ${colors.actual}, oczekiwano ${colors.expected}`);
+        if (background.actual !== background.expected) {
+          banners.push(`${screen.id}: ${background.actual}, oczekiwano ${background.expected}`);
         }
       });
-      expect(failures).toEqual([]);
+      expect.soft(touch, 'pola dotyku ≥ 44 × 44 px').toEqual([]);
+      expect.soft(contrast, 'kontrast axe (color-contrast)').toEqual([]);
+      expect.soft(healthLeaks, 'ekrany kulinarne nie mają kolorów health*').toEqual([]);
+      expect.soft(healthBackground, 'ekrany zdrowia mają tło body health-bg').toEqual([]);
+      expect.soft(banners, 'baner zastrzyku ma tło primary-soft').toEqual([]);
     });
   }
 });

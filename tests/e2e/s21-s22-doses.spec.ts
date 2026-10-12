@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
-import { logIn, resetServer, setServerClock } from './helpers';
+import { logIn, resetServer, setServerClock, goToSettings } from './helpers';
 import { readZip } from './zipReader';
 
 test.beforeEach(async ({ request }) => {
@@ -51,7 +51,7 @@ async function seedDose(
 }
 
 const goToLog = async (page: Page) => {
-  await page.getByRole('link', { name: 'Dziennik dawek' }).click();
+  await page.getByRole('link', { name: 'Zdrowie', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Dziennik dawek' })).toBeVisible();
 };
 
@@ -225,7 +225,7 @@ test.describe('S21: dziennik dawek', () => {
     await page.reload();
     await goToLog(page);
     await expect(entries(page)).toHaveCount(1);
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
 
     await goOffline(context, page);
@@ -245,7 +245,7 @@ test.describe('S21: dziennik dawek', () => {
     await open(page, request);
     await seedDose(page, { date: '2026-10-07', doseMg: 5, site: 'thigh_left', note: 'rano' });
     await page.reload();
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await page.getByRole('link', { name: 'Moje dane' }).click();
 
     const download = page.waitForEvent('download');

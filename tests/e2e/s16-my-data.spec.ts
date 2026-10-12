@@ -1,6 +1,14 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Browser, type Page } from '@playwright/test';
-import { apiCall, logIn, resetServer, seedRecipe, setServerClock, TINY_PNG } from './helpers';
+import {
+  apiCall,
+  logIn,
+  resetServer,
+  seedRecipe,
+  setServerClock,
+  TINY_PNG,
+  goToSettings,
+} from './helpers';
 import { readZip } from './zipReader';
 
 test.beforeEach(async ({ request }) => {
@@ -11,7 +19,7 @@ const collection = (page: Page) => page.getByRole('heading', { level: 1, name: '
 const loginLink = (page: Page) => page.getByRole('link', { name: 'Zaloguj przez Google' });
 
 async function openMyData(page: Page) {
-  await page.getByRole('link', { name: 'Ustawienia' }).click();
+  await goToSettings(page);
   await page.getByRole('link', { name: 'Moje dane' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Moje dane' })).toBeVisible();
 }
@@ -174,7 +182,7 @@ test.describe('S16: eksport danych i usunięcie konta', () => {
     const other = await secondDevice(browser);
     await other.goto('/');
     await expect(other.getByText('Omlet testowy')).toBeVisible();
-    await other.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(other);
     await expect(other.getByText('Dane offline: aktualne')).toBeVisible();
     expect(await heldRows(other)).toBeGreaterThan(0);
 

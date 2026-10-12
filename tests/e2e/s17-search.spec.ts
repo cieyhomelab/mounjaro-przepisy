@@ -19,7 +19,10 @@ async function search(page: Page, phrase: string) {
 }
 
 const resultItems = (page: Page) =>
-  page.getByRole('listitem').filter({ has: page.getByRole('link') });
+  page
+    .getByRole('main')
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('link') });
 
 test.describe('S17: wyszukiwanie przepisów w zaufanych serwisach', () => {
   test('S17: „Szukaj w serwisach” otwiera się z kolekcji', async ({ page }) => {

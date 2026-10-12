@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { TINY_PNG, logIn, resetServer, seedRecipe } from './helpers';
+import { TINY_PNG, logIn, resetServer, seedRecipe, goHome } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -322,7 +322,7 @@ test.describe('S15: dwie zmiany w trakcie synchronizacji', () => {
     await page.getByLabel('Tytuł').fill('Pierwszy zmieniony');
     await page.getByRole('button', { name: 'Zapisz' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Pierwszy zmieniony' })).toBeVisible();
-    await page.getByRole('link', { name: 'Mounjaro Przepisy' }).click();
+    await goHome(page);
     await recipeList(page).getByRole('link', { name: /Drugi/ }).click();
     await page.getByRole('button', { name: 'Usuń' }).click();
     await page.getByRole('alertdialog').getByRole('button', { name: 'Usuń' }).click();

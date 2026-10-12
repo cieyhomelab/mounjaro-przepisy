@@ -74,7 +74,7 @@ describe('App with a session', () => {
       url === '/api/auth/logout' ? new Response(null, { status: 204 }) : loggedIn(),
     );
 
-    renderAt('/');
+    renderAt('/ustawienia');
     fireEvent.click(await screen.findByRole('button', { name: 'Wyloguj' }));
 
     expect(await screen.findByRole('link', { name: 'Zaloguj przez Google' })).toBeTruthy();
@@ -88,22 +88,22 @@ describe('App with a session', () => {
     const fetchMock = stubFetch(loggedIn);
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
-    renderAt('/');
+    renderAt('/ustawienia');
     fireEvent.click(await screen.findByRole('button', { name: 'Wyloguj' }));
 
     await waitFor(() =>
       expect(screen.getByRole('alert').textContent).toBe('Ta akcja wymaga połączenia z internetem'),
     );
     expect(fetchMock).not.toHaveBeenCalledWith('/api/auth/logout', expect.anything());
-    expect(screen.getByRole('heading', { name: 'Kolekcja' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Ustawienia' })).toBeTruthy();
   });
 
   it('sends a user whose session was revoked back to the login screen', async () => {
     let calls = 0;
     stubFetch(() => (++calls === 1 ? loggedIn() : unauthenticated()));
 
-    renderAt('/');
-    await screen.findByRole('heading', { name: 'Kolekcja' });
+    renderAt('/ustawienia');
+    await screen.findByRole('heading', { name: 'Ustawienia' });
     fireEvent.click(screen.getByRole('button', { name: 'Wyloguj' }));
 
     expect(await screen.findByRole('link', { name: 'Zaloguj przez Google' })).toBeTruthy();

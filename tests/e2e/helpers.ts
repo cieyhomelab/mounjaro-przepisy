@@ -137,3 +137,18 @@ export async function useTestSites(request: APIRequestContext, sites: TestSite[]
   });
   expect(response.status()).toBe(204);
 }
+
+/** Opens the collection through the main navigation ("Przepisy"), as a user does from any screen. */
+export async function goHome(page: Page) {
+  await page
+    .getByRole('navigation', { name: 'Nawigacja główna' })
+    .getByRole('link', { name: 'Przepisy', exact: true })
+    .click();
+}
+
+/** Opens Settings the way a user does: through the "Ustawienia" button in the collection header. */
+export async function goToSettings(page: Page) {
+  const collectionHeading = page.getByRole('heading', { level: 1, name: 'Kolekcja' });
+  if (!(await collectionHeading.isVisible())) await goHome(page);
+  await page.getByRole('link', { name: 'Ustawienia' }).click();
+}

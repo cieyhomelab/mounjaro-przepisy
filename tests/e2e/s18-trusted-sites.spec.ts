@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
-import { FIXTURE_SITES, apiCall, logIn, resetServer, useTestSites } from './helpers';
+import { FIXTURE_SITES, apiCall, logIn, resetServer, useTestSites, goToSettings } from './helpers';
 import { readZip } from './zipReader';
 
 test.beforeEach(async ({ request }) => {
@@ -10,7 +10,7 @@ test.beforeEach(async ({ request }) => {
 const STARTER = ['Ania Gotuje', 'Kwestia Smaku', 'Przepisy.pl', 'Doradca Smaku'];
 
 async function openTrustedSites(page: Page) {
-  await page.getByRole('link', { name: 'Ustawienia' }).click();
+  await goToSettings(page);
   await page.getByRole('link', { name: 'Zaufane serwisy' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Zaufane serwisy' })).toBeVisible();
 }

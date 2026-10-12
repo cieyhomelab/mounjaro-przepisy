@@ -1,5 +1,12 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
-import { TINY_PNG, logIn, resetServer, seedRecipe, setServerClockAhead } from './helpers';
+import {
+  TINY_PNG,
+  logIn,
+  resetServer,
+  seedRecipe,
+  setServerClockAhead,
+  goToSettings,
+} from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -17,7 +24,7 @@ async function loggedIn(page: Page) {
 
 /** Opens Settings and waits until the app reports that everything is on the device. */
 async function waitForOfflineData(page: Page) {
-  await page.getByRole('link', { name: 'Ustawienia' }).click();
+  await goToSettings(page);
   await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
 }
 
@@ -241,7 +248,7 @@ test.describe('S14: dane offline', () => {
     await seedWithPhoto(page, 'Ze zdjęciem');
     await page.reload();
 
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
 
     await expect(page.getByText('Dane offline: niepełne')).toBeVisible();
     await expect(page.getByText(/brak(uje)? miejsca|braku miejsca/)).toBeVisible();
@@ -260,7 +267,7 @@ test.describe('S14: dane offline', () => {
     await page.reload();
     await expect(page.getByRole('link', { name: /Zupa/ })).toBeVisible();
 
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
 
     await expect(page.getByText('Praca offline jest niedostępna w tej przeglądarce')).toBeVisible();
     await expect(page.getByText(/Dane offline:/)).toHaveCount(0);
@@ -343,6 +350,7 @@ test.describe('S14: czyszczenie danych z urządzenia', () => {
     await waitForOfflineData(page);
     expect(await heldData(page)).toMatchObject({ photoCache: true });
 
+    await goToSettings(page);
     await page.getByRole('button', { name: 'Wyloguj' }).click();
     await expect(loginLink(page)).toBeVisible();
 

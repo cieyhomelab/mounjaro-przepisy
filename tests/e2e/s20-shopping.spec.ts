@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
-import { apiCall, logIn, resetServer, seedRecipe, setServerClock } from './helpers';
+import { apiCall, logIn, resetServer, seedRecipe, setServerClock, goToSettings } from './helpers';
 import { readZip } from './zipReader';
 
 test.beforeEach(async ({ request }) => {
@@ -56,7 +56,7 @@ async function goOnline(context: BrowserContext, page: Page) {
 
 /** Opens Settings and waits until the app reports that everything is on the device. */
 async function waitForOfflineData(page: Page) {
-  await page.getByRole('link', { name: 'Ustawienia' }).click();
+  await goToSettings(page);
   await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
 }
 
@@ -539,7 +539,7 @@ test.describe('S20: lista zakupów z planera', () => {
     await expect.poll(async () => (await serverChecks(page)).length).toBe(1);
     await expect(bought(page).getByRole('checkbox')).toHaveCount(2);
 
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await page.getByRole('link', { name: 'Moje dane' }).click();
     const download = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Eksportuj dane' }).click();

@@ -159,35 +159,35 @@ export function CollectionScreen() {
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Kolekcja</h1>
-        {state.status === 'ready' ? (
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <Link to="/planer" className="inline-flex min-h-11 items-center underline">
-              Planer
-            </Link>
-            <Link to="/dawki" className="inline-flex min-h-11 items-center underline">
-              Dziennik dawek
-            </Link>
-            <Link to="/waga" className="inline-flex min-h-11 items-center underline">
-              Waga i samopoczucie
-            </Link>
-            <Link to="/licznik" className="inline-flex min-h-11 items-center underline">
-              Licznik białka i wody
-            </Link>
-            <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
-              Kolekcje własne
-            </Link>
-            {state.recipes.length > 0 ? (
-              <button
-                type="button"
-                aria-expanded={adding}
-                onClick={() => setAdding((open) => !open)}
-                className={`${buttonClass} bg-neutral-900 text-white`}
-              >
-                Dodaj przepis
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {state.status === 'ready' ? (
+            <>
+              <Link to="/waga" className="inline-flex min-h-11 items-center underline">
+                Waga i samopoczucie
+              </Link>
+              <Link to="/licznik" className="inline-flex min-h-11 items-center underline">
+                Licznik białka i wody
+              </Link>
+              <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
+                Kolekcje własne
+              </Link>
+            </>
+          ) : null}
+          {/* Always present: the only way to Settings (and "Wyloguj"), also when the collection did not load. */}
+          <Link to="/ustawienia" className="inline-flex min-h-11 items-center underline">
+            Ustawienia
+          </Link>
+          {state.status === 'ready' && state.recipes.length > 0 ? (
+            <button
+              type="button"
+              aria-expanded={adding}
+              onClick={() => setAdding((open) => !open)}
+              className={`${buttonClass} bg-neutral-900 text-white`}
+            >
+              Dodaj przepis
+            </button>
+          ) : null}
+        </div>
       </div>
       {adding ? <AddRecipeChoices /> : null}
       {state.status === 'loading' ? (

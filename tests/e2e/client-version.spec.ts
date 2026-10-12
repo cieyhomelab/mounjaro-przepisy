@@ -1,12 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { logIn, resetServer, seedRecipe, setServerClock } from './helpers';
+import { logIn, resetServer, seedRecipe, setServerClock, goToSettings } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
 });
 
 async function waitForOfflineData(page: Page) {
-  await page.getByRole('link', { name: 'Ustawienia' }).click();
+  await goToSettings(page);
   await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
 }
 

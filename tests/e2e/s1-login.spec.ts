@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { OWNER_EMAIL, logIn, resetServer, setServerClockAhead } from './helpers';
+import { OWNER_EMAIL, logIn, resetServer, setServerClockAhead, goToSettings } from './helpers';
 
 // All tests share one server (reset and clock are global), so they run one at a time:
 // playwright.config.ts sets workers to 1.
@@ -64,6 +64,7 @@ test.describe('S1: logowanie kontem Google', () => {
     await logIn(page);
     await expect(collection(page)).toBeVisible();
 
+    await goToSettings(page);
     await page.getByRole('button', { name: 'Wyloguj' }).click();
 
     await expect(loginLink(page)).toBeVisible();
@@ -134,7 +135,7 @@ test.describe('S1: wariant offline', () => {
   }) => {
     await logIn(page);
     await expect(collection(page)).toBeVisible();
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
 
     await context.setOffline(true);

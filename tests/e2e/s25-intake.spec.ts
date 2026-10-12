@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
-import { apiCall, logIn, resetServer, seedRecipe, setServerClock } from './helpers';
+import { apiCall, logIn, resetServer, seedRecipe, setServerClock, goToSettings } from './helpers';
 import { readZip } from './zipReader';
 
 test.beforeEach(async ({ request }) => {
@@ -237,7 +237,7 @@ test.describe('S25: licznik białka i wody', () => {
     request,
   }) => {
     await open(page, request);
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await page.getByRole('link', { name: 'Cele i szklanka' }).click();
     await expect(page.getByText(NOTICE)).toBeVisible();
     await expect(page.getByLabel('Wielkość szklanki (ml)')).toHaveValue('250');
@@ -342,7 +342,7 @@ test.describe('S25: licznik białka i wody', () => {
     });
     await apiCall(page, 'POST', '/api/water-entries');
     await page.reload();
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await page.getByRole('link', { name: 'Moje dane' }).click();
 
     const download = page.waitForEvent('download');

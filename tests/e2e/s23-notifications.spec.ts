@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { logIn, resetServer } from './helpers';
+import { logIn, resetServer, goToSettings } from './helpers';
 import {
   DEVICE,
   OFFLINE_MESSAGE,
@@ -327,7 +327,7 @@ test.describe('S23: przypomnienie o zastrzyku, zgoda na powiadomienia', () => {
     context,
   }) => {
     await open(page, THURSDAY_1900);
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
 
     // A push sent to a registration whose worker is not yet active is dropped.
@@ -388,7 +388,7 @@ test.describe('S23: przypomnienie o zastrzyku, zgoda na powiadomienia', () => {
     context,
   }) => {
     await open(page, THURSDAY_1900);
-    await page.getByRole('link', { name: 'Ustawienia' }).click();
+    await goToSettings(page);
     await expect(page.getByText('Dane offline: aktualne')).toBeVisible();
 
     await page.evaluate(async () => {

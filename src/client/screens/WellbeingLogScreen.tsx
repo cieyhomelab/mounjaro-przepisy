@@ -21,7 +21,7 @@ import { useAction } from '../data/useAction';
 import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
+  'inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center rounded-md px-4 font-medium disabled:opacity-60';
 
 function Entry({ entry }: { entry: WellbeingEntry }) {
   const { changeSaved } = useCollection();
@@ -38,7 +38,7 @@ function Entry({ entry }: { entry: WellbeingEntry }) {
     });
 
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3">
+    <li className="flex flex-col gap-2 rounded-md border border-health-line bg-surface p-3 text-ink">
       <p className="font-medium">{label}</p>
       {entry.weightKg !== null ? <p>Waga: {formatWeight(entry.weightKg)} kg</p> : null}
       {entry.mood !== null ? (
@@ -46,7 +46,7 @@ function Entry({ entry }: { entry: WellbeingEntry }) {
           Samopoczucie: {entry.mood} z 5 ({MOOD_LABELS[entry.mood]})
         </p>
       ) : null}
-      {entry.note ? <p className="text-neutral-700">Notatka: {entry.note}</p> : null}
+      {entry.note ? <p className="text-ink-muted">Notatka: {entry.note}</p> : null}
       {confirming ? (
         <div
           role="group"
@@ -59,14 +59,14 @@ function Entry({ entry }: { entry: WellbeingEntry }) {
               type="button"
               disabled={busy}
               onClick={() => void remove().then((done) => done && setConfirming(false))}
-              className={`${buttonClass} bg-red-800 text-white`}
+              className={`${buttonClass} bg-warn-soft text-on-warn-soft`}
             >
               Potwierdź usunięcie
             </button>
             <button
               type="button"
               onClick={() => setConfirming(false)}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-health-line bg-surface text-ink`}
             >
               Anuluj
             </button>
@@ -77,7 +77,7 @@ function Entry({ entry }: { entry: WellbeingEntry }) {
           <Link
             to={`/waga/nowy?data=${entry.date}`}
             aria-label={`Edytuj wpis: ${label}`}
-            className={`${buttonClass} border border-neutral-400`}
+            className={`${buttonClass} border border-health-line bg-surface text-ink`}
           >
             Edytuj
           </Link>
@@ -85,7 +85,7 @@ function Entry({ entry }: { entry: WellbeingEntry }) {
             type="button"
             aria-label={`Usuń wpis: ${label}`}
             onClick={() => setConfirming(true)}
-            className={`${buttonClass} border border-neutral-400`}
+            className={`${buttonClass} border border-health-line bg-surface text-ink`}
           >
             Usuń
           </button>
@@ -109,10 +109,10 @@ export function WellbeingLogScreen() {
 
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Waga i samopoczucie</h1>
+      <h1 className="text-title font-heading">Waga i samopoczucie</h1>
       <MedicalNotice />
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}
@@ -128,14 +128,14 @@ export function WellbeingLogScreen() {
               setOfflineNotice(false);
               void navigate('/waga/nowy');
             }}
-            className={`${buttonClass} self-start bg-neutral-900 text-white`}
+            className={`${buttonClass} self-start bg-health text-on-health`}
           >
             Dodaj wpis
           </button>
           {offlineNotice ? <FieldError>{OFFLINE_MESSAGE}</FieldError> : null}
           <WeightChart entries={state.wellbeingEntries} />
           {state.wellbeingEntries.length === 0 ? (
-            <p className="text-neutral-700">Dziennik jest pusty. Dodaj pierwszy wpis.</p>
+            <p className="text-ink-muted">Dziennik jest pusty. Dodaj pierwszy wpis.</p>
           ) : (
             <ul aria-label="Wpisy dziennika wagi i samopoczucia" className="flex flex-col gap-3">
               {sortWellbeingEntries(state.wellbeingEntries).map((entry) => (

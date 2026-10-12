@@ -24,8 +24,8 @@ import { useAction } from '../data/useAction';
 import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
-const inputClass = 'min-h-11 rounded-lg border border-neutral-400 px-3';
+  'inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center rounded-md px-4 font-medium disabled:opacity-60';
+const inputClass = 'min-h-touch rounded-md border border-line bg-surface px-3 text-ink';
 
 /** Today in Warsaw, checked every so often so the counters start from zero after midnight. */
 function useToday(): string {
@@ -50,14 +50,14 @@ function Summary({
 }) {
   const progress = goalProgress(total, goal, unit);
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-neutral-200 p-3">
+    <div className="flex flex-col gap-1 rounded-md border border-health-line bg-surface p-3 text-ink">
       <h2 className="text-lg font-semibold">{title}</h2>
       <p className="text-xl font-medium" data-testid={`sum-${title}`}>
         {progress.text}
       </p>
-      {progress.reached ? <p className="font-medium text-green-800">cel osiągnięty</p> : null}
+      {progress.reached ? <p className="font-medium text-health">cel osiągnięty</p> : null}
       {goal === null ? (
-        <p className="text-neutral-700">
+        <p className="text-ink-muted">
           Brak ustawionego celu.{' '}
           <Link to="/ustawienia/cele" className="underline">
             Ustaw cel w ustawieniach
@@ -84,7 +84,7 @@ function ProteinRow({ entry, editable }: { entry: ProteinEntry; editable: boolea
       await changeSaved({ removeProteinEntryId: entry.id }, result.dataVersion);
     });
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3">
+    <li className="flex flex-col gap-2 rounded-md border border-health-line bg-surface p-3 text-ink">
       <p>
         <span className="font-medium">{name}</span>: {formatAmount(entry.grams)} g
       </p>
@@ -94,7 +94,7 @@ function ProteinRow({ entry, editable }: { entry: ProteinEntry; editable: boolea
           disabled={busy}
           aria-label={`Usuń wpis białka: ${name}`}
           onClick={() => void remove()}
-          className={`${buttonClass} self-start border border-neutral-400`}
+          className={`${buttonClass} self-start border border-health-line bg-surface text-ink`}
         >
           Usuń
         </button>
@@ -116,7 +116,7 @@ function WaterRow({ entry, editable }: { entry: WaterEntry; editable: boolean })
       await changeSaved({ removeWaterEntryId: entry.id }, result.dataVersion);
     });
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3">
+    <li className="flex flex-col gap-2 rounded-md border border-health-line bg-surface p-3 text-ink">
       <p>{label}</p>
       {editable ? (
         <button
@@ -124,7 +124,7 @@ function WaterRow({ entry, editable }: { entry: WaterEntry; editable: boolean })
           disabled={busy}
           aria-label={`Usuń wpis wody: ${entry.ml} ml`}
           onClick={() => void remove()}
-          className={`${buttonClass} self-start border border-neutral-400`}
+          className={`${buttonClass} self-start border border-health-line bg-surface text-ink`}
         >
           Usuń
         </button>
@@ -194,7 +194,7 @@ function ManualProteinForm() {
       <button
         type="submit"
         disabled={busy}
-        className={`${buttonClass} self-start bg-neutral-900 text-white`}
+        className={`${buttonClass} self-start bg-health text-on-health`}
       >
         Dopisz białko
       </button>
@@ -218,7 +218,7 @@ function AddWater({ glassMl }: { glassMl: number }) {
         type="button"
         disabled={busy}
         onClick={() => void add()}
-        className={`${buttonClass} self-start bg-neutral-900 text-white`}
+        className={`${buttonClass} self-start bg-health text-on-health`}
       >
         Dodaj szklankę wody ({glassMl} ml)
       </button>
@@ -238,10 +238,10 @@ export function IntakeScreen() {
 
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Licznik białka i wody</h1>
+      <h1 className="text-title font-heading">Licznik białka i wody</h1>
       <MedicalNotice />
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}
@@ -255,7 +255,7 @@ export function IntakeScreen() {
               type="button"
               disabled={!isToday}
               onClick={() => setOffset(1)}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-health-line bg-surface text-ink`}
             >
               Poprzedni dzień
             </button>
@@ -263,7 +263,7 @@ export function IntakeScreen() {
               type="button"
               disabled={isToday}
               onClick={() => setOffset(0)}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-health-line bg-surface text-ink`}
             >
               Dzisiaj
             </button>
@@ -272,7 +272,7 @@ export function IntakeScreen() {
             </p>
           </div>
           {!isToday ? (
-            <p className="rounded-lg bg-neutral-100 p-3">
+            <p className="rounded-md bg-health-soft p-3 text-on-health-soft">
               To dzień z przeszłości: wpisy można tylko przeglądać.
             </p>
           ) : null}
@@ -298,7 +298,7 @@ export function IntakeScreen() {
                     Wpisy białka
                   </h2>
                   {protein.length === 0 ? (
-                    <p className="text-neutral-700">Brak wpisów białka tego dnia.</p>
+                    <p className="text-ink-muted">Brak wpisów białka tego dnia.</p>
                   ) : (
                     <ul aria-label="Wpisy białka" className="flex flex-col gap-2">
                       {protein.map((entry) => (
@@ -313,7 +313,7 @@ export function IntakeScreen() {
                     Wpisy wody
                   </h2>
                   {water.length === 0 ? (
-                    <p className="text-neutral-700">Brak wpisów wody tego dnia.</p>
+                    <p className="text-ink-muted">Brak wpisów wody tego dnia.</p>
                   ) : (
                     <ul aria-label="Wpisy wody" className="flex flex-col gap-2">
                       {water.map((entry) => (

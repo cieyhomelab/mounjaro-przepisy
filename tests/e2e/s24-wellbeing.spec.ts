@@ -214,6 +214,31 @@ test.describe('S24: dziennik wagi i samopoczucia', () => {
     await expect(entries(page).nth(2)).toContainText('5 października 2026');
   });
 
+  test('S24: formularz ma pięć przycisków samopoczucia z opisem skrajnych wartości, bez pola Nudności', async ({
+    page,
+    request,
+  }) => {
+    await open(page, request);
+    await goToLog(page);
+    await openForm(page);
+
+    const mood = page.getByRole('group', { name: 'Samopoczucie' });
+    await expect(mood.getByRole('button')).toHaveCount(5);
+    await expect(mood.getByRole('button', { pressed: true })).toHaveCount(0);
+    await expect(mood.getByRole('button', { name: '1 – bardzo źle' })).toBeVisible();
+    await expect(mood.getByRole('button', { name: '5 – bardzo dobrze' })).toBeVisible();
+    await expect(mood.getByText('bardzo źle', { exact: true })).toBeVisible();
+    await expect(mood.getByText('bardzo dobrze', { exact: true })).toBeVisible();
+    await expect(page.getByText('Nudności')).toHaveCount(0);
+
+    await mood.getByRole('button', { name: '3 – średnio' }).click();
+    await expect(mood.getByRole('button', { pressed: true })).toHaveCount(1);
+    await expect(mood.getByRole('button', { name: '3 – średnio' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
   test('S24: wykres wagi pokazuje się od dwóch pomiarów, wcześniej jest tekst zastępczy', async ({
     page,
     request,

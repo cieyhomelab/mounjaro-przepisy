@@ -7,6 +7,7 @@ import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { ErrorNotice } from './ErrorNotice';
 import { isOffline } from '../data/offline';
+import { FieldError } from './ui/FieldError';
 
 const LABELS: Record<NutritionKey, { label: string; field: string; unit: string }> = {
   kcal: { label: 'Kalorie', field: 'Kalorie (kcal)', unit: 'kcal' },
@@ -92,11 +93,7 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
             onChange={(event) => setText(event.target.value)}
             className="min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2"
           />
-          {invalid ? (
-            <p id={`manual-${nutritionKey}-error`} className="text-red-800">
-              {invalid}
-            </p>
-          ) : null}
+          {invalid ? <FieldError id={`manual-${nutritionKey}-error`}>{invalid}</FieldError> : null}
           <div className="flex flex-wrap gap-2">
             <button
               type="submit"

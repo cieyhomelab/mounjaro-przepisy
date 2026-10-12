@@ -6,6 +6,7 @@ import { apiDownload } from '../data/api';
 import { errorMessage } from '../data/errors';
 import { useSession } from '../data/session';
 import { useAction } from '../data/useAction';
+import { Notice } from '../components/ui/Notice';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:cursor-not-allowed disabled:opacity-60';
@@ -130,7 +131,7 @@ function DeleteAccount() {
           className="min-h-11 rounded-lg border border-neutral-400 bg-white px-3"
         />
       </label>
-      {mismatch ? <p role="alert">{errorMessage('confirmation_mismatch')}</p> : null}
+      {mismatch ? <Notice>{errorMessage('confirmation_mismatch')}</Notice> : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
       <div className="flex flex-wrap gap-2">
         <button type="submit" disabled={busy} className={`${buttonClass} bg-red-800 text-white`}>

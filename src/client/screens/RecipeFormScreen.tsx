@@ -19,6 +19,7 @@ import { RecipeImage } from '../components/RecipeImage';
 import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { isOffline } from '../data/offline';
+import { FieldError } from '../components/ui/FieldError';
 
 type FieldErrors = Partial<Record<RecipeField, RecipeFieldCode>>;
 
@@ -72,11 +73,7 @@ function Field({
       </label>
       {hint ? <p className="text-sm text-neutral-600">{hint}</p> : null}
       {children(describedBy, Boolean(error))}
-      {error ? (
-        <p id={describedBy} className="text-red-800">
-          {error}
-        </p>
-      ) : null}
+      {error ? <FieldError id={describedBy}>{error}</FieldError> : null}
     </div>
   );
 }
@@ -138,11 +135,7 @@ function LineList({
           </div>
         );
       })}
-      {error ? (
-        <p id={errorId} className="text-red-800">
-          {error}
-        </p>
-      ) : null}
+      {error ? <FieldError id={errorId}>{error}</FieldError> : null}
       <button
         type="button"
         className={`${secondaryButton} self-start`}

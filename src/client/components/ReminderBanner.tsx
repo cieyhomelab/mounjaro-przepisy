@@ -22,12 +22,12 @@ export function ReminderBanner() {
     <div
       role="status"
       aria-label="Przypomnienie o zastrzyku"
-      className="flex flex-wrap items-center justify-between gap-2 bg-amber-100 px-4 py-3 text-amber-950"
+      className="flex flex-wrap items-center justify-between gap-2 bg-primary-soft px-4 py-3 text-on-primary-soft"
     >
       <p className="font-medium">{REMINDER_BANNER_TEXT}</p>
       <Link
         to="/dawki/nowy"
-        className="inline-flex min-h-11 min-w-11 items-center rounded-lg bg-amber-900 px-4 font-medium text-white"
+        className="inline-flex min-h-11 min-w-11 items-center rounded-md bg-primary px-4 font-medium text-on-primary"
       >
         Dodaj wpis dawki
       </Link>

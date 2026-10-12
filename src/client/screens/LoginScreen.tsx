@@ -3,6 +3,7 @@ import { sanitizeReturnTo } from '../../shared/domain/returnTo';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { OfflineBadge } from '../components/OfflineBadge';
 import { useSession } from '../data/session';
+import { FieldError } from '../components/ui/FieldError';
 
 const loginMessages: Record<string, string> = {
   konto: 'To konto nie ma dostępu',
@@ -25,11 +26,7 @@ export function LoginScreen() {
       {state.status === 'error' ? (
         <ErrorNotice code={state.code} onRetry={() => void refresh()} />
       ) : null}
-      {failure ? (
-        <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-900">
-          {failure}
-        </p>
-      ) : null}
+      {failure ? <FieldError>{failure}</FieldError> : null}
       {/* A plain link: the whole sign-in is a chain of redirects handled by the server. */}
       <a
         href={`/api/auth/google/start?returnTo=${encodeURIComponent(returnTo)}`}

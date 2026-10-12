@@ -7,6 +7,7 @@ import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
 import { ErrorNotice } from './ErrorNotice';
+import { FieldError } from './ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
@@ -116,11 +117,7 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
               />
             </div>
           ) : null}
-          {invalid ? (
-            <p role="alert" className="text-red-900">
-              {invalid}
-            </p>
-          ) : null}
+          {invalid ? <FieldError>{invalid}</FieldError> : null}
           {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
           <div className="flex flex-wrap gap-2">
             <button

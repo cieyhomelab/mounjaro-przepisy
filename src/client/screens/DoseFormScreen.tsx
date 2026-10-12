@@ -19,6 +19,7 @@ import { MedicalNotice } from '../components/MedicalNotice';
 import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
+import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
@@ -43,11 +44,7 @@ function Field({
         {label}
       </label>
       {children}
-      {error ? (
-        <p id={`${id}-error`} role="alert" className="text-red-900">
-          {error}
-        </p>
-      ) : null}
+      {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
     </div>
   );
 }
@@ -199,11 +196,7 @@ function DoseForm({
               <span>{SITE_LABELS[option]}</span>
             </label>
           ))}
-          {errors.site ? (
-            <p id="dose-site-error" role="alert" className="text-red-900">
-              {errors.site}
-            </p>
-          ) : null}
+          {errors.site ? <FieldError id="dose-site-error">{errors.site}</FieldError> : null}
         </fieldset>
         <Field id="dose-note" label="Notatka">
           <textarea

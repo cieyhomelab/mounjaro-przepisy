@@ -11,6 +11,8 @@ import { ApiError, apiRequest } from '../data/api';
 import { errorMessage } from '../data/errors';
 import { RecipeForm, type FormDraft } from './RecipeFormScreen';
 import { isOffline } from '../data/offline';
+import { FieldError } from '../components/ui/FieldError';
+import { Notice } from '../components/ui/Notice';
 
 const inputClass = 'min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2';
 const buttonClass =
@@ -103,9 +105,7 @@ export function ImportScreen() {
             onChange={(event) => setAddress(event.target.value)}
           />
           {invalid ? (
-            <p id="recipe-url-error" className="text-red-800">
-              {errorMessage('invalid_url')}
-            </p>
+            <FieldError id="recipe-url-error">{errorMessage('invalid_url')}</FieldError>
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -127,8 +127,8 @@ export function ImportScreen() {
         </p>
       ) : null}
       {failure?.kind === 'unavailable' ? (
-        <div role="alert" className="flex flex-col items-start gap-3 rounded-lg bg-red-50 p-4">
-          <p className="text-red-900">{errorMessage('source_unavailable')}</p>
+        <Notice className="flex flex-col items-start gap-3">
+          <p>{errorMessage('source_unavailable')}</p>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -152,18 +152,18 @@ export function ImportScreen() {
               Wpisz przepis ręcznie
             </button>
           </div>
-        </div>
+        </Notice>
       ) : null}
       {failure?.kind === 'duplicate' ? (
-        <div role="alert" className="flex flex-col items-start gap-3 rounded-lg bg-amber-50 p-4">
-          <p className="text-amber-950">{errorMessage('duplicate_source')}</p>
+        <Notice className="flex flex-col items-start gap-3">
+          <p>{errorMessage('duplicate_source')}</p>
           <Link
             to={`/przepisy/${failure.recipeId}`}
             className={`${buttonClass} bg-neutral-900 text-white`}
           >
             Przejdź do przepisu
           </Link>
-        </div>
+        </Notice>
       ) : null}
       {failure?.kind === 'other' ? (
         <ErrorNotice code={failure.code} onRetry={() => void read()} />

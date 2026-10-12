@@ -16,6 +16,7 @@ import { useCollection } from '../data/collection';
 import { useOnline } from '../data/offline';
 import { useAction } from '../data/useAction';
 import { RecipeForm, type FormDraft } from './RecipeFormScreen';
+import { Notice } from '../components/ui/Notice';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:cursor-not-allowed disabled:opacity-60';
@@ -214,10 +215,10 @@ export function SearchScreen() {
         {response ? (
           <div className="flex flex-col gap-3" aria-label={`Wyniki wyszukiwania: ${searched}`}>
             {response.failedSites.length > 0 ? (
-              <p role="alert" className="rounded-lg bg-amber-50 p-3 text-amber-950">
+              <Notice>
                 Nie udało się przeszukać: {response.failedSites.map((site) => site.name).join(', ')}
                 .
-              </p>
+              </Notice>
             ) : null}
             {response.results.length === 0 ? (
               <p role="status">Brak wyników</p>

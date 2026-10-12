@@ -52,7 +52,7 @@ async function fillAndSave(
 ) {
   if (values.date) await page.getByLabel('Data', { exact: true }).fill(values.date);
   if (values.weight !== undefined) await page.getByLabel('Waga (kg)').fill(values.weight);
-  if (values.mood) await page.getByRole('radio', { name: values.mood }).check();
+  if (values.mood) await page.getByRole('button', { name: values.mood }).click();
   if (values.note) await page.getByLabel('Notatka').fill(values.note);
   await page.getByRole('button', { name: 'Zapisz wpis' }).click();
 }
@@ -158,7 +158,10 @@ test.describe('S24: dziennik wagi i samopoczucia', () => {
     await page.getByLabel('Data', { exact: true }).fill('2026-10-12');
 
     await expect(page.getByLabel('Waga (kg)')).toHaveValue('82,5');
-    await expect(page.getByRole('radio', { name: '4 – dobrze' })).toBeChecked();
+    await expect(page.getByRole('button', { name: '4 – dobrze' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     await expect(page.getByLabel('Notatka')).toHaveValue('rano');
     await page.getByLabel('Waga (kg)').fill('81');
     await page.getByRole('button', { name: 'Zapisz wpis' }).click();
@@ -190,7 +193,10 @@ test.describe('S24: dziennik wagi i samopoczucia', () => {
       page.getByRole('heading', { level: 1, name: 'Nowy wpis wagi i samopoczucia' }),
     ).toBeVisible();
     await expect(page.getByLabel('Waga (kg)')).toHaveValue('');
-    await expect(page.getByRole('radio', { name: '4 – dobrze' })).not.toBeChecked();
+    await expect(page.getByRole('button', { name: '4 – dobrze' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
     await expect(page.getByLabel('Notatka')).toHaveValue('');
   });
 

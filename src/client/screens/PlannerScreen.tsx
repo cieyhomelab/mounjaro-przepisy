@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router';
 import {
   mealPlanDeletedResponseSchema,
@@ -7,9 +8,20 @@ import {
   type MealSlot,
 } from '../../shared/contracts/mealPlan';
 import { addDays, warsawDate, weekStart } from '../../shared/domain/cookStats';
-import { formatPlanDay, parseWeekParam, planWeek, SLOT_LABELS } from '../../shared/domain/mealPlan';
+import {
+  dayOfMonth,
+  formatPlanDay,
+  formatWeekHeading,
+  parseWeekParam,
+  plannedProtein,
+  planWeek,
+  SLOT_LABELS,
+  weekdayShort,
+  withoutDataNote,
+} from '../../shared/domain/mealPlan';
 import { parseServingsInput } from '../../shared/domain/portions';
 import { ErrorNotice } from '../components/ErrorNotice';
+import { RecipeImage } from '../components/RecipeImage';
 import { apiRequest } from '../data/api';
 import { useCollection, type CollectionState } from '../data/collection';
 import { OFFLINE_MESSAGE } from '../data/errors';
@@ -123,7 +135,9 @@ function AddToMeal({
   );
 }
 
-function PlannedEntry({ entry, title }: { entry: MealPlanEntry; title: string }) {
+type PlannedRecipe = { title: string; photoId: string | null; proteinG: number | null };
+
+function PlannedEntry({ entry, recipe }: { entry: MealPlanEntry; recipe: PlannedRecipe }) {
   const { changeSaved } = useCollection();
   const { run, retry, busy, errorCode } = useAction();
   const remove = () =>
@@ -133,16 +147,30 @@ function PlannedEntry({ entry, title }: { entry: MealPlanEntry; title: string })
       );
       await changeSaved({ removeMealPlanEntryId: entry.id }, result.dataVersion);
     });
+  const { title } = recipe;
   return (
     <li className="flex flex-col gap-1">
-      <div className="flex flex-wrap items-center gap-2">
-        <Link
-          to={`/przepisy/${entry.recipeId}?porcje=${entry.servings}`}
-          className="inline-flex min-h-11 items-center underline"
-        >
-          {title}
-        </Link>
-        <span>Porcje: {display(entry.servings)}</span>
+      <Card compact className="flex items-center gap-3">
+        <RecipeImage
+          photoId={recipe.photoId}
+          title={title}
+          className="h-16 w-16 shrink-0 rounded-md"
+        />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Link
+            to={`/przepisy/${entry.recipeId}?porcje=${entry.servings}`}
+            className="inline-flex min-h-11 items-center font-medium underline"
+          >
+            {title}
+          </Link>
+          <span className="text-sm text-ink-muted">
+            {recipe.proteinG === null
+              ? 'Białko: brak danych'
+              : `Białko: ${Math.round(recipe.proteinG * entry.servings)} g`}
+            {' · '}
+            Porcje: {display(entry.servings)}
+          </span>
+        </div>
         <Button
           disabled={busy}
           aria-label={`Usuń z pory: ${title}`}
@@ -151,23 +179,55 @@ function PlannedEntry({ entry, title }: { entry: MealPlanEntry; title: string })
         >
           Usuń
         </Button>
-      </div>
+      </Card>
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
     </li>
   );
 }
 
-/** Weekly meal planner: seven days, four meals each, read from the local copy (S19). */
+/** Weekly meal planner: a strip of seven days, the chosen day's protein and its four meals (S19). */
 export function PlannerScreen() {
   const { state, sync } = useCollection();
   const [params, setParams] = useSearchParams();
   const [adding, setAdding] = useState<Target | null>(null);
   const [offlineNotice, setOfflineNotice] = useState<Target | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);
 
-  const currentWeek = weekStart(warsawDate(new Date()));
+  const today = warsawDate(new Date());
+  const currentWeek = weekStart(today);
   const week = parseWeekParam(params.get(WEEK_PARAM)) ?? currentWeek;
-  const goTo = (start: string) =>
+  const goTo = (start: string) => {
+    // Another week starts on its Monday, the current one on today.
+    setPicked(null);
+    setAdding(null);
+    setOfflineNotice(null);
     setParams(start === currentWeek ? {} : { [WEEK_PARAM]: start }, { replace: true });
+  };
+  const days = state.status === 'ready' ? planWeek(state.mealPlan, week) : [];
+  const selected =
+    days.find((day) => day.date === picked) ??
+    days.find((day) => day.date === today) ??
+    days[0] ??
+    null;
+
+  const recipeOf = (id: string): PlannedRecipe => {
+    const recipe = state.status === 'ready' ? state.recipes.find((item) => item.id === id) : null;
+    return {
+      title: recipe?.title ?? 'Przepis',
+      photoId: recipe?.photoId ?? null,
+      proteinG: recipe?.nutrition.proteinG.value ?? null,
+    };
+  };
+  const protein = selected
+    ? plannedProtein(
+        selected.slots.flatMap((slot) => slot.entries),
+        new Map(
+          state.status === 'ready'
+            ? state.recipes.map((recipe) => [recipe.id, recipe.nutrition.proteinG.value])
+            : [],
+        ),
+      )
+    : null;
 
   return (
     <section className="flex flex-col gap-4">
@@ -180,88 +240,117 @@ export function PlannerScreen() {
       {state.status === 'error' ? (
         <ErrorNotice code={state.code} onRetry={() => void sync()} />
       ) : null}
-      {state.status === 'ready' ? (
+      {state.status === 'ready' && selected && protein ? (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Button onClick={() => goTo(addDays(week, -7))} variant="secondary">
-              Poprzedni tydzień
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              onClick={() => goTo(addDays(week, -7))}
+              variant="secondary"
+              aria-label="Poprzedni tydzień"
+            >
+              <ChevronLeft aria-hidden="true" />
             </Button>
-            <p role="status" className="font-medium">
-              Tydzień od {formatPlanDay(week)} do {formatPlanDay(addDays(week, 6))}
+            <p role="status" className="text-lg font-semibold">
+              {formatWeekHeading(week, currentWeek)}
             </p>
-            <Button onClick={() => goTo(addDays(week, 7))} variant="secondary">
-              Następny tydzień
+            <Button
+              onClick={() => goTo(addDays(week, 7))}
+              variant="secondary"
+              aria-label="Następny tydzień"
+            >
+              <ChevronRight aria-hidden="true" />
             </Button>
           </div>
+          <div className="grid grid-cols-7 gap-1">
+            {days.map((day) => {
+              const pressed = day.date === selected.date;
+              return (
+                <button
+                  key={day.date}
+                  type="button"
+                  aria-pressed={pressed}
+                  aria-label={`${weekdayShort(day.date)} ${dayOfMonth(day.date)}`}
+                  onClick={() => {
+                    setPicked(day.date);
+                    setAdding(null);
+                    setOfflineNotice(null);
+                  }}
+                  className={`flex h-16 min-w-0 cursor-pointer flex-col items-center justify-center rounded-md border border-line ${
+                    pressed ? 'bg-primary text-on-primary' : 'bg-surface text-ink'
+                  }`}
+                >
+                  <span aria-hidden="true" className="text-xs">
+                    {weekdayShort(day.date)}
+                  </span>
+                  <span aria-hidden="true" className="text-lg font-semibold">
+                    {dayOfMonth(day.date)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <h2 className="text-lg font-semibold capitalize">{formatPlanDay(selected.date)}</h2>
+          <p className="font-medium text-accent">
+            Białko zaplanowane: {protein.grams} g
+            {protein.withoutData > 0 ? (
+              <span className="ml-2 text-sm font-normal text-ink-muted">
+                {withoutDataNote(protein.withoutData)}
+              </span>
+            ) : null}
+          </p>
+          {selected.slots.map(({ slot, entries }) => {
+            const isAdding = adding?.date === selected.date && adding.slot === slot;
+            return (
+              <section
+                key={slot}
+                aria-label={`${formatPlanDay(selected.date)}: ${SLOT_LABELS[slot]}`}
+                className="flex flex-col gap-2"
+              >
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
+                  {SLOT_LABELS[slot]}
+                </h3>
+                {entries.length > 0 ? (
+                  <ul className="flex flex-col gap-2">
+                    {entries.map((entry) => (
+                      <PlannedEntry
+                        key={entry.id}
+                        entry={entry}
+                        recipe={recipeOf(entry.recipeId)}
+                      />
+                    ))}
+                  </ul>
+                ) : null}
+                {offlineNotice?.date === selected.date && offlineNotice.slot === slot ? (
+                  <FieldError>{OFFLINE_MESSAGE}</FieldError>
+                ) : null}
+                {isAdding ? (
+                  <AddToMeal
+                    target={{ date: selected.date, slot }}
+                    recipes={state.recipes}
+                    onDone={() => setAdding(null)}
+                  />
+                ) : (
+                  <Button
+                    onClick={() => {
+                      if (isOffline()) return setOfflineNotice({ date: selected.date, slot });
+                      setOfflineNotice(null);
+                      setAdding({ date: selected.date, slot });
+                    }}
+                    variant="secondary"
+                    className="border-dashed"
+                  >
+                    + Dodaj przepis
+                  </Button>
+                )}
+              </section>
+            );
+          })}
           <ButtonLink
             to={week === currentWeek ? '/zakupy' : `/zakupy?${WEEK_PARAM}=${week}`}
-            variant="secondary"
-            className="self-start"
+            variant="soft"
           >
-            Lista zakupów
+            Utwórz listę zakupów na tydzień
           </ButtonLink>
-          <ol className="flex flex-col gap-4">
-            {planWeek(state.mealPlan, week).map((day) => (
-              <li key={day.date}>
-                <section aria-labelledby={`day-${day.date}`} className="flex flex-col gap-2">
-                  <h2 id={`day-${day.date}`} className="text-lg font-semibold capitalize">
-                    {formatPlanDay(day.date)}
-                  </h2>
-                  {day.slots.map(({ slot, entries }) => {
-                    const isAdding = adding?.date === day.date && adding.slot === slot;
-                    return (
-                      <Card
-                        as="section"
-                        compact
-                        key={slot}
-                        aria-label={`${formatPlanDay(day.date)}: ${SLOT_LABELS[slot]}`}
-                        className="flex flex-col gap-2"
-                      >
-                        <h3 className="font-medium">{SLOT_LABELS[slot]}</h3>
-                        {entries.length > 0 ? (
-                          <ul className="flex flex-col gap-1">
-                            {entries.map((entry) => (
-                              <PlannedEntry
-                                key={entry.id}
-                                entry={entry}
-                                title={
-                                  state.recipes.find((recipe) => recipe.id === entry.recipeId)
-                                    ?.title ?? 'Przepis'
-                                }
-                              />
-                            ))}
-                          </ul>
-                        ) : null}
-                        {offlineNotice?.date === day.date && offlineNotice.slot === slot ? (
-                          <FieldError>{OFFLINE_MESSAGE}</FieldError>
-                        ) : null}
-                        {isAdding ? (
-                          <AddToMeal
-                            target={{ date: day.date, slot }}
-                            recipes={state.recipes}
-                            onDone={() => setAdding(null)}
-                          />
-                        ) : (
-                          <Button
-                            aria-label={`Dodaj przepis: ${formatPlanDay(day.date)}, ${SLOT_LABELS[slot].toLowerCase()}`}
-                            onClick={() => {
-                              if (isOffline()) return setOfflineNotice({ date: day.date, slot });
-                              setOfflineNotice(null);
-                              setAdding({ date: day.date, slot });
-                            }}
-                            variant="secondary"
-                            className="self-start"
-                          >
-                            Dodaj przepis
-                          </Button>
-                        )}
-                      </Card>
-                    );
-                  })}
-                </section>
-              </li>
-            ))}
-          </ol>
         </>
       ) : null}
     </section>

@@ -75,8 +75,8 @@ export function ToleranceEditor({ recipe }: { recipe: Recipe }) {
             aria-checked={shownLevel === level}
             disabled={busy}
             onClick={() => choose(level)}
-            className={`${buttonClass} border border-neutral-900 ${
-              shownLevel === level ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-900'
+            className={`${buttonClass} border border-ink-muted ${
+              shownLevel === level ? 'bg-primary text-on-primary' : 'bg-surface text-ink'
             }`}
           >
             {TOLERANCE_LABELS[level]}
@@ -87,14 +87,14 @@ export function ToleranceEditor({ recipe }: { recipe: Recipe }) {
             type="button"
             disabled={busy}
             onClick={() => void save({ level: null, symptoms: [] })}
-            className={`${buttonClass} border border-neutral-400`}
+            className={`${buttonClass} border border-ink-muted`}
           >
             Usuń ocenę tolerancji
           </button>
         ) : null}
       </div>
       {draft ? (
-        <fieldset className="flex flex-col gap-2 rounded-lg border border-neutral-300 p-3">
+        <fieldset className="flex flex-col gap-2 rounded-lg border border-line p-3">
           <legend className="px-1 font-medium">Objawy</legend>
           {TOLERANCE_SYMPTOMS.map((symptom) => (
             <label key={symptom} className="flex min-h-11 items-center gap-2">
@@ -121,7 +121,7 @@ export function ToleranceEditor({ recipe }: { recipe: Recipe }) {
                 value={draft.note}
                 maxLength={NOTE_MAX}
                 onChange={(event) => setDraft({ ...draft, note: event.target.value })}
-                className="min-h-20 rounded-lg border border-neutral-300 px-3 py-2"
+                className="min-h-20 rounded-lg border border-line px-3 py-2"
               />
             </label>
           ) : null}
@@ -136,7 +136,7 @@ export function ToleranceEditor({ recipe }: { recipe: Recipe }) {
                   ...(draft.symptoms.includes('other') ? { note: draft.note } : {}),
                 })
               }
-              className={`${buttonClass} bg-neutral-900 text-white`}
+              className={`${buttonClass} bg-primary text-on-primary`}
             >
               Zapisz tolerancję
             </button>
@@ -144,7 +144,7 @@ export function ToleranceEditor({ recipe }: { recipe: Recipe }) {
               type="button"
               disabled={busy}
               onClick={() => setDraft(null)}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-ink-muted`}
             >
               Anuluj
             </button>

@@ -15,7 +15,7 @@ import { FieldError } from '../components/ui/FieldError';
 import { Button } from '../components/ui/Button';
 import { Notice } from '../components/ui/Notice';
 
-const inputClass = 'min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2';
+const inputClass = 'min-h-11 w-full rounded-lg border border-ink-muted px-3 py-2';
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
 
@@ -113,17 +113,17 @@ export function ImportScreen() {
           <button
             type="submit"
             disabled={reading}
-            className={`${buttonClass} bg-neutral-900 text-white disabled:opacity-60`}
+            className={`${buttonClass} bg-primary text-on-primary disabled:opacity-60`}
           >
             Odczytaj przepis
           </button>
-          <Link to="/" className={`${buttonClass} border border-neutral-400`}>
+          <Link to="/" className={`${buttonClass} border border-ink-muted`}>
             Anuluj
           </Link>
         </div>
       </form>
       {reading ? (
-        <p role="status" className="text-neutral-700">
+        <p role="status" className="text-ink-muted">
           Odczytuję przepis…
         </p>
       ) : null}
@@ -153,7 +153,7 @@ export function ImportScreen() {
           <p>{errorMessage('duplicate_source')}</p>
           <Link
             to={`/przepisy/${failure.recipeId}`}
-            className={`${buttonClass} bg-neutral-900 text-white`}
+            className={`${buttonClass} bg-primary text-on-primary`}
           >
             Przejdź do przepisu
           </Link>

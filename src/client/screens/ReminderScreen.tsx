@@ -13,7 +13,7 @@ const WEEKDAYS = ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 's
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
-const inputClass = 'min-h-11 rounded-lg border border-neutral-400 px-3';
+const inputClass = 'min-h-11 rounded-lg border border-ink-muted px-3';
 
 /** Why this device shows no notifications and what to do about it; null when it can. */
 function deviceNotice(state: PushState, subscribed: boolean): string | null {
@@ -116,20 +116,20 @@ function ReminderForm({ settings }: { settings: Settings }) {
         />
       </div>
       {notice ? (
-        <p role="status" className="rounded-lg bg-amber-50 p-3 text-amber-950">
+        <p role="status" className="rounded-lg bg-warn-soft p-3 text-on-warn-soft">
           {notice}
         </p>
       ) : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
       {saved ? (
-        <p role="status" className="text-green-800">
+        <p role="status" className="text-ink">
           Zapisano przypomnienie.
         </p>
       ) : null}
       <button
         type="submit"
         disabled={busy || !/^\d{2}:\d{2}$/.test(time)}
-        className={`${buttonClass} self-start bg-neutral-900 text-white`}
+        className={`${buttonClass} self-start bg-primary text-on-primary`}
       >
         Zapisz
       </button>
@@ -146,13 +146,13 @@ export function ReminderScreen() {
         Wróć do ustawień
       </Link>
       <h1 className="text-2xl font-semibold">Przypomnienie o zastrzyku</h1>
-      <p className="text-neutral-600">
+      <p className="text-ink-muted">
         W wybranym dniu i o wybranej godzinie (czas polski) dostaniesz powiadomienie. Jeśli do tej
         samej godziny następnego dnia nie będzie wpisu dawki, przyjdzie jeszcze jedno.
       </p>
       <MedicalNotice />
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}

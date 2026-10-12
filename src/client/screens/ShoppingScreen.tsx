@@ -54,7 +54,7 @@ function Row({ row, week }: { row: ShoppingRow; week: string }) {
             onChange={toggle}
             className="size-6 shrink-0"
           />
-          <span className={row.checked ? 'text-neutral-600 line-through' : ''}>{text}</span>
+          <span className={row.checked ? 'text-ink-muted line-through' : ''}>{text}</span>
         </label>
         {row.custom ? (
           <button
@@ -62,7 +62,7 @@ function Row({ row, week }: { row: ShoppingRow; week: string }) {
             disabled={busy}
             aria-label={`Usuń pozycję: ${text}`}
             onClick={() => void remove()}
-            className={`${buttonClass} border border-neutral-400`}
+            className={`${buttonClass} border border-ink-muted`}
           >
             Usuń
           </button>
@@ -113,12 +113,12 @@ function AddItem({ week }: { week: string }) {
           maxLength={200}
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className="min-h-11 min-w-0 flex-1 rounded-lg border border-neutral-400 px-3"
+          className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink-muted px-3"
         />
         <button
           type="submit"
           disabled={busy || !name.trim()}
-          className={`${buttonClass} bg-neutral-900 text-white`}
+          className={`${buttonClass} bg-primary text-on-primary`}
         >
           Dodaj pozycję
         </button>
@@ -143,7 +143,7 @@ function List({ state, week }: { state: Ready; week: string }) {
   return (
     <>
       {!planned ? (
-        <p role="status" className="rounded-lg bg-neutral-100 p-3">
+        <p role="status" className="rounded-lg bg-surface-muted p-3">
           Zaplanuj posiłki, żeby wygenerować listę
         </p>
       ) : null}
@@ -191,7 +191,7 @@ export function ShoppingScreen() {
         Wróć do planera
       </Link>
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}
@@ -204,7 +204,7 @@ export function ShoppingScreen() {
             <button
               type="button"
               onClick={() => goTo(addDays(week, -7))}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-ink-muted`}
             >
               Poprzedni tydzień
             </button>
@@ -214,7 +214,7 @@ export function ShoppingScreen() {
             <button
               type="button"
               onClick={() => goTo(addDays(week, 7))}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-ink-muted`}
             >
               Następny tydzień
             </button>

@@ -17,7 +17,7 @@ const LABELS: Record<NutritionKey, { label: string; field: string; unit: string 
 };
 
 const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-neutral-400 px-4 font-medium disabled:opacity-60';
+  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-ink-muted px-4 font-medium disabled:opacity-60';
 
 /** "240 kcal", "26 g" or "—": calories to the whole number, the rest to the whole gram. */
 function formatValue(recipe: Recipe, key: NutritionKey): string {
@@ -91,14 +91,14 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
             aria-invalid={invalid !== null}
             aria-describedby={invalid ? `manual-${nutritionKey}-error` : undefined}
             onChange={(event) => setText(event.target.value)}
-            className="min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2"
+            className="min-h-11 w-full rounded-lg border border-ink-muted px-3 py-2"
           />
           {invalid ? <FieldError id={`manual-${nutritionKey}-error`}>{invalid}</FieldError> : null}
           <div className="flex flex-wrap gap-2">
             <button
               type="submit"
               disabled={saving}
-              className={`${buttonClass} border-neutral-900 bg-neutral-900 text-white`}
+              className={`${buttonClass} border-primary bg-primary text-on-primary`}
             >
               Zapisz wartość
             </button>
@@ -172,14 +172,14 @@ export function NutritionDetails({ recipe }: { recipe: Recipe }) {
       <details
         open={open}
         onToggle={(event) => setOpen(event.currentTarget.open)}
-        className="rounded-lg border border-neutral-300 p-3"
+        className="rounded-lg border border-line p-3"
       >
         <summary className="min-h-11 cursor-pointer py-2 font-medium">
           Szczegóły wartości odżywczych
         </summary>
         {open ? (
           <>
-            <ul className="divide-y divide-neutral-200">
+            <ul className="divide-y divide-line">
               {NUTRITION_KEYS.map((key) => (
                 <NutritionRow key={key} recipe={recipe} nutritionKey={key} />
               ))}

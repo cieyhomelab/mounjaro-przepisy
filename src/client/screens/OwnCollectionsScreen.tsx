@@ -73,7 +73,7 @@ function NameForm({
           value={name}
           aria-invalid={problem ? true : undefined}
           onChange={(event) => setName(event.target.value)}
-          className="min-h-11 rounded-lg border border-neutral-300 px-3 font-normal"
+          className="min-h-11 rounded-lg border border-ink-muted px-3 font-normal"
         />
       </label>
       {problem ? <FieldError>{PROBLEMS[problem]}</FieldError> : null}
@@ -82,7 +82,7 @@ function NameForm({
         <button
           type="submit"
           disabled={busy}
-          className={`${buttonClass} bg-neutral-900 text-white`}
+          className={`${buttonClass} bg-primary text-on-primary`}
         >
           {submitLabel}
         </button>
@@ -91,7 +91,7 @@ function NameForm({
             type="button"
             disabled={busy}
             onClick={onCancel}
-            className={`${buttonClass} border border-neutral-400`}
+            className={`${buttonClass} border border-ink-muted`}
           >
             Anuluj
           </button>
@@ -130,10 +130,10 @@ function CollectionRow({
     });
 
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3">
+    <li className="flex flex-col gap-2 rounded-lg border border-line p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-semibold">{collection.name}</span>
-        <span className="text-neutral-600">Przepisy: {recipeCount}</span>
+        <span className="text-ink-muted">Przepisy: {recipeCount}</span>
       </div>
       {mode === 'view' ? (
         <div className="flex flex-wrap gap-2">
@@ -141,7 +141,7 @@ function CollectionRow({
             type="button"
             onClick={() => setMode('rename')}
             aria-label={`Zmień nazwę kolekcji ${collection.name}`}
-            className={`${buttonClass} border border-neutral-400`}
+            className={`${buttonClass} border border-ink-muted`}
           >
             Zmień nazwę
           </button>
@@ -149,7 +149,7 @@ function CollectionRow({
             type="button"
             onClick={() => setMode('delete')}
             aria-label={`Usuń kolekcję ${collection.name}`}
-            className={`${buttonClass} border border-red-800 text-red-900`}
+            className={`${buttonClass} border border-accent text-accent`}
           >
             Usuń
           </button>
@@ -170,7 +170,7 @@ function CollectionRow({
           role="alertdialog"
           aria-modal="true"
           aria-labelledby={`delete-${collection.id}`}
-          className="flex flex-col gap-3 rounded-lg border border-red-800 bg-red-50 p-4"
+          className="flex flex-col gap-3 rounded-lg border border-accent bg-warn-soft text-on-warn-soft p-4"
         >
           <h2 id={`delete-${collection.id}`} className="text-lg font-semibold">
             Usunąć kolekcję „{collection.name}”?
@@ -182,7 +182,7 @@ function CollectionRow({
               type="button"
               disabled={busy}
               onClick={() => void remove()}
-              className={`${buttonClass} bg-red-800 text-white`}
+              className={`${buttonClass} bg-accent text-on-primary`}
             >
               Potwierdź usunięcie
             </button>
@@ -190,7 +190,7 @@ function CollectionRow({
               type="button"
               disabled={busy}
               onClick={() => setMode('view')}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-ink-muted`}
             >
               Anuluj
             </button>
@@ -219,7 +219,7 @@ export function OwnCollectionsScreen() {
       </Link>
       <h1 className="text-2xl font-semibold">Kolekcje własne</h1>
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}
@@ -236,7 +236,7 @@ export function OwnCollectionsScreen() {
             onSave={create}
           />
           {state.collections.length === 0 ? (
-            <p className="text-neutral-600">Nie masz jeszcze kolekcji własnych.</p>
+            <p className="text-ink-muted">Nie masz jeszcze kolekcji własnych.</p>
           ) : (
             <ul aria-label="Kolekcje własne" className="flex flex-col gap-2">
               {state.collections.map((collection) => (

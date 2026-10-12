@@ -4,7 +4,7 @@ import { parseServingsInput } from '../../shared/domain/portions';
 import { FieldError } from './ui/FieldError';
 
 const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-neutral-400 px-3 text-lg font-medium disabled:opacity-60';
+  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-ink-muted px-3 text-lg font-medium disabled:opacity-60';
 
 const display = (value: number) => String(value).replace('.', ',');
 
@@ -45,7 +45,7 @@ export function ServingsControl({
           aria-invalid={invalid}
           aria-describedby={invalid ? 'scale-servings-error' : undefined}
           value={draft ?? display(servings)}
-          className="min-h-11 w-20 rounded-lg border border-neutral-400 px-3 text-center"
+          className="min-h-11 w-20 rounded-lg border border-ink-muted px-3 text-center"
           onChange={(event) => {
             const text = event.target.value;
             const value = parseServingsInput(text);

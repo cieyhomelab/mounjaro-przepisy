@@ -18,7 +18,7 @@ export function WeeklyCounter({ cookEvents }: { cookEvents: readonly CookEvent[]
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex min-h-11 cursor-pointer items-center self-start rounded-lg border border-neutral-300 px-4 font-medium"
+        className="inline-flex min-h-11 cursor-pointer items-center self-start rounded-lg border border-ink-muted px-4 font-medium"
       >
         W tym tygodniu ugotowano: {cookedThisWeek(cookEvents, today)}
       </button>

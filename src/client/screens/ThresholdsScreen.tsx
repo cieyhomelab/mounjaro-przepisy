@@ -131,9 +131,9 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
                 onChange={(event) =>
                   setValues((current) => ({ ...current, [field]: event.target.value }))
                 }
-                className="min-h-11 w-28 rounded-lg border border-neutral-300 px-3"
+                className="min-h-11 w-28 rounded-lg border border-ink-muted px-3"
               />
-              <span className="text-neutral-600">{FIELDS[field].unit}</span>
+              <span className="text-ink-muted">{FIELDS[field].unit}</span>
             </div>
             {error ? <FieldError id={`threshold-${field}-error`}>{error}</FieldError> : null}
           </div>
@@ -141,7 +141,7 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
       })}
       {errorCode && retry ? <ErrorNotice code={errorCode} onRetry={retry} /> : null}
       {saved ? (
-        <p role="status" className="text-green-800">
+        <p role="status" className="text-ink">
           Zapisano progi.
         </p>
       ) : null}
@@ -149,7 +149,7 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
         <button
           type="submit"
           disabled={busy}
-          className={`${buttonClass} bg-neutral-900 text-white`}
+          className={`${buttonClass} bg-primary text-on-primary`}
         >
           Zapisz
         </button>
@@ -157,7 +157,7 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
           type="button"
           disabled={busy}
           onClick={reset}
-          className={`${buttonClass} border border-neutral-900`}
+          className={`${buttonClass} border border-ink-muted`}
         >
           Przywróć domyślne
         </button>
@@ -175,11 +175,11 @@ export function ThresholdsScreen() {
         Wróć do ustawień
       </Link>
       <h1 className="text-2xl font-semibold">Progi filtrów</h1>
-      <p className="text-neutral-600">
+      <p className="text-ink-muted">
         Wartości na jedną porcję, według których działają filtry kolekcji.
       </p>
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}

@@ -49,7 +49,7 @@ function ExportData() {
           type="button"
           disabled={busy}
           onClick={start}
-          className={`${buttonClass} bg-neutral-900 text-white`}
+          className={`${buttonClass} bg-primary text-on-primary`}
         >
           Eksportuj dane
         </button>
@@ -96,7 +96,7 @@ function DeleteAccount() {
           <button
             type="button"
             onClick={() => setAsking(true)}
-            className={`${buttonClass} border border-red-800 text-red-900`}
+            className={`${buttonClass} border border-accent text-accent`}
           >
             Usuń konto i wszystkie dane
           </button>
@@ -110,7 +110,7 @@ function DeleteAccount() {
       aria-modal="true"
       aria-labelledby="delete-account-title"
       onSubmit={confirm}
-      className="flex flex-col gap-3 rounded-lg border border-red-800 bg-red-50 p-4"
+      className="flex flex-col gap-3 rounded-lg border border-accent bg-warn-soft text-on-warn-soft p-4"
     >
       <h2 id="delete-account-title" className="text-lg font-semibold">
         Usunąć konto i wszystkie dane?
@@ -128,20 +128,24 @@ function DeleteAccount() {
           onChange={(event) => setWord(event.target.value)}
           autoComplete="off"
           autoCapitalize="characters"
-          className="min-h-11 rounded-lg border border-neutral-400 bg-white px-3"
+          className="min-h-11 rounded-lg border border-ink-muted bg-surface px-3"
         />
       </label>
       {mismatch ? <Notice>{errorMessage('confirmation_mismatch')}</Notice> : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
       <div className="flex flex-wrap gap-2">
-        <button type="submit" disabled={busy} className={`${buttonClass} bg-red-800 text-white`}>
+        <button
+          type="submit"
+          disabled={busy}
+          className={`${buttonClass} bg-accent text-on-primary`}
+        >
           Usuń konto
         </button>
         <button
           type="button"
           disabled={busy}
           onClick={cancel}
-          className={`${buttonClass} border border-neutral-400`}
+          className={`${buttonClass} border border-ink-muted`}
         >
           Anuluj
         </button>

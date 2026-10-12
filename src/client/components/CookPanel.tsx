@@ -48,12 +48,12 @@ export function CookPanel({ recipe }: { recipe: Recipe }) {
           type="button"
           disabled={busy || !online}
           onClick={() => void mark()}
-          className={`${buttonClass} bg-neutral-900 text-white`}
+          className={`${buttonClass} bg-primary text-on-primary`}
         >
           Ugotowane
         </button>
         {online ? null : (
-          <span className="inline-flex min-h-11 items-center text-neutral-700">
+          <span className="inline-flex min-h-11 items-center text-ink-muted">
             Oznacz po odzyskaniu połączenia
           </span>
         )}
@@ -62,7 +62,7 @@ export function CookPanel({ recipe }: { recipe: Recipe }) {
             type="button"
             disabled={busy}
             onClick={() => void undo()}
-            className={`${buttonClass} border border-neutral-400`}
+            className={`${buttonClass} border border-ink-muted`}
           >
             Cofnij ostatnie ugotowanie
           </button>

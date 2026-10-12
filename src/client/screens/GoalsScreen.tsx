@@ -12,7 +12,7 @@ import { FieldError } from '../components/ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
-const inputClass = 'min-h-11 rounded-lg border border-neutral-400 px-3';
+const inputClass = 'min-h-11 rounded-lg border border-ink-muted px-3';
 
 const INVALID_MESSAGE = 'Podaj liczbę większą od zera.';
 
@@ -75,7 +75,7 @@ function GoalsForm({ settings }: { settings: Settings }) {
         onChange={(event) => onChange(event.target.value)}
         className={inputClass}
       />
-      {hint ? <p className="text-sm text-neutral-600">{hint}</p> : null}
+      {hint ? <p className="text-sm text-ink-muted">{hint}</p> : null}
       {invalid.has(key) ? <FieldError id={`${id}-error`}>{INVALID_MESSAGE}</FieldError> : null}
     </div>
   );
@@ -101,14 +101,14 @@ function GoalsForm({ settings }: { settings: Settings }) {
       {field('goal-glass', 'glass', 'Wielkość szklanki (ml)', glass, setGlass)}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
       {saved ? (
-        <p role="status" className="text-green-800">
+        <p role="status" className="text-ink">
           Zapisano cele.
         </p>
       ) : null}
       <button
         type="submit"
         disabled={busy}
-        className={`${buttonClass} self-start bg-neutral-900 text-white`}
+        className={`${buttonClass} self-start bg-primary text-on-primary`}
       >
         Zapisz
       </button>
@@ -125,12 +125,12 @@ export function GoalsScreen() {
         Wróć do ustawień
       </Link>
       <h1 className="text-2xl font-semibold">Cele i szklanka</h1>
-      <p className="text-neutral-600">
+      <p className="text-ink-muted">
         Cele ustalasz sam, najlepiej z lekarzem lub dietetykiem. Aplikacja nie proponuje wartości.
       </p>
       <MedicalNotice />
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}

@@ -29,21 +29,21 @@ function AddRecipeChoices() {
       <button
         type="button"
         onClick={() => void navigate('/przepisy/z-linku')}
-        className={`${buttonClass} bg-neutral-900 text-white`}
+        className={`${buttonClass} bg-primary text-on-primary`}
       >
         Z linku
       </button>
       <button
         type="button"
         onClick={() => void navigate('/przepisy/nowy')}
-        className={`${buttonClass} bg-neutral-900 text-white`}
+        className={`${buttonClass} bg-primary text-on-primary`}
       >
         Ręcznie
       </button>
       <button
         type="button"
         onClick={() => void navigate('/szukaj')}
-        className={`${buttonClass} border border-neutral-400`}
+        className={`${buttonClass} border border-ink-muted`}
       >
         Szukaj w serwisach
       </button>
@@ -53,9 +53,9 @@ function AddRecipeChoices() {
 
 function EmptyCollection() {
   return (
-    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-neutral-300 p-4">
+    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-line p-4">
       <p className="text-lg font-medium">Dodaj pierwszy przepis</p>
-      <p className="text-neutral-600">Twoja kolekcja jest pusta. Wybierz, jak dodać przepis.</p>
+      <p className="text-ink-muted">Twoja kolekcja jest pusta. Wybierz, jak dodać przepis.</p>
       <AddRecipeChoices />
     </div>
   );
@@ -73,7 +73,7 @@ function ListControls({ collections }: { collections: { id: string; name: string
         placeholder="Szukaj po tytule lub składniku"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        className="min-h-11 rounded-lg border border-neutral-300 px-3"
+        className="min-h-11 rounded-lg border border-ink-muted px-3"
       />
       <div role="group" aria-label="Filtry" className="flex flex-wrap gap-2">
         {FILTER_IDS.map((id) => {
@@ -91,7 +91,7 @@ function ListControls({ collections }: { collections: { id: string; name: string
           <select
             value={collectionId ?? ''}
             onChange={(event) => setCollectionId(event.target.value || null)}
-            className="min-h-11 rounded-lg border border-neutral-300 bg-white px-3"
+            className="min-h-11 rounded-lg border border-ink-muted bg-surface px-3"
           >
             <option value="">Wszystkie przepisy</option>
             {collections.map((collection) => (
@@ -107,7 +107,7 @@ function ListControls({ collections }: { collections: { id: string; name: string
         <select
           value={sort}
           onChange={(event) => setSort(event.target.value as SortKey)}
-          className="min-h-11 rounded-lg border border-neutral-300 bg-white px-3"
+          className="min-h-11 rounded-lg border border-ink-muted bg-surface px-3"
         >
           {SORT_KEYS.map((key) => (
             <option key={key} value={key}>
@@ -122,12 +122,12 @@ function ListControls({ collections }: { collections: { id: string; name: string
 
 function NoMatches({ onClear }: { onClear: () => void }) {
   return (
-    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-neutral-300 p-4">
+    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-line p-4">
       <p className="text-lg font-medium">Brak przepisów dla tych filtrów</p>
       <button
         type="button"
         onClick={onClear}
-        className={`${buttonClass} bg-neutral-900 text-white`}
+        className={`${buttonClass} bg-primary text-on-primary`}
       >
         Wyczyść filtry
       </button>
@@ -182,7 +182,7 @@ export function CollectionScreen() {
               type="button"
               aria-expanded={adding}
               onClick={() => setAdding((open) => !open)}
-              className={`${buttonClass} bg-neutral-900 text-white`}
+              className={`${buttonClass} bg-primary text-on-primary`}
             >
               Dodaj przepis
             </button>
@@ -191,7 +191,7 @@ export function CollectionScreen() {
       </div>
       {adding ? <AddRecipeChoices /> : null}
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}

@@ -30,7 +30,7 @@ export function LoginScreen() {
       {/* A plain link: the whole sign-in is a chain of redirects handled by the server. */}
       <a
         href={`/api/auth/google/start?returnTo=${encodeURIComponent(returnTo)}`}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-neutral-900 px-6 font-medium text-white"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-primary px-6 font-medium text-on-primary"
       >
         Zaloguj przez Google
       </a>

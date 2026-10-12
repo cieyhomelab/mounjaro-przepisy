@@ -60,7 +60,7 @@ function AddToMeal({
   return (
     <form
       aria-label={`Dodaj przepis: ${label}`}
-      className="flex flex-col gap-2 rounded-lg border border-neutral-300 p-3"
+      className="flex flex-col gap-2 rounded-lg border border-line p-3"
       onSubmit={(event) => {
         event.preventDefault();
         void submit();
@@ -74,7 +74,7 @@ function AddToMeal({
           id="planner-recipe"
           value={recipeId}
           onChange={(event) => setRecipeId(event.target.value)}
-          className="min-h-11 rounded-lg border border-neutral-400 px-3"
+          className="min-h-11 rounded-lg border border-ink-muted px-3"
         >
           <option value="">Wybierz przepis</option>
           {[...recipes]
@@ -97,7 +97,7 @@ function AddToMeal({
           value={servingsText}
           aria-invalid={servings === null}
           onChange={(event) => setServingsText(event.target.value)}
-          className="min-h-11 w-24 rounded-lg border border-neutral-400 px-3"
+          className="min-h-11 w-24 rounded-lg border border-ink-muted px-3"
         />
       </div>
       {servings === null ? (
@@ -110,15 +110,11 @@ function AddToMeal({
         <button
           type="submit"
           disabled={busy || !recipeId || servings === null}
-          className={`${buttonClass} bg-neutral-900 text-white`}
+          className={`${buttonClass} bg-primary text-on-primary`}
         >
           Dodaj do planera
         </button>
-        <button
-          type="button"
-          onClick={onDone}
-          className={`${buttonClass} border border-neutral-400`}
-        >
+        <button type="button" onClick={onDone} className={`${buttonClass} border border-ink-muted`}>
           Anuluj
         </button>
       </div>
@@ -151,7 +147,7 @@ function PlannedEntry({ entry, title }: { entry: MealPlanEntry; title: string })
           disabled={busy}
           aria-label={`Usuń z pory: ${title}`}
           onClick={() => void remove()}
-          className={`${buttonClass} border border-neutral-400`}
+          className={`${buttonClass} border border-ink-muted`}
         >
           Usuń
         </button>
@@ -177,7 +173,7 @@ export function PlannerScreen() {
     <section className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold">Planer</h1>
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}
@@ -190,7 +186,7 @@ export function PlannerScreen() {
             <button
               type="button"
               onClick={() => goTo(addDays(week, -7))}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-ink-muted`}
             >
               Poprzedni tydzień
             </button>
@@ -200,14 +196,14 @@ export function PlannerScreen() {
             <button
               type="button"
               onClick={() => goTo(addDays(week, 7))}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-ink-muted`}
             >
               Następny tydzień
             </button>
           </div>
           <Link
             to={week === currentWeek ? '/zakupy' : `/zakupy?${WEEK_PARAM}=${week}`}
-            className={`${buttonClass} self-start border border-neutral-400`}
+            className={`${buttonClass} self-start border border-ink-muted`}
           >
             Lista zakupów
           </Link>
@@ -224,7 +220,7 @@ export function PlannerScreen() {
                       <section
                         key={slot}
                         aria-label={`${formatPlanDay(day.date)}: ${SLOT_LABELS[slot]}`}
-                        className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3"
+                        className="flex flex-col gap-2 rounded-lg border border-line p-3"
                       >
                         <h3 className="font-medium">{SLOT_LABELS[slot]}</h3>
                         {entries.length > 0 ? (
@@ -259,7 +255,7 @@ export function PlannerScreen() {
                               setOfflineNotice(null);
                               setAdding({ date: day.date, slot });
                             }}
-                            className={`${buttonClass} self-start border border-neutral-400`}
+                            className={`${buttonClass} self-start border border-ink-muted`}
                           >
                             Dodaj przepis
                           </button>

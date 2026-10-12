@@ -25,10 +25,10 @@ function SiteRow({
   onAskDelete: (site: TrustedSite) => void;
 }) {
   return (
-    <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 p-3">
+    <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line p-3">
       <div className="flex flex-col">
         <span className="font-medium">{site.name}</span>
-        <span className="text-neutral-600">{site.host}</span>
+        <span className="text-ink-muted">{site.host}</span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <label className="inline-flex min-h-11 cursor-pointer items-center gap-2">
@@ -47,7 +47,7 @@ function SiteRow({
           disabled={busy}
           onClick={() => onAskDelete(site)}
           aria-label={`Usuń serwis ${site.name}`}
-          className={`${buttonClass} border border-red-800 text-red-900`}
+          className={`${buttonClass} border border-accent text-accent`}
         >
           Usuń
         </button>
@@ -137,19 +137,19 @@ export function TrustedSitesScreen() {
           autoComplete="off"
           value={address}
           onChange={(event) => setAddress(event.target.value)}
-          className="min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2"
+          className="min-h-11 w-full rounded-lg border border-ink-muted px-3 py-2"
         />
         <div>
           <button
             type="submit"
             disabled={busy || address.trim() === ''}
-            className={`${buttonClass} bg-neutral-900 text-white`}
+            className={`${buttonClass} bg-primary text-on-primary`}
           >
             Dodaj serwis
           </button>
         </div>
         {busy ? (
-          <p role="status" className="text-neutral-700">
+          <p role="status" className="text-ink-muted">
             Sprawdzam serwis…
           </p>
         ) : null}
@@ -159,7 +159,7 @@ export function TrustedSitesScreen() {
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="delete-site-title"
-          className="flex flex-col gap-3 rounded-lg border border-red-800 bg-red-50 p-4"
+          className="flex flex-col gap-3 rounded-lg border border-accent bg-warn-soft text-on-warn-soft p-4"
         >
           <h2 id="delete-site-title" className="text-lg font-semibold">
             Usunąć serwis {deleting.name}?
@@ -170,7 +170,7 @@ export function TrustedSitesScreen() {
               type="button"
               disabled={busy}
               onClick={() => remove(deleting)}
-              className={`${buttonClass} bg-red-800 text-white`}
+              className={`${buttonClass} bg-accent text-on-primary`}
             >
               Usuń serwis
             </button>
@@ -181,7 +181,7 @@ export function TrustedSitesScreen() {
                 clear();
                 setDeleting(null);
               }}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-ink-muted`}
             >
               Anuluj
             </button>

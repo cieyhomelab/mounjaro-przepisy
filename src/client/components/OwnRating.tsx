@@ -35,7 +35,7 @@ export function OwnRating({ recipe }: { recipe: Recipe }) {
             aria-pressed={recipe.ownRating !== null && star <= recipe.ownRating}
             aria-label={`${star} ${star === 1 ? 'gwiazdka' : star < 5 ? 'gwiazdki' : 'gwiazdek'}`}
             onClick={() => void rate(star)}
-            className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-neutral-300 text-2xl disabled:opacity-60"
+            className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-ink-muted text-2xl disabled:opacity-60"
           >
             <span aria-hidden="true">
               {recipe.ownRating !== null && star <= recipe.ownRating ? '★' : '☆'}
@@ -50,13 +50,13 @@ export function OwnRating({ recipe }: { recipe: Recipe }) {
             type="button"
             disabled={busy}
             onClick={() => void rate(null)}
-            className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-neutral-400 px-4 font-medium disabled:opacity-60"
+            className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-ink-muted px-4 font-medium disabled:opacity-60"
           >
             Usuń ocenę
           </button>
         </div>
       ) : (
-        <p className="text-neutral-600">Moja ocena: brak</p>
+        <p className="text-ink-muted">Moja ocena: brak</p>
       )}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
     </section>

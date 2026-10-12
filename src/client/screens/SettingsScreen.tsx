@@ -35,7 +35,7 @@ function OfflineData({ status }: { status: OfflineStatus }) {
       {status.state === 'incomplete' ? (
         <>
           <p>Dane offline: niepełne</p>
-          <p className="text-neutral-600">
+          <p className="text-ink-muted">
             Nie udało się pobrać wszystkich danych na to urządzenie, na przykład z powodu braku
             miejsca. Aplikacja z internetem działa normalnie; bez internetu mogą brakować zdjęcia.
             Zwolnij miejsce i otwórz aplikację ponownie.
@@ -68,7 +68,7 @@ export function SettingsScreen() {
         <li>
           <Link
             to="/ustawienia/progi-filtrow"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+            className="flex min-h-11 items-center rounded-lg border border-line px-4 font-medium"
           >
             Progi filtrów
           </Link>
@@ -76,7 +76,7 @@ export function SettingsScreen() {
         <li>
           <Link
             to="/ustawienia/cele"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+            className="flex min-h-11 items-center rounded-lg border border-line px-4 font-medium"
           >
             Cele i szklanka
           </Link>
@@ -84,7 +84,7 @@ export function SettingsScreen() {
         <li>
           <Link
             to="/ustawienia/przypomnienie"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+            className="flex min-h-11 items-center rounded-lg border border-line px-4 font-medium"
           >
             Przypomnienie o zastrzyku
           </Link>
@@ -92,7 +92,7 @@ export function SettingsScreen() {
         <li>
           <Link
             to="/ustawienia/zaufane-serwisy"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+            className="flex min-h-11 items-center rounded-lg border border-line px-4 font-medium"
           >
             Zaufane serwisy
           </Link>
@@ -100,7 +100,7 @@ export function SettingsScreen() {
         <li>
           <Link
             to="/ustawienia/moje-dane"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+            className="flex min-h-11 items-center rounded-lg border border-line px-4 font-medium"
           >
             Moje dane
           </Link>
@@ -108,7 +108,7 @@ export function SettingsScreen() {
         <li>
           <Link
             to="/konto"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+            className="flex min-h-11 items-center rounded-lg border border-line px-4 font-medium"
           >
             Konto
           </Link>
@@ -121,7 +121,7 @@ export function SettingsScreen() {
         <button
           type="button"
           onClick={() => void handleLogout()}
-          className="inline-flex min-h-11 min-w-11 cursor-pointer items-center rounded-lg border border-neutral-400 px-4 font-medium"
+          className="inline-flex min-h-11 min-w-11 cursor-pointer items-center rounded-lg border border-ink-muted px-4 font-medium"
         >
           Wyloguj
         </button>

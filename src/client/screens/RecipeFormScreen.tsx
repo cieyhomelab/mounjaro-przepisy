@@ -48,10 +48,10 @@ const fieldMessages: Record<RecipeField, Record<RecipeFieldCode, string>> = {
   fiberG: { required: 'Podaj liczbę.', invalid: 'Podaj liczbę nieujemną.' },
 };
 
-const inputClass = 'min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2';
+const inputClass = 'min-h-11 w-full rounded-lg border border-ink-muted px-3 py-2';
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
-const secondaryButton = `${buttonClass} border border-neutral-400`;
+const secondaryButton = `${buttonClass} border border-ink-muted`;
 
 /** Editable list of text lines (ingredients or steps) with add and remove buttons. */
 function LineList({
@@ -94,7 +94,7 @@ function LineList({
           // Rows have no identity of their own; the position is the key.
           <div key={index} className="flex items-start gap-2">
             <div className="flex flex-1 flex-col gap-1">
-              <label htmlFor={id} className="text-sm text-neutral-700">
+              <label htmlFor={id} className="text-sm text-ink-muted">
                 {itemLabel} {index + 1}
               </label>
               {multiline ? <textarea rows={2} {...common} /> : <input type="text" {...common} />}
@@ -237,7 +237,7 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
             : 'Nowy przepis'}
       </h1>
       {draft?.notice ? (
-        <p role="status" className="rounded-lg bg-amber-50 p-3 text-amber-950">
+        <p role="status" className="rounded-lg bg-warn-soft p-3 text-on-warn-soft">
           {draft.notice}
         </p>
       ) : null}
@@ -298,7 +298,7 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
           disabled={recipeKept}
           onChange={(next) => set('ingredients', next)}
         />
-        <p className="-mt-3 text-sm text-neutral-600">
+        <p className="-mt-3 text-sm text-ink-muted">
           Jeden składnik w wierszu, np. „200 g piersi z kurczaka” albo „sól do smaku”.
         </p>
         <LineList
@@ -343,7 +343,7 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
         </Field>
         <fieldset className="flex flex-col gap-3">
           <legend className="font-medium">Wartości odżywcze na porcję (opcjonalnie)</legend>
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-ink-muted">
             Zostaw pole puste, aby użyć wartości ze strony źródłowej albo wyliczonej ze składników.
           </p>
           {(
@@ -392,7 +392,7 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
           <button
             type="submit"
             disabled={saving}
-            className={`${buttonClass} bg-neutral-900 text-white disabled:opacity-60`}
+            className={`${buttonClass} bg-primary text-on-primary disabled:opacity-60`}
           >
             Zapisz
           </button>
@@ -415,7 +415,7 @@ export function RecipeEditScreen() {
   const { state, sync } = useCollection();
   if (state.status === 'loading') {
     return (
-      <p role="status" className="text-neutral-600">
+      <p role="status" className="text-ink-muted">
         Ładowanie…
       </p>
     );

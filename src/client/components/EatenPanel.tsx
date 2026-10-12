@@ -11,7 +11,7 @@ import { FieldError } from './ui/FieldError';
 
 const buttonClass =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
-const inputClass = 'min-h-11 rounded-lg border border-neutral-400 px-3';
+const inputClass = 'min-h-11 rounded-lg border border-ink-muted px-3';
 
 /** "Zjedzone" on the recipe screen: adds the protein of the servings eaten to today's counter (S25). */
 export function EatenPanel({ recipe }: { recipe: Recipe }) {
@@ -72,7 +72,7 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
         Licznik białka
       </h2>
       {added !== null ? (
-        <p role="status" className="rounded-lg bg-green-50 p-3">
+        <p role="status" className="rounded-lg bg-primary-soft text-on-primary-soft p-3">
           Dodano do dzisiejszego licznika: {formatAmount(added)} g.{' '}
           <Link to="/licznik" className="underline">
             Pokaż licznik
@@ -93,7 +93,7 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
               className={inputClass}
             />
             {preview !== null && !manual ? (
-              <p className="text-sm text-neutral-600">
+              <p className="text-sm text-ink-muted">
                 Do licznika: {formatAmount(preview)} g białka
               </p>
             ) : null}
@@ -123,14 +123,14 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
             <button
               type="submit"
               disabled={busy}
-              className={`${buttonClass} bg-neutral-900 text-white`}
+              className={`${buttonClass} bg-primary text-on-primary`}
             >
               Dodaj do licznika
             </button>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className={`${buttonClass} border border-neutral-400`}
+              className={`${buttonClass} border border-ink-muted`}
             >
               Anuluj
             </button>
@@ -143,7 +143,7 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
             setOpen(true);
             setAdded(null);
           }}
-          className={`${buttonClass} self-start border border-neutral-400`}
+          className={`${buttonClass} self-start border border-ink-muted`}
         >
           Zjedzone
         </button>

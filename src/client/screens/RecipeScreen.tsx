@@ -51,7 +51,7 @@ function DeleteRecipe({ recipe }: { recipe: Recipe }) {
     return (
       <button
         type="button"
-        className={`${actionClass} border border-red-800 text-red-900`}
+        className={`${actionClass} border border-accent text-accent`}
         onClick={() => setAsking(true)}
       >
         Usuń
@@ -63,7 +63,7 @@ function DeleteRecipe({ recipe }: { recipe: Recipe }) {
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="delete-title"
-      className="flex w-full flex-col gap-3 rounded-lg border border-red-800 bg-red-50 p-4"
+      className="flex w-full flex-col gap-3 rounded-lg border border-accent bg-warn-soft text-on-warn-soft p-4"
     >
       <h2 id="delete-title" className="text-lg font-semibold">
         Usunąć przepis „{recipe.title}”?
@@ -77,7 +77,7 @@ function DeleteRecipe({ recipe }: { recipe: Recipe }) {
         <button
           type="button"
           disabled={deleting}
-          className={`${actionClass} bg-red-800 text-white disabled:opacity-60`}
+          className={`${actionClass} bg-accent text-on-primary disabled:opacity-60`}
           onClick={() => void confirm()}
         >
           Usuń
@@ -85,7 +85,7 @@ function DeleteRecipe({ recipe }: { recipe: Recipe }) {
         <button
           type="button"
           disabled={deleting}
-          className={`${actionClass} border border-neutral-400`}
+          className={`${actionClass} border border-ink-muted`}
           onClick={() => {
             setAsking(false);
             setErrorCode(null);
@@ -130,13 +130,17 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
       <div className="flex flex-wrap items-center gap-2">
         <h1 className="text-2xl font-semibold">{recipe.title}</h1>
         {recipe.kind === 'manual' ? (
-          <span className="rounded-full bg-neutral-200 px-2 text-sm">ręczny</span>
+          <span className="rounded-full bg-surface-muted px-2 text-sm">ręczny</span>
         ) : null}
         {recipe.worseDays ? (
-          <span className="rounded-full bg-amber-100 px-2 text-sm">Na gorsze dni</span>
+          <span className="rounded-full bg-warn-soft text-on-warn-soft px-2 text-sm">
+            Na gorsze dni
+          </span>
         ) : null}
         {recipe.tolerance === 'bad' ? (
-          <span className="rounded-full bg-red-100 px-2 text-sm">źle toleruję</span>
+          <span className="rounded-full bg-warn-soft text-on-warn-soft px-2 text-sm">
+            źle toleruję
+          </span>
         ) : null}
       </div>
       {recipe.kind === 'link' || recipe.sourceRating !== null ? (
@@ -144,11 +148,11 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
       ) : null}
       <p>Liczba porcji: {recipe.servings.toLocaleString('pl-PL')}</p>
       <NutritionDetails recipe={recipe} />
-      <Link to={cookPath} className={`${actionClass} bg-neutral-900 self-start text-white`}>
+      <Link to={cookPath} className={`${actionClass} bg-primary self-start text-on-primary`}>
         Gotuj
       </Link>
       {finishedCooking ? (
-        <p role="status" className="rounded-lg bg-green-50 p-3">
+        <p role="status" className="rounded-lg bg-primary-soft text-on-primary-soft p-3">
           Koniec gotowania. Oceń smak i tolerancję tego przepisu poniżej.
         </p>
       ) : null}
@@ -184,7 +188,7 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
       <div className="flex flex-wrap gap-2">
         <Link
           to={`/przepisy/${recipe.id}/edycja`}
-          className={`${actionClass} border border-neutral-400`}
+          className={`${actionClass} border border-ink-muted`}
         >
           Edytuj
         </Link>
@@ -218,7 +222,7 @@ export function RecipeScreen() {
         Wróć do kolekcji
       </Link>
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}

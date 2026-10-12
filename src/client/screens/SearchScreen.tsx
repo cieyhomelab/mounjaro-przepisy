@@ -44,7 +44,7 @@ function ResultItem({
   onSave: (result: SearchResult) => void;
 }) {
   return (
-    <li className="flex gap-3 rounded-lg border border-neutral-200 p-3">
+    <li className="flex gap-3 rounded-lg border border-line p-3">
       {result.imageToken ? (
         <img
           src={`/api/search/images/${result.imageToken}`}
@@ -56,7 +56,7 @@ function ResultItem({
         <div
           role="img"
           aria-label="Brak zdjęcia"
-          className="size-20 shrink-0 rounded-lg bg-neutral-100"
+          className="size-20 shrink-0 rounded-lg bg-surface-muted"
         />
       )}
       <div className="flex min-w-0 flex-col gap-1">
@@ -68,8 +68,8 @@ function ResultItem({
         >
           {result.title}
         </a>
-        <span className="text-neutral-700">{result.siteName}</span>
-        <span className="text-neutral-700">
+        <span className="text-ink-muted">{result.siteName}</span>
+        <span className="text-ink-muted">
           {result.rating === null
             ? 'Brak oceny'
             : `Ocena ${formatRating(result.rating)} / 5${
@@ -89,7 +89,7 @@ function ResultItem({
             disabled={busy}
             onClick={() => onSave(result)}
             aria-label={`Zapisz: ${result.title}`}
-            className={`${buttonClass} self-start bg-neutral-900 text-white`}
+            className={`${buttonClass} self-start bg-primary text-on-primary`}
           >
             Zapisz
           </button>
@@ -164,13 +164,13 @@ export function SearchScreen() {
   let body;
   if (!online) {
     body = (
-      <p role="status" className="rounded-lg bg-amber-50 p-4 text-amber-950">
+      <p role="status" className="rounded-lg bg-warn-soft p-4 text-on-warn-soft">
         Wyszukiwanie w serwisach wymaga połączenia z internetem.
       </p>
     );
   } else if (noActiveSites || errorCode === 'no_trusted_sites') {
     body = (
-      <p role="status" className="rounded-lg bg-amber-50 p-4 text-amber-950">
+      <p role="status" className="rounded-lg bg-warn-soft p-4 text-on-warn-soft">
         Nie masz aktywnych zaufanych serwisów. Włącz je w{' '}
         <Link to="/ustawienia/zaufane-serwisy" className="font-medium underline">
           ustawieniach zaufanych serwisów
@@ -192,20 +192,20 @@ export function SearchScreen() {
             maxLength={SEARCH_QUERY_MAX}
             value={phrase}
             onChange={(event) => setPhrase(event.target.value)}
-            className="min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2"
+            className="min-h-11 w-full rounded-lg border border-ink-muted px-3 py-2"
           />
           <div>
             <button
               type="submit"
               disabled={!valid || searching}
-              className={`${buttonClass} bg-neutral-900 text-white`}
+              className={`${buttonClass} bg-primary text-on-primary`}
             >
               Szukaj
             </button>
           </div>
         </form>
         {searching ? (
-          <p role="status" className="text-neutral-700">
+          <p role="status" className="text-ink-muted">
             Szukam w serwisach…
           </p>
         ) : null}

@@ -11,7 +11,7 @@ import {
   openScreen,
   smallTouchTargets,
 } from './a11y';
-import { SCREENS } from './screens';
+import { SCREENS, prepareScreens } from './screens';
 import { enableReminder } from './reminderHelpers';
 
 // Every test walks the whole screen catalogue (AGENTS.md allows mobile-chromium only).
@@ -20,6 +20,9 @@ test.skip(
   'przechodzi po całym katalogu ekranów',
 );
 test.setTimeout(600_000);
+
+// Screens drawn outside AppShell (the banner lives there): the cooking view takes the whole screen.
+const WITHOUT_APP_SHELL = new Set(['gotowanie-skladniki', 'gotowanie-krok']);
 
 test.describe('S29: testy przekrojowe po katalogu ekranów', () => {
   test('katalog ekranów nie jest pusty', () => {
@@ -102,15 +105,23 @@ test.describe('S29: testy przekrojowe po katalogu ekranów', () => {
       browser,
     }, testInfo) => {
       const failures: string[] = [];
-      let shown = 0;
       await forEachScreen(browser, testInfo, APP_SCREENS, async (page, screen) => {
-        const data = await openScreen(page, screen, { width: 390, scheme });
-        // Reminder day is today (Wednesday) at 08:00 with no dose entered.
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.emulateMedia({ colorScheme: scheme });
+        const data = await prepareScreens(page, screen);
+        // The reminder day is today (Wednesday) at 08:00 with no dose entered. It is set before the
+        // measured screen opens, and the collection is opened once so the settings reach the local
+        // copy before the screen is drawn (an offline screen cannot fetch them later).
         await enableReminder(page, 3, '08:00');
-        await screen.open(page, data);
         const banner = page.getByRole('status', { name: 'Przypomnienie o zastrzyku' });
-        if ((await banner.count()) === 0) return;
-        shown += 1;
+        await page.goto('/');
+        await expect(banner, 'baner zastrzyku po synchronizacji').toBeVisible();
+        await screen.open(page, data);
+        if (WITHOUT_APP_SHELL.has(screen.id)) {
+          await expect(banner, `${screen.id}: ekran bez AppShell`).toHaveCount(0);
+          return;
+        }
+        await expect(banner, `${screen.id}: baner zastrzyku`).toBeVisible();
         const colors = await banner.evaluate((el) => {
           const probe = document.createElement('div');
           probe.style.backgroundColor = 'var(--primary-soft)';
@@ -123,7 +134,6 @@ test.describe('S29: testy przekrojowe po katalogu ekranów', () => {
           failures.push(`${screen.id}: ${colors.actual}, oczekiwano ${colors.expected}`);
         }
       });
-      expect(shown, 'baner pojawia się na ekranach z nawigacją').toBeGreaterThanOrEqual(4);
       expect(failures).toEqual([]);
     });
   }

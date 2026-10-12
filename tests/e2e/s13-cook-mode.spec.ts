@@ -65,7 +65,7 @@ test.describe('S13: tryb gotowania', () => {
   }) => {
     await startCooking(page);
 
-    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await page.getByRole('link', { name: 'Gotuję' }).click();
 
     const items = page.getByRole('listitem');
     await expect(items).toHaveText(['400 g piersi z kurczaka', 'sól do smaku']);
@@ -88,7 +88,7 @@ test.describe('S13: tryb gotowania', () => {
     await startCooking(page);
     await page.getByLabel('Przelicz na porcje').fill('2');
 
-    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await page.getByRole('link', { name: 'Gotuję' }).click();
 
     await expect(page.getByRole('listitem')).toHaveText([
       '200 g piersi z kurczaka',
@@ -98,7 +98,7 @@ test.describe('S13: tryb gotowania', () => {
 
   test('S13: „Dalej” pokazuje dokładnie jeden krok z informacją „krok X z Y”', async ({ page }) => {
     await startCooking(page);
-    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await page.getByRole('link', { name: 'Gotuję' }).click();
 
     await page.getByRole('button', { name: 'Dalej' }).click();
 
@@ -110,7 +110,7 @@ test.describe('S13: tryb gotowania', () => {
 
   test('S13: „Wstecz” i „Dalej” pokazują krok poprzedni albo następny', async ({ page }) => {
     await startCooking(page);
-    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await page.getByRole('link', { name: 'Gotuję' }).click();
     await page.getByRole('button', { name: 'Dalej' }).click();
 
     await page.getByRole('button', { name: 'Dalej' }).click();
@@ -128,7 +128,7 @@ test.describe('S13: tryb gotowania', () => {
     page,
   }) => {
     await startCooking(page);
-    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await page.getByRole('link', { name: 'Gotuję' }).click();
     await page.getByRole('button', { name: 'Dalej' }).click();
     await page.getByRole('button', { name: 'Dalej' }).click();
     await expect(stepCounter(page, 'krok 2 z 3')).toBeVisible();
@@ -151,7 +151,7 @@ test.describe('S13: tryb gotowania', () => {
     await page.clock.install();
     await startCooking(page);
 
-    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await page.getByRole('link', { name: 'Gotuję' }).click();
     await expect(page.getByRole('heading', { name: /^Składniki/ })).toBeVisible();
     await expect.poll(() => heldLocks(page)).toBe(1);
 
@@ -170,7 +170,7 @@ test.describe('S13: tryb gotowania', () => {
     await withoutWakeLock(page);
     await startCooking(page);
 
-    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await page.getByRole('link', { name: 'Gotuję' }).click();
 
     await expect(page.getByRole('status')).toContainText('ekran może zgasnąć');
     await page.getByRole('button', { name: 'Rozumiem' }).click();
@@ -184,7 +184,7 @@ test.describe('S13: tryb gotowania', () => {
     page,
   }) => {
     await startCooking(page);
-    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await page.getByRole('link', { name: 'Gotuję' }).click();
     await page.getByRole('button', { name: 'Dalej' }).click();
     await page.getByRole('button', { name: 'Dalej' }).click();
     await page.getByRole('button', { name: 'Dalej' }).click();

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { recipeDeletedResponseSchema, type Recipe } from '../../shared/contracts/recipe';
 import { plannedCount } from '../../shared/domain/mealPlan';
@@ -109,13 +110,32 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
 
   return (
     <article className="flex flex-col gap-4">
-      <RecipeImage
-        photoId={recipe.photoId}
-        title={recipe.title}
-        className="aspect-4/3 w-full rounded-lg"
-      />
+      <div className="relative -mx-4 -mt-4 md:mx-0 md:mt-0">
+        <RecipeImage
+          photoId={recipe.photoId}
+          title={recipe.title}
+          className="h-75 w-full rounded-b-hero md:rounded-hero"
+        />
+        <Link
+          to="/"
+          aria-label="Wróć do kolekcji"
+          className="absolute top-4 left-4 flex size-12 items-center justify-center rounded-full bg-surface text-ink shadow-nav"
+        >
+          <ChevronLeft aria-hidden="true" size={24} />
+        </Link>
+        {recipe.sourceUrl ? (
+          <a
+            href={recipe.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-4 left-4 inline-flex min-h-11 max-w-[calc(100%-2rem)] items-center rounded-full bg-surface px-4 font-medium text-ink"
+          >
+            <span className="truncate">Źródło: {recipe.sourceSiteName ?? recipe.sourceUrl} ↗</span>
+          </a>
+        ) : null}
+      </div>
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-2xl font-semibold">{recipe.title}</h1>
+        <h1 className="font-heading text-title font-extrabold">{recipe.title}</h1>
         {recipe.kind === 'manual' ? (
           <span className="rounded-full bg-surface-muted px-2 text-sm">ręczny</span>
         ) : null}
@@ -127,9 +147,6 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
       ) : null}
       <p>Liczba porcji: {recipe.servings.toLocaleString('pl-PL')}</p>
       <NutritionDetails recipe={recipe} />
-      <ButtonLink to={cookPath} className="self-start">
-        Gotuj
-      </ButtonLink>
       {finishedCooking ? (
         <p role="status" className="rounded-lg bg-primary-soft text-on-primary-soft p-3">
           Koniec gotowania. Oceń smak i tolerancję tego przepisu poniżej.
@@ -170,19 +187,12 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
         </ButtonLink>
         <DeleteRecipe recipe={recipe} />
       </div>
-      {recipe.sourceUrl ? (
-        <p>
-          Źródło:{' '}
-          <a
-            href={recipe.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center underline"
-          >
-            {recipe.sourceSiteName ?? recipe.sourceUrl}
-          </a>
-        </p>
-      ) : null}
+      <ButtonLink
+        to={cookPath}
+        className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] z-[5] min-h-action w-full text-lg shadow-nav md:bottom-4"
+      >
+        Gotuję
+      </ButtonLink>
     </article>
   );
 }
@@ -194,9 +204,11 @@ export function RecipeScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link to="/" className="inline-flex min-h-11 items-center self-start underline">
-        Wróć do kolekcji
-      </Link>
+      {state.status !== 'ready' || !state.recipes.some((item) => item.id === id) ? (
+        <Link to="/" className="inline-flex min-h-11 items-center self-start underline">
+          Wróć do kolekcji
+        </Link>
+      ) : null}
       {state.status === 'loading' ? (
         <p role="status" className="text-ink-muted">
           Ładowanie…

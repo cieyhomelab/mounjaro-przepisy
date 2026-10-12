@@ -205,7 +205,7 @@ test.describe('S14: dane offline', () => {
     await page.getByLabel('Przelicz na porcje').fill('4');
     await expect(page.getByText('400 g kurczaka')).toBeVisible();
 
-    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await page.getByRole('link', { name: 'Gotuję' }).click();
     await expect(page.getByText('offline', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Dalej' }).click();
     await expect(page.getByText('Usmaż kurczaka.')).toBeVisible();

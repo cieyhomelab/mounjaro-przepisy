@@ -259,10 +259,42 @@ test.describe('S27: nawigacja', () => {
     const box = await page.getByRole('status').filter({ hasText: 'offline' }).boundingBox();
     expect(box?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(120);
 
-    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await page.getByRole('link', { name: 'Gotuję' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Zupa offline' })).toBeVisible();
     expect(page.url()).toContain(`/przepisy/${id}/gotuj`);
     await expect(page.getByRole('status').filter({ hasText: 'offline' })).toBeVisible();
     await context.setOffline(false);
+  });
+});
+
+test.describe('S27: przycisk „Gotuję” nad paskiem', () => {
+  test('S27: na 390 px przyklejony „Gotuję” leży nad paskiem nawigacji i się z nim nie nakłada', async ({
+    page,
+  }) => {
+    await loggedIn(page);
+    const id = await seedRecipe(page, {
+      title: 'Zupa długa',
+      ingredients: Array.from({ length: 25 }, (_, index) => `${index + 1} g składnika ${index}`),
+      steps: Array.from({ length: 15 }, (_, index) => `Krok numer ${index + 1}.`),
+    });
+    await page.goto(`/przepisy/${id}`);
+    const cook = page.getByRole('link', { name: 'Gotuję' });
+    await expect(cook).toBeVisible();
+
+    const gap = async () => {
+      const cookBox = await cook.boundingBox();
+      const navBox = await mainNav(page).boundingBox();
+      expect(cookBox).not.toBeNull();
+      expect(navBox).not.toBeNull();
+      return (navBox?.y ?? 0) - ((cookBox?.y ?? 0) + (cookBox?.height ?? 0));
+    };
+    expect(await gap()).toBeGreaterThanOrEqual(0);
+    for (const target of [400, 1200, 'end'] as const) {
+      await page.evaluate((to) => {
+        window.scrollTo(0, to === 'end' ? document.documentElement.scrollHeight : to);
+      }, target);
+      await expect.poll(gap).toBeGreaterThanOrEqual(0);
+      await expect(cook).toBeInViewport();
+    }
   });
 });

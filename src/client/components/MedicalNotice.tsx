@@ -5,8 +5,6 @@ export const MEDICAL_NOTICE =
 /** Neutral on the culinary screens; the health palette comes from `html[data-area='health']` (styles.css). */
 export function MedicalNotice() {
   return (
-    <p className="medical-notice rounded-lg bg-neutral-100 p-3 text-neutral-900">
-      {MEDICAL_NOTICE}
-    </p>
+    <p className="medical-notice rounded-md bg-surface-muted p-3 text-ink">{MEDICAL_NOTICE}</p>
   );
 }

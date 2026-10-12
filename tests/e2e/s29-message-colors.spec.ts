@@ -117,7 +117,13 @@ for (const scheme of ['light', 'dark'] as const) {
       }
     });
 
-    test('S29: błąd zapisu przepisu ma tło warn-soft i tekst on-warn-soft', async ({ page }) => {
+    test('S29: błąd zapisu przepisu ma tło warn-soft i tekst on-warn-soft', async ({
+      page,
+    }, testInfo) => {
+      test.skip(
+        testInfo.project.name === 'mobile-webkit',
+        'WebKit nie przekazuje żądań strony kontrolowanej przez service worker do page.route, więc nie da się wymusić odpowiedzi 500 (kryterium S29: komunikat błędu zapisu)',
+      );
       await openApp(page, scheme);
       await page.goto('/przepisy/nowy');
       await fillRecipeForm(page, {

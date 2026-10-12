@@ -13,14 +13,14 @@ const MODES = [
   { scheme: 'dark', background: 'rgb(23, 28, 25)', line: 'rgb(143, 187, 165)' },
 ] as const;
 
-test.describe('S27: ekrany zdrowia w palecie zdrowia', () => {
+test.describe('S29: ekrany zdrowia w palecie zdrowia', () => {
   test.skip(
     ({ browserName, isMobile }) => !isMobile || browserName !== 'chromium',
     'przechodzi po całym katalogu ekranów',
   );
 
   for (const mode of MODES) {
-    test(`S27: ekrany zdrowia mają data-area="health" i tło health-bg (${mode.scheme})`, async ({
+    test(`S29: ekrany zdrowia mają data-area="health" i tło health-bg (${mode.scheme})`, async ({
       page,
     }) => {
       await page.goto('/');
@@ -35,7 +35,7 @@ test.describe('S27: ekrany zdrowia w palecie zdrowia', () => {
       }
     });
 
-    test(`S27: wykres wagi ma linię w kolorze health (${mode.scheme})`, async ({ page }) => {
+    test(`S29: wykres wagi ma linię w kolorze health (${mode.scheme})`, async ({ page }) => {
       const waga = HEALTH.find((screen) => screen.id === 'waga');
       if (!waga) throw new Error('brak ekranu waga w katalogu');
       await page.goto('/');
@@ -49,11 +49,30 @@ test.describe('S27: ekrany zdrowia w palecie zdrowia', () => {
     });
   }
 
-  test('S27: ekran kulinarny nie ma data-area', async ({ page }) => {
+  test('S29: ekran kulinarny nie ma data-area', async ({ page }) => {
     const culinary = SCREENS.find((screen) => screen.area === 'culinary');
     if (!culinary) throw new Error('brak ekranu kulinarnego');
     const data = await prepareScreens(page, culinary);
     await culinary.open(page, data);
     expect(await area(page)).toBeNull();
+  });
+
+  test('S29: informacja medyczna ma tło health-soft tylko na ekranach zdrowia', async ({
+    page,
+  }) => {
+    const noticeBackground = async (id: string) => {
+      const screen = SCREENS.find((s) => s.id === id);
+      if (!screen) throw new Error(`brak ekranu ${id} w katalogu`);
+      const data = await prepareScreens(page, screen);
+      await screen.open(page, data);
+      return page
+        .locator('.medical-notice')
+        .first()
+        .evaluate((el) => getComputedStyle(el).backgroundColor);
+    };
+    const soft = await noticeBackground('dawki-nowy');
+    expect(soft).toBe('rgb(228, 237, 231)');
+    expect(await noticeBackground('ustawienia-cele')).not.toBe(soft);
+    expect(await noticeBackground('ustawienia-przypomnienie')).not.toBe(soft);
   });
 });

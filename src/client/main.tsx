@@ -3,8 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
 import { App } from './App';
 import { registerServiceWorker } from './data/offline';
+import { startThemeSync } from './data/theme';
 import './styles.css';
 
+startThemeSync();
 registerServiceWorker();
 
 const root = document.getElementById('root');

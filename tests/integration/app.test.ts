@@ -60,6 +60,22 @@ describe('error format and request protection', () => {
     expect(response.headers['x-content-type-options']).toBe('nosniff');
   });
 
+  it('allows fonts and styles only from the app itself, with no https: source', async () => {
+    const response = await harness.app.inject({ method: 'GET', url: '/api/health' });
+
+    const directives = new Map(
+      String(response.headers['content-security-policy'])
+        .split(';')
+        .map((part) => part.trim().split(/\s+/))
+        .map(([name, ...sources]) => [name, sources] as const),
+    );
+    expect(directives.get('font-src')).toEqual(["'self'"]);
+    expect(directives.get('style-src')).toEqual(["'self'", "'unsafe-inline'"]);
+    for (const name of ['font-src', 'style-src']) {
+      expect(directives.get(name)).not.toContain('https:');
+    }
+  });
+
   it('rejects mutating requests from another origin or without one', async () => {
     for (const headers of [{}, { origin: 'https://evil.example' }]) {
       const response = await harness.app.inject({

@@ -194,6 +194,27 @@ test.describe('S27: nawigacja', () => {
     await expect(page.getByRole('button', { name: 'Wyloguj' })).toBeVisible();
   });
 
+  test.describe('bez service workera', () => {
+    // WebKit does not hand requests of a service-worker-controlled page to page.route.
+    test.use({ serviceWorkers: 'block' });
+
+    test('S27: gdy kolekcja się nie wczytała, z nagłówka da się otworzyć Ustawienia i się wylogować', async ({
+      page,
+    }) => {
+      await page.route('**/api/snapshot', (route) =>
+        route.fulfill({ status: 500, json: { error: { code: 'internal' } } }),
+      );
+      await loggedIn(page);
+      await expect(page.getByRole('button', { name: 'Spróbuj ponownie' })).toBeVisible();
+
+      await page.getByRole('link', { name: 'Ustawienia' }).click();
+      await expect(page.getByRole('heading', { level: 1, name: 'Ustawienia' })).toBeVisible();
+      await page.getByRole('button', { name: 'Wyloguj' }).click();
+
+      await expect(page.getByRole('link', { name: 'Zaloguj przez Google' })).toBeVisible();
+    });
+  });
+
   test('S27: nawigacja główna nie zawiera „Ustawienia”, „Konto” ani „Wyloguj”', async ({
     page,
   }) => {

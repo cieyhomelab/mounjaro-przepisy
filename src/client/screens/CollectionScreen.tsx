@@ -17,45 +17,29 @@ import { VirtualRecipeList } from '../components/VirtualRecipeList';
 import { WeeklyCounter } from '../components/WeeklyCounter';
 import { useCollection } from '../data/collection';
 import { useCollectionView } from '../data/collectionView';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { inputClassName } from '../components/ui/Input';
 
 /** The ways to add a recipe: from a link, by hand or from a search in the trusted sites. */
 function AddRecipeChoices() {
   const navigate = useNavigate();
   return (
     <div className="flex flex-wrap gap-2">
-      <button
-        type="button"
-        onClick={() => void navigate('/przepisy/z-linku')}
-        className={`${buttonClass} bg-neutral-900 text-white`}
-      >
-        Z linku
-      </button>
-      <button
-        type="button"
-        onClick={() => void navigate('/przepisy/nowy')}
-        className={`${buttonClass} bg-neutral-900 text-white`}
-      >
-        Ręcznie
-      </button>
-      <button
-        type="button"
-        onClick={() => void navigate('/szukaj')}
-        className={`${buttonClass} border border-neutral-400`}
-      >
+      <Button onClick={() => void navigate('/przepisy/z-linku')}>Z linku</Button>
+      <Button onClick={() => void navigate('/przepisy/nowy')}>Ręcznie</Button>
+      <Button onClick={() => void navigate('/szukaj')} variant="secondary">
         Szukaj w serwisach
-      </button>
+      </Button>
     </div>
   );
 }
 
 function EmptyCollection() {
   return (
-    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-neutral-300 p-4">
+    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-line p-4">
       <p className="text-lg font-medium">Dodaj pierwszy przepis</p>
-      <p className="text-neutral-600">Twoja kolekcja jest pusta. Wybierz, jak dodać przepis.</p>
+      <p className="text-ink-muted">Twoja kolekcja jest pusta. Wybierz, jak dodać przepis.</p>
       <AddRecipeChoices />
     </div>
   );
@@ -67,13 +51,12 @@ function ListControls({ collections }: { collections: { id: string; name: string
     useCollectionView();
   return (
     <div className="flex flex-col gap-3">
-      <input
+      <Input
         type="search"
         aria-label="Szukaj w kolekcji"
         placeholder="Szukaj po tytule lub składniku"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        className="min-h-11 rounded-lg border border-neutral-300 px-3"
       />
       <div role="group" aria-label="Filtry" className="flex flex-wrap gap-2">
         {FILTER_IDS.map((id) => {
@@ -91,7 +74,7 @@ function ListControls({ collections }: { collections: { id: string; name: string
           <select
             value={collectionId ?? ''}
             onChange={(event) => setCollectionId(event.target.value || null)}
-            className="min-h-11 rounded-lg border border-neutral-300 bg-white px-3"
+            className={`${inputClassName}`}
           >
             <option value="">Wszystkie przepisy</option>
             {collections.map((collection) => (
@@ -107,7 +90,7 @@ function ListControls({ collections }: { collections: { id: string; name: string
         <select
           value={sort}
           onChange={(event) => setSort(event.target.value as SortKey)}
-          className="min-h-11 rounded-lg border border-neutral-300 bg-white px-3"
+          className={`${inputClassName}`}
         >
           {SORT_KEYS.map((key) => (
             <option key={key} value={key}>
@@ -122,15 +105,9 @@ function ListControls({ collections }: { collections: { id: string; name: string
 
 function NoMatches({ onClear }: { onClear: () => void }) {
   return (
-    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-neutral-300 p-4">
+    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-line p-4">
       <p className="text-lg font-medium">Brak przepisów dla tych filtrów</p>
-      <button
-        type="button"
-        onClick={onClear}
-        className={`${buttonClass} bg-neutral-900 text-white`}
-      >
-        Wyczyść filtry
-      </button>
+      <Button onClick={onClear}>Wyczyść filtry</Button>
     </div>
   );
 }
@@ -178,20 +155,15 @@ export function CollectionScreen() {
             Ustawienia
           </Link>
           {state.status === 'ready' && state.recipes.length > 0 ? (
-            <button
-              type="button"
-              aria-expanded={adding}
-              onClick={() => setAdding((open) => !open)}
-              className={`${buttonClass} bg-neutral-900 text-white`}
-            >
+            <Button aria-expanded={adding} onClick={() => setAdding((open) => !open)}>
               Dodaj przepis
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
       {adding ? <AddRecipeChoices /> : null}
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}

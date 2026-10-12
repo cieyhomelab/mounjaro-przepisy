@@ -7,9 +7,9 @@ import { errorMessage } from '../data/errors';
 import { useSession } from '../data/session';
 import { useAction } from '../data/useAction';
 import { Notice } from '../components/ui/Notice';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:cursor-not-allowed disabled:opacity-60';
+import { Button } from '../components/ui/Button';
+import { ConfirmPanel } from '../components/ui/ConfirmPanel';
+import { Input } from '../components/ui/Input';
 
 /** Hands the received file to the browser as a download. */
 function saveFile(blob: Blob, filename: string) {
@@ -45,14 +45,9 @@ function ExportData() {
         przepisów w katalogu <code>zdjecia</code>.
       </p>
       <div>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={start}
-          className={`${buttonClass} bg-neutral-900 text-white`}
-        >
+        <Button disabled={busy} onClick={start}>
           Eksportuj dane
-        </button>
+        </Button>
       </div>
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
       {done && !errorCode ? <p role="status">Plik z danymi został pobrany.</p> : null}
@@ -93,28 +88,19 @@ function DeleteAccount() {
         </h2>
         <p>Trwale usuwa konto razem ze wszystkimi Twoimi danymi.</p>
         <div>
-          <button
-            type="button"
-            onClick={() => setAsking(true)}
-            className={`${buttonClass} border border-red-800 text-red-900`}
-          >
+          <Button onClick={() => setAsking(true)} variant="danger-outline">
             Usuń konto i wszystkie dane
-          </button>
+          </Button>
         </div>
       </section>
     );
   }
   return (
-    <form
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="delete-account-title"
+    <ConfirmPanel
+      titleId="delete-account-title"
+      title={<>Usunąć konto i wszystkie dane?</>}
       onSubmit={confirm}
-      className="flex flex-col gap-3 rounded-lg border border-red-800 bg-red-50 p-4"
     >
-      <h2 id="delete-account-title" className="text-lg font-semibold">
-        Usunąć konto i wszystkie dane?
-      </h2>
       <p>
         Przepisy, oceny, kolekcje, historia ugotowań i ustawienia zostaną usunięte, a Ty wylogowany.
         Tej operacji nie można cofnąć. Dane znikną też z kopii zapasowych na serwerze, najpóźniej po
@@ -122,31 +108,25 @@ function DeleteAccount() {
       </p>
       <label className="flex flex-col gap-1">
         <span>Aby potwierdzić, wpisz słowo „{DELETE_CONFIRMATION}”</span>
-        <input
+        <Input
           type="text"
           value={word}
           onChange={(event) => setWord(event.target.value)}
           autoComplete="off"
           autoCapitalize="characters"
-          className="min-h-11 rounded-lg border border-neutral-400 bg-white px-3"
         />
       </label>
       {mismatch ? <Notice>{errorMessage('confirmation_mismatch')}</Notice> : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
       <div className="flex flex-wrap gap-2">
-        <button type="submit" disabled={busy} className={`${buttonClass} bg-red-800 text-white`}>
+        <Button type="submit" disabled={busy} variant="danger">
           Usuń konto
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={cancel}
-          className={`${buttonClass} border border-neutral-400`}
-        >
+        </Button>
+        <Button disabled={busy} onClick={cancel} variant="secondary">
           Anuluj
-        </button>
+        </Button>
       </div>
-    </form>
+    </ConfirmPanel>
   );
 }
 

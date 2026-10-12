@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
 import { FieldError } from '../components/ui/FieldError';
 import { ApiError } from '../data/api';
 import { errorMessage } from '../data/errors';
 import { useSession } from '../data/session';
 import { ThemeSetting } from '../components/ThemeSetting';
 import { useOfflineStatus, type OfflineStatus } from '../data/offline';
+import { Button } from '../components/ui/Button';
+import { ButtonLink } from '../components/ui/ButtonLink';
 
 const formatSyncedAt = (at: number) =>
   new Date(at).toLocaleString('pl-PL', {
@@ -35,7 +36,7 @@ function OfflineData({ status }: { status: OfflineStatus }) {
       {status.state === 'incomplete' ? (
         <>
           <p>Dane offline: niepełne</p>
-          <p className="text-neutral-600">
+          <p className="text-ink-muted">
             Nie udało się pobrać wszystkich danych na to urządzenie, na przykład z powodu braku
             miejsca. Aplikacja z internetem działa normalnie; bez internetu mogą brakować zdjęcia.
             Zwolnij miejsce i otwórz aplikację ponownie.
@@ -66,65 +67,59 @@ export function SettingsScreen() {
       <h1 className="text-2xl font-semibold">Ustawienia</h1>
       <ul className="flex flex-col gap-2">
         <li>
-          <Link
+          <ButtonLink
             to="/ustawienia/progi-filtrow"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+            variant="secondary"
+            className="w-full justify-start"
           >
             Progi filtrów
-          </Link>
+          </ButtonLink>
         </li>
         <li>
-          <Link
-            to="/ustawienia/cele"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
-          >
+          <ButtonLink to="/ustawienia/cele" variant="secondary" className="w-full justify-start">
             Cele i szklanka
-          </Link>
+          </ButtonLink>
         </li>
         <li>
-          <Link
+          <ButtonLink
             to="/ustawienia/przypomnienie"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+            variant="secondary"
+            className="w-full justify-start"
           >
             Przypomnienie o zastrzyku
-          </Link>
+          </ButtonLink>
         </li>
         <li>
-          <Link
+          <ButtonLink
             to="/ustawienia/zaufane-serwisy"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+            variant="secondary"
+            className="w-full justify-start"
           >
             Zaufane serwisy
-          </Link>
+          </ButtonLink>
         </li>
         <li>
-          <Link
+          <ButtonLink
             to="/ustawienia/moje-dane"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
+            variant="secondary"
+            className="w-full justify-start"
           >
             Moje dane
-          </Link>
+          </ButtonLink>
         </li>
         <li>
-          <Link
-            to="/konto"
-            className="flex min-h-11 items-center rounded-lg border border-neutral-200 px-4 font-medium"
-          >
+          <ButtonLink to="/konto" variant="secondary" className="w-full justify-start">
             Konto
-          </Link>
+          </ButtonLink>
         </li>
       </ul>
       <ThemeSetting />
       <OfflineData status={status} />
       <div className="flex flex-col items-start gap-2">
         {logoutError ? <FieldError>{errorMessage(logoutError)}</FieldError> : null}
-        <button
-          type="button"
-          onClick={() => void handleLogout()}
-          className="inline-flex min-h-11 min-w-11 cursor-pointer items-center rounded-lg border border-neutral-400 px-4 font-medium"
-        >
+        <Button variant="secondary" onClick={() => void handleLogout()}>
           Wyloguj
-        </button>
+        </Button>
       </div>
     </section>
   );

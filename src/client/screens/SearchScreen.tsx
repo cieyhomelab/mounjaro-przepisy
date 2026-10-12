@@ -17,9 +17,9 @@ import { useOnline } from '../data/offline';
 import { useAction } from '../data/useAction';
 import { RecipeForm, type FormDraft } from './RecipeFormScreen';
 import { Notice } from '../components/ui/Notice';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:cursor-not-allowed disabled:opacity-60';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
 
 const formatRating = (rating: number) => rating.toFixed(1).replace('.', ',');
 
@@ -44,7 +44,7 @@ function ResultItem({
   onSave: (result: SearchResult) => void;
 }) {
   return (
-    <li className="flex gap-3 rounded-lg border border-neutral-200 p-3">
+    <Card as="li" compact className="flex gap-3">
       {result.imageToken ? (
         <img
           src={`/api/search/images/${result.imageToken}`}
@@ -56,7 +56,7 @@ function ResultItem({
         <div
           role="img"
           aria-label="Brak zdjęcia"
-          className="size-20 shrink-0 rounded-lg bg-neutral-100"
+          className="size-20 shrink-0 rounded-lg bg-surface-muted"
         />
       )}
       <div className="flex min-w-0 flex-col gap-1">
@@ -68,8 +68,8 @@ function ResultItem({
         >
           {result.title}
         </a>
-        <span className="text-neutral-700">{result.siteName}</span>
-        <span className="text-neutral-700">
+        <span className="text-ink-muted">{result.siteName}</span>
+        <span className="text-ink-muted">
           {result.rating === null
             ? 'Brak oceny'
             : `Ocena ${formatRating(result.rating)} / 5${
@@ -84,18 +84,17 @@ function ResultItem({
             w kolekcji
           </Link>
         ) : (
-          <button
-            type="button"
+          <Button
             disabled={busy}
             onClick={() => onSave(result)}
             aria-label={`Zapisz: ${result.title}`}
-            className={`${buttonClass} self-start bg-neutral-900 text-white`}
+            className="self-start"
           >
             Zapisz
-          </button>
+          </Button>
         )}
       </div>
-    </li>
+    </Card>
   );
 }
 
@@ -163,20 +162,16 @@ export function SearchScreen() {
 
   let body;
   if (!online) {
-    body = (
-      <p role="status" className="rounded-lg bg-amber-50 p-4 text-amber-950">
-        Wyszukiwanie w serwisach wymaga połączenia z internetem.
-      </p>
-    );
+    body = <Notice role="status">Wyszukiwanie w serwisach wymaga połączenia z internetem.</Notice>;
   } else if (noActiveSites || errorCode === 'no_trusted_sites') {
     body = (
-      <p role="status" className="rounded-lg bg-amber-50 p-4 text-amber-950">
+      <Notice role="status">
         Nie masz aktywnych zaufanych serwisów. Włącz je w{' '}
         <Link to="/ustawienia/zaufane-serwisy" className="font-medium underline">
           ustawieniach zaufanych serwisów
         </Link>
         .
-      </p>
+      </Notice>
     );
   } else {
     body = (
@@ -185,27 +180,23 @@ export function SearchScreen() {
           <label htmlFor="search-phrase" className="font-medium">
             Czego szukasz?
           </label>
-          <input
+          <Input
             id="search-phrase"
             type="search"
             autoComplete="off"
             maxLength={SEARCH_QUERY_MAX}
             value={phrase}
             onChange={(event) => setPhrase(event.target.value)}
-            className="min-h-11 w-full rounded-lg border border-neutral-400 px-3 py-2"
+            className="w-full"
           />
           <div>
-            <button
-              type="submit"
-              disabled={!valid || searching}
-              className={`${buttonClass} bg-neutral-900 text-white`}
-            >
+            <Button type="submit" disabled={!valid || searching}>
               Szukaj
-            </button>
+            </Button>
           </div>
         </form>
         {searching ? (
-          <p role="status" className="text-neutral-700">
+          <p role="status" className="text-ink-muted">
             Szukam w serwisach…
           </p>
         ) : null}

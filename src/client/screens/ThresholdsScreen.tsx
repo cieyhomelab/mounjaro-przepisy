@@ -13,9 +13,8 @@ import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { isOffline } from '../data/offline';
 import { FieldError } from '../components/ui/FieldError';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 
 const FIELDS: Record<ThresholdField, { label: string; unit: string; setting: keyof Settings }> = {
   proteinG: {
@@ -121,7 +120,7 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
               {FIELDS[field].label}
             </label>
             <div className="flex items-center gap-2">
-              <input
+              <Input
                 id={`threshold-${field}`}
                 type="text"
                 inputMode="decimal"
@@ -131,9 +130,9 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
                 onChange={(event) =>
                   setValues((current) => ({ ...current, [field]: event.target.value }))
                 }
-                className="min-h-11 w-28 rounded-lg border border-neutral-300 px-3"
+                className="w-28"
               />
-              <span className="text-neutral-600">{FIELDS[field].unit}</span>
+              <span className="text-ink-muted">{FIELDS[field].unit}</span>
             </div>
             {error ? <FieldError id={`threshold-${field}-error`}>{error}</FieldError> : null}
           </div>
@@ -141,26 +140,17 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
       })}
       {errorCode && retry ? <ErrorNotice code={errorCode} onRetry={retry} /> : null}
       {saved ? (
-        <p role="status" className="text-green-800">
+        <p role="status" className="text-ink">
           Zapisano progi.
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2">
-        <button
-          type="submit"
-          disabled={busy}
-          className={`${buttonClass} bg-neutral-900 text-white`}
-        >
+        <Button type="submit" disabled={busy}>
           Zapisz
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={reset}
-          className={`${buttonClass} border border-neutral-900`}
-        >
+        </Button>
+        <Button disabled={busy} onClick={reset} variant="secondary">
           Przywróć domyślne
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -175,11 +165,11 @@ export function ThresholdsScreen() {
         Wróć do ustawień
       </Link>
       <h1 className="text-2xl font-semibold">Progi filtrów</h1>
-      <p className="text-neutral-600">
+      <p className="text-ink-muted">
         Wartości na jedną porcję, według których działają filtry kolekcji.
       </p>
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}

@@ -16,9 +16,9 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { apiRequest } from '../data/api';
 import { useCollection, type CollectionState } from '../data/collection';
 import { useAction } from '../data/useAction';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
 const WEEK_PARAM = 'tydzien';
 
 type Ready = Extract<CollectionState, { status: 'ready' }>;
@@ -54,18 +54,17 @@ function Row({ row, week }: { row: ShoppingRow; week: string }) {
             onChange={toggle}
             className="size-6 shrink-0"
           />
-          <span className={row.checked ? 'text-neutral-600 line-through' : ''}>{text}</span>
+          <span className={row.checked ? 'text-ink-muted line-through' : ''}>{text}</span>
         </label>
         {row.custom ? (
-          <button
-            type="button"
+          <Button
             disabled={busy}
             aria-label={`Usuń pozycję: ${text}`}
             onClick={() => void remove()}
-            className={`${buttonClass} border border-neutral-400`}
+            variant="secondary"
           >
             Usuń
-          </button>
+          </Button>
         ) : null}
       </div>
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
@@ -107,21 +106,17 @@ function AddItem({ week }: { week: string }) {
         Własna pozycja
       </label>
       <div className="flex flex-wrap gap-2">
-        <input
+        <Input
           id="shopping-own-item"
           autoComplete="off"
           maxLength={200}
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className="min-h-11 min-w-0 flex-1 rounded-lg border border-neutral-400 px-3"
+          className="min-w-0 flex-1"
         />
-        <button
-          type="submit"
-          disabled={busy || !name.trim()}
-          className={`${buttonClass} bg-neutral-900 text-white`}
-        >
+        <Button type="submit" disabled={busy || !name.trim()}>
           Dodaj pozycję
-        </button>
+        </Button>
       </div>
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
     </form>
@@ -143,7 +138,7 @@ function List({ state, week }: { state: Ready; week: string }) {
   return (
     <>
       {!planned ? (
-        <p role="status" className="rounded-lg bg-neutral-100 p-3">
+        <p role="status" className="rounded-lg bg-surface-muted p-3">
           Zaplanuj posiłki, żeby wygenerować listę
         </p>
       ) : null}
@@ -191,7 +186,7 @@ export function ShoppingScreen() {
         Wróć do planera
       </Link>
       {state.status === 'loading' ? (
-        <p role="status" className="text-neutral-600">
+        <p role="status" className="text-ink-muted">
           Ładowanie…
         </p>
       ) : null}
@@ -201,23 +196,15 @@ export function ShoppingScreen() {
       {state.status === 'ready' ? (
         <>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => goTo(addDays(week, -7))}
-              className={`${buttonClass} border border-neutral-400`}
-            >
+            <Button onClick={() => goTo(addDays(week, -7))} variant="secondary">
               Poprzedni tydzień
-            </button>
+            </Button>
             <p role="status" className="font-medium">
               Tydzień od {formatPlanDay(week)} do {formatPlanDay(addDays(week, 6))}
             </p>
-            <button
-              type="button"
-              onClick={() => goTo(addDays(week, 7))}
-              className={`${buttonClass} border border-neutral-400`}
-            >
+            <Button onClick={() => goTo(addDays(week, 7))} variant="secondary">
               Następny tydzień
-            </button>
+            </Button>
           </div>
           <List state={state} week={week} />
         </>

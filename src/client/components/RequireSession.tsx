@@ -9,7 +9,7 @@ export function RequireSession() {
 
   if (state.status === 'loading') {
     return (
-      <p role="status" className="p-6 text-center text-neutral-600">
+      <p role="status" className="p-6 text-center text-ink-muted">
         Ładowanie…
       </p>
     );

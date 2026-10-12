@@ -6,7 +6,7 @@ export function AccountScreen() {
     <section className="flex flex-col gap-2">
       <h1 className="text-2xl font-semibold">Konto</h1>
       {state.status === 'authenticated' ? (
-        <p className="text-neutral-600">
+        <p className="text-ink-muted">
           Zalogowano jako <span className="font-medium">{state.email}</span>
         </p>
       ) : null}

@@ -4,6 +4,10 @@ import { ErrorNotice } from '../ErrorNotice';
 import { Badge } from './Badge';
 import { Button } from './Button';
 import { Card } from './Card';
+import { ConfirmPanel } from './ConfirmPanel';
+import { Input } from './Input';
+import { MemoryRouter } from 'react-router';
+import { ButtonLink } from './ButtonLink';
 import { Chip } from './Chip';
 import { Field } from './Field';
 import { FieldError } from './FieldError';
@@ -115,5 +119,60 @@ describe('shared UI elements', () => {
     const card = screen.getByTestId('card');
     expect(card.textContent).toBe('Treść');
     expect(card.className).toContain('bg-surface');
+  });
+
+  it('Button has a danger variant and a cook size on the accent and touch tokens', () => {
+    render(
+      <Button variant="danger" size="cook">
+        Usuń
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Usuń' });
+    expect(button.className).toContain('bg-accent');
+    expect(button.className).toContain('min-h-14');
+  });
+
+  it('ButtonLink is a link with the classes of a button', () => {
+    render(
+      <MemoryRouter>
+        <ButtonLink to="/" variant="secondary">
+          Wróć
+        </ButtonLink>
+      </MemoryRouter>,
+    );
+    const link = screen.getByRole('link', { name: 'Wróć' });
+    expect(link.className).toContain('min-h-touch');
+    expect(link.className).toContain('border-line');
+  });
+
+  it('Input is a touch-sized text field', () => {
+    render(<Input aria-label="Nazwa" />);
+    expect(screen.getByRole('textbox', { name: 'Nazwa' }).className).toContain('min-h-touch');
+  });
+
+  it('ConfirmPanel is an alertdialog labelled by its title; with onSubmit it is a form', () => {
+    const { rerender } = render(
+      <ConfirmPanel titleId="t" title="Usunąć?">
+        Treść
+      </ConfirmPanel>,
+    );
+    expect(screen.getByRole('alertdialog', { name: 'Usunąć?' }).tagName).toBe('DIV');
+    rerender(
+      <ConfirmPanel titleId="t" title="Usunąć?" onSubmit={vi.fn()}>
+        Treść
+      </ConfirmPanel>,
+    );
+    expect(screen.getByRole('alertdialog', { name: 'Usunąć?' }).tagName).toBe('FORM');
+  });
+
+  it('Notice can carry the status role and Badge the warn tone', () => {
+    render(
+      <>
+        <Notice role="status">Wskazówka</Notice>
+        <Badge tone="warn">Na gorsze dni</Badge>
+      </>,
+    );
+    expect(screen.getByRole('status').textContent).toBe('Wskazówka');
+    expect(screen.getByText('Na gorsze dni').className).toContain('bg-warn-soft');
   });
 });

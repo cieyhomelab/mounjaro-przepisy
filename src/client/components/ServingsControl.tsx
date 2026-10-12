@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { SERVINGS_MAX, SERVINGS_MIN, SERVINGS_STEP } from '../../shared/contracts/recipe';
 import { parseServingsInput } from '../../shared/domain/portions';
 import { FieldError } from './ui/FieldError';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-neutral-400 px-3 text-lg font-medium disabled:opacity-60';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
 
 const display = (value: number) => String(value).replace('.', ',');
 
@@ -26,26 +25,25 @@ export function ServingsControl({
         <label htmlFor="scale-servings" className="font-medium">
           Przelicz na porcje
         </label>
-        <button
-          type="button"
+        <Button
           aria-label="Mniej porcji"
           disabled={servings <= SERVINGS_MIN}
-          className={buttonClass}
+          variant="secondary"
           onClick={() => {
             setDraft(null);
             onChange(servings - SERVINGS_STEP);
           }}
         >
           −
-        </button>
-        <input
+        </Button>
+        <Input
           id="scale-servings"
           inputMode="decimal"
           autoComplete="off"
           aria-invalid={invalid}
           aria-describedby={invalid ? 'scale-servings-error' : undefined}
           value={draft ?? display(servings)}
-          className="min-h-11 w-20 rounded-lg border border-neutral-400 px-3 text-center"
+          className="w-20 text-center"
           onChange={(event) => {
             const text = event.target.value;
             const value = parseServingsInput(text);
@@ -55,18 +53,17 @@ export function ServingsControl({
           }}
           onBlur={() => setDraft(null)}
         />
-        <button
-          type="button"
+        <Button
           aria-label="Więcej porcji"
           disabled={servings >= SERVINGS_MAX}
-          className={buttonClass}
+          variant="secondary"
           onClick={() => {
             setDraft(null);
             onChange(servings + SERVINGS_STEP);
           }}
         >
           +
-        </button>
+        </Button>
       </div>
       {invalid ? (
         <FieldError id="scale-servings-error">

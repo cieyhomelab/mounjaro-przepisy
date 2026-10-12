@@ -43,7 +43,7 @@ export function RecipeOrganizer({ recipe }: { recipe: Recipe }) {
       <fieldset className="flex flex-col gap-1">
         <legend className="font-medium">Kolekcje własne</legend>
         {collections.length === 0 ? (
-          <p className="text-neutral-600">Nie masz jeszcze kolekcji własnych.</p>
+          <p className="text-ink-muted">Nie masz jeszcze kolekcji własnych.</p>
         ) : null}
         {collections.map((collection) => (
           <label key={collection.id} className="flex min-h-11 items-center gap-2">

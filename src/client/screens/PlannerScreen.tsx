@@ -163,12 +163,13 @@ function PlannedEntry({ entry, recipe }: { entry: MealPlanEntry; recipe: Planned
           >
             {title}
           </Link>
-          <span className="text-sm text-ink-muted">
-            {recipe.proteinG === null
-              ? 'Białko: brak danych'
-              : `Białko: ${Math.round(recipe.proteinG * entry.servings)} g`}
-            {' · '}
-            Porcje: {display(entry.servings)}
+          <span className="flex flex-wrap gap-x-3 text-sm text-ink-muted">
+            <span>
+              {recipe.proteinG === null
+                ? 'Białko: brak danych'
+                : `Białko: ${Math.round(recipe.proteinG * entry.servings)} g`}
+            </span>
+            <span>Porcje: {display(entry.servings)}</span>
           </span>
         </div>
         <Button

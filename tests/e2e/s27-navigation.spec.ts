@@ -280,6 +280,7 @@ test.describe('S27: przycisk „Gotuję” nad paskiem', () => {
     await page.goto(`/przepisy/${id}`);
     const cook = page.getByRole('link', { name: 'Gotuję' });
     await expect(cook).toBeVisible();
+    expect((await cook.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(60);
 
     const gap = async () => {
       const cookBox = await cook.boundingBox();

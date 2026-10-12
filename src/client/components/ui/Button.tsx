@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react';
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'danger-outline';
-type Size = 'md' | 'cook';
+type Size = 'md' | 'cook' | 'action';
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-primary text-on-primary',
@@ -12,6 +12,7 @@ const VARIANTS: Record<Variant, string> = {
 
 const SIZES: Record<Size, string> = {
   md: 'min-h-touch min-w-touch px-4',
+  action: 'min-h-action min-w-touch px-4 text-lg',
   cook: 'min-h-14 min-w-14 px-4 text-2xl',
 };
 

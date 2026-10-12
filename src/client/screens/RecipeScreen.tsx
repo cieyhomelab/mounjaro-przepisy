@@ -8,7 +8,7 @@ import { formatSourceRating } from '../../shared/domain/sourceRating';
 import { CookPanel } from '../components/CookPanel';
 import { EatenPanel } from '../components/EatenPanel';
 import { ErrorNotice } from '../components/ErrorNotice';
-import { NutritionDetails } from '../components/NutritionDetails';
+import { NutritionDetails, NutritionSummary } from '../components/NutritionDetails';
 import { OwnRating } from '../components/OwnRating';
 import { RecipeImage } from '../components/RecipeImage';
 import { ScaledIngredients } from '../components/ScaledIngredients';
@@ -142,21 +142,26 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
         {recipe.worseDays ? <Badge tone="warn">Na gorsze dni</Badge> : null}
         {recipe.tolerance === 'bad' ? <Badge tone="warn">źle toleruję</Badge> : null}
       </div>
-      {recipe.kind === 'link' || recipe.sourceRating !== null ? (
-        <p>Ocena ze źródła: {formatSourceRating(recipe)}</p>
-      ) : null}
-      <p>Liczba porcji: {recipe.servings.toLocaleString('pl-PL')}</p>
-      <NutritionDetails recipe={recipe} />
+      <div className="flex flex-col gap-1 text-ink-muted">
+        <p>
+          {[
+            recipe.kind === 'link' || recipe.sourceRating !== null
+              ? `Ocena ze źródła: ${formatSourceRating(recipe)}`
+              : null,
+            recipe.ownRating !== null ? `Moja ocena ${recipe.ownRating}/5` : null,
+            `Liczba porcji: ${recipe.servings.toLocaleString('pl-PL')}`,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        </p>
+        <NutritionSummary recipe={recipe} />
+      </div>
       {finishedCooking ? (
         <p role="status" className="rounded-lg bg-primary-soft text-on-primary-soft p-3">
           Koniec gotowania. Oceń smak i tolerancję tego przepisu poniżej.
         </p>
       ) : null}
-      <CookPanel recipe={recipe} />
-      <EatenPanel recipe={recipe} />
-      <OwnRating recipe={recipe} />
       <ToleranceEditor recipe={recipe} />
-      <RecipeOrganizer recipe={recipe} />
       <section aria-labelledby="ingredients-heading" className="flex flex-col gap-1">
         <h2 id="ingredients-heading" className="text-lg font-semibold">
           Składniki
@@ -166,7 +171,7 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
           ingredients={recipe.ingredients}
           baseServings={recipe.servings}
           servings={servings}
-          className="list-disc pl-5"
+          columns
         />
       </section>
       <section aria-labelledby="steps-heading" className="flex flex-col gap-1">
@@ -181,6 +186,11 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
           ))}
         </ol>
       </section>
+      <NutritionDetails recipe={recipe} />
+      <CookPanel recipe={recipe} />
+      <EatenPanel recipe={recipe} />
+      <OwnRating recipe={recipe} />
+      <RecipeOrganizer recipe={recipe} />
       <div className="flex flex-wrap gap-2">
         <ButtonLink to={`/przepisy/${recipe.id}/edycja`} variant="secondary">
           Edytuj
@@ -189,7 +199,8 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
       </div>
       <ButtonLink
         to={cookPath}
-        className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] z-[5] min-h-action w-full text-lg shadow-nav md:bottom-4"
+        size="action"
+        className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] z-[5] w-full shadow-nav md:bottom-4"
       >
         Gotuję
       </ButtonLink>

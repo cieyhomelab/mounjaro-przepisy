@@ -9,10 +9,8 @@ import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
 import { FieldError } from '../components/ui/FieldError';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
-const inputClass = 'min-h-11 rounded-lg border border-ink-muted px-3';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 
 const INVALID_MESSAGE = 'Podaj liczbę większą od zera.';
 
@@ -66,14 +64,13 @@ function GoalsForm({ settings }: { settings: Settings }) {
       <label htmlFor={id} className="font-medium">
         {label}
       </label>
-      <input
+      <Input
         id={id}
         inputMode="decimal"
         value={value}
         aria-invalid={invalid.has(key)}
         aria-describedby={invalid.has(key) ? `${id}-error` : undefined}
         onChange={(event) => onChange(event.target.value)}
-        className={inputClass}
       />
       {hint ? <p className="text-sm text-ink-muted">{hint}</p> : null}
       {invalid.has(key) ? <FieldError id={`${id}-error`}>{INVALID_MESSAGE}</FieldError> : null}
@@ -105,13 +102,9 @@ function GoalsForm({ settings }: { settings: Settings }) {
           Zapisano cele.
         </p>
       ) : null}
-      <button
-        type="submit"
-        disabled={busy}
-        className={`${buttonClass} self-start bg-primary text-on-primary`}
-      >
+      <Button type="submit" disabled={busy} className="self-start">
         Zapisz
-      </button>
+      </Button>
     </form>
   );
 }

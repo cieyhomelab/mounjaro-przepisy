@@ -17,9 +17,10 @@ import { RecipeOrganizer } from '../components/RecipeOrganizer';
 import { ToleranceEditor } from '../components/ToleranceEditor';
 import { useCollection } from '../data/collection';
 import { isOffline } from '../data/offline';
-
-const actionClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
+import { Button } from '../components/ui/Button';
+import { ButtonLink } from '../components/ui/ButtonLink';
+import { ConfirmPanel } from '../components/ui/ConfirmPanel';
+import { Badge } from '../components/ui/Badge';
 
 /** Delete button with a confirmation step; "Anuluj" leaves the recipe untouched. */
 function DeleteRecipe({ recipe }: { recipe: Recipe }) {
@@ -49,52 +50,38 @@ function DeleteRecipe({ recipe }: { recipe: Recipe }) {
 
   if (!asking) {
     return (
-      <button
-        type="button"
-        className={`${actionClass} border border-accent text-accent`}
-        onClick={() => setAsking(true)}
-      >
+      <Button variant="danger-outline" onClick={() => setAsking(true)}>
         Usuń
-      </button>
+      </Button>
     );
   }
   return (
-    <div
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="delete-title"
-      className="flex w-full flex-col gap-3 rounded-lg border border-accent bg-warn-soft text-on-warn-soft p-4"
+    <ConfirmPanel
+      titleId="delete-title"
+      title={<>Usunąć przepis „{recipe.title}”?</>}
+      className="w-full"
     >
-      <h2 id="delete-title" className="text-lg font-semibold">
-        Usunąć przepis „{recipe.title}”?
-      </h2>
       <p>
         Przepis zniknie z kolekcji i ze wszystkich Twoich kolekcji. Tej operacji nie można cofnąć.
       </p>
       {planned > 0 ? <p>Przepis zniknie też z planera (zaplanowane posiłki: {planned}).</p> : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void confirm()} /> : null}
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          disabled={deleting}
-          className={`${actionClass} bg-accent text-on-primary disabled:opacity-60`}
-          onClick={() => void confirm()}
-        >
+        <Button disabled={deleting} variant="danger" onClick={() => void confirm()}>
           Usuń
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           disabled={deleting}
-          className={`${actionClass} border border-ink-muted`}
+          variant="secondary"
           onClick={() => {
             setAsking(false);
             setErrorCode(null);
           }}
         >
           Anuluj
-        </button>
+        </Button>
       </div>
-    </div>
+    </ConfirmPanel>
   );
 }
 
@@ -132,25 +119,17 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
         {recipe.kind === 'manual' ? (
           <span className="rounded-full bg-surface-muted px-2 text-sm">ręczny</span>
         ) : null}
-        {recipe.worseDays ? (
-          <span className="rounded-full bg-warn-soft text-on-warn-soft px-2 text-sm">
-            Na gorsze dni
-          </span>
-        ) : null}
-        {recipe.tolerance === 'bad' ? (
-          <span className="rounded-full bg-warn-soft text-on-warn-soft px-2 text-sm">
-            źle toleruję
-          </span>
-        ) : null}
+        {recipe.worseDays ? <Badge tone="warn">Na gorsze dni</Badge> : null}
+        {recipe.tolerance === 'bad' ? <Badge tone="warn">źle toleruję</Badge> : null}
       </div>
       {recipe.kind === 'link' || recipe.sourceRating !== null ? (
         <p>Ocena ze źródła: {formatSourceRating(recipe)}</p>
       ) : null}
       <p>Liczba porcji: {recipe.servings.toLocaleString('pl-PL')}</p>
       <NutritionDetails recipe={recipe} />
-      <Link to={cookPath} className={`${actionClass} bg-primary self-start text-on-primary`}>
+      <ButtonLink to={cookPath} className="self-start">
         Gotuj
-      </Link>
+      </ButtonLink>
       {finishedCooking ? (
         <p role="status" className="rounded-lg bg-primary-soft text-on-primary-soft p-3">
           Koniec gotowania. Oceń smak i tolerancję tego przepisu poniżej.
@@ -186,12 +165,9 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
         </ol>
       </section>
       <div className="flex flex-wrap gap-2">
-        <Link
-          to={`/przepisy/${recipe.id}/edycja`}
-          className={`${actionClass} border border-ink-muted`}
-        >
+        <ButtonLink to={`/przepisy/${recipe.id}/edycja`} variant="secondary">
           Edytuj
-        </Link>
+        </ButtonLink>
         <DeleteRecipe recipe={recipe} />
       </div>
       {recipe.sourceUrl ? (

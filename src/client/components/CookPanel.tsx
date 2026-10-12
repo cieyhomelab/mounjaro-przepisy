@@ -6,9 +6,7 @@ import { useCollection } from '../data/collection';
 import { useOnline } from '../data/offline';
 import { useAction } from '../data/useAction';
 import { ErrorNotice } from './ErrorNotice';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
+import { Button } from './ui/Button';
 
 /** "Ugotowane" with the date of the last cooking, the count and the undo of the latest one (S8). */
 export function CookPanel({ recipe }: { recipe: Recipe }) {
@@ -44,28 +42,18 @@ export function CookPanel({ recipe }: { recipe: Recipe }) {
       </p>
       <p>Liczba ugotowań: {stats.count}</p>
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          disabled={busy || !online}
-          onClick={() => void mark()}
-          className={`${buttonClass} bg-primary text-on-primary`}
-        >
+        <Button disabled={busy || !online} onClick={() => void mark()}>
           Ugotowane
-        </button>
+        </Button>
         {online ? null : (
           <span className="inline-flex min-h-11 items-center text-ink-muted">
             Oznacz po odzyskaniu połączenia
           </span>
         )}
         {stats.count > 0 ? (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void undo()}
-            className={`${buttonClass} border border-ink-muted`}
-          >
+          <Button disabled={busy} onClick={() => void undo()} variant="secondary">
             Cofnij ostatnie ugotowanie
-          </button>
+          </Button>
         ) : null}
       </div>
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}

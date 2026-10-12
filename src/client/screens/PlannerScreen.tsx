@@ -16,9 +16,12 @@ import { OFFLINE_MESSAGE } from '../data/errors';
 import { isOffline } from '../data/offline';
 import { useAction } from '../data/useAction';
 import { FieldError } from '../components/ui/FieldError';
+import { Button } from '../components/ui/Button';
+import { ButtonLink } from '../components/ui/ButtonLink';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { inputClassName } from '../components/ui/Input';
 
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
 const WEEK_PARAM = 'tydzien';
 
 type Ready = Extract<CollectionState, { status: 'ready' }>;
@@ -58,9 +61,11 @@ function AddToMeal({
   };
 
   return (
-    <form
+    <Card
+      as="form"
+      compact
       aria-label={`Dodaj przepis: ${label}`}
-      className="flex flex-col gap-2 rounded-lg border border-line p-3"
+      className="flex flex-col gap-2"
       onSubmit={(event) => {
         event.preventDefault();
         void submit();
@@ -74,7 +79,7 @@ function AddToMeal({
           id="planner-recipe"
           value={recipeId}
           onChange={(event) => setRecipeId(event.target.value)}
-          className="min-h-11 rounded-lg border border-ink-muted px-3"
+          className={`${inputClassName}`}
         >
           <option value="">Wybierz przepis</option>
           {[...recipes]
@@ -90,14 +95,14 @@ function AddToMeal({
         <label htmlFor="planner-servings" className="font-medium">
           Liczba porcji
         </label>
-        <input
+        <Input
           id="planner-servings"
           inputMode="decimal"
           autoComplete="off"
           value={servingsText}
           aria-invalid={servings === null}
           onChange={(event) => setServingsText(event.target.value)}
-          className="min-h-11 w-24 rounded-lg border border-ink-muted px-3"
+          className="w-24"
         />
       </div>
       {servings === null ? (
@@ -107,18 +112,14 @@ function AddToMeal({
         <ErrorNotice code={errorCode} onRetry={() => void retry().then((ok) => ok && onDone())} />
       ) : null}
       <div className="flex flex-wrap gap-2">
-        <button
-          type="submit"
-          disabled={busy || !recipeId || servings === null}
-          className={`${buttonClass} bg-primary text-on-primary`}
-        >
+        <Button type="submit" disabled={busy || !recipeId || servings === null}>
           Dodaj do planera
-        </button>
-        <button type="button" onClick={onDone} className={`${buttonClass} border border-ink-muted`}>
+        </Button>
+        <Button onClick={onDone} variant="secondary">
           Anuluj
-        </button>
+        </Button>
       </div>
-    </form>
+    </Card>
   );
 }
 
@@ -142,15 +143,14 @@ function PlannedEntry({ entry, title }: { entry: MealPlanEntry; title: string })
           {title}
         </Link>
         <span>Porcje: {display(entry.servings)}</span>
-        <button
-          type="button"
+        <Button
           disabled={busy}
           aria-label={`Usuń z pory: ${title}`}
           onClick={() => void remove()}
-          className={`${buttonClass} border border-ink-muted`}
+          variant="secondary"
         >
           Usuń
-        </button>
+        </Button>
       </div>
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
     </li>
@@ -183,30 +183,23 @@ export function PlannerScreen() {
       {state.status === 'ready' ? (
         <>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => goTo(addDays(week, -7))}
-              className={`${buttonClass} border border-ink-muted`}
-            >
+            <Button onClick={() => goTo(addDays(week, -7))} variant="secondary">
               Poprzedni tydzień
-            </button>
+            </Button>
             <p role="status" className="font-medium">
               Tydzień od {formatPlanDay(week)} do {formatPlanDay(addDays(week, 6))}
             </p>
-            <button
-              type="button"
-              onClick={() => goTo(addDays(week, 7))}
-              className={`${buttonClass} border border-ink-muted`}
-            >
+            <Button onClick={() => goTo(addDays(week, 7))} variant="secondary">
               Następny tydzień
-            </button>
+            </Button>
           </div>
-          <Link
+          <ButtonLink
             to={week === currentWeek ? '/zakupy' : `/zakupy?${WEEK_PARAM}=${week}`}
-            className={`${buttonClass} self-start border border-ink-muted`}
+            variant="secondary"
+            className="self-start"
           >
             Lista zakupów
-          </Link>
+          </ButtonLink>
           <ol className="flex flex-col gap-4">
             {planWeek(state.mealPlan, week).map((day) => (
               <li key={day.date}>
@@ -217,10 +210,12 @@ export function PlannerScreen() {
                   {day.slots.map(({ slot, entries }) => {
                     const isAdding = adding?.date === day.date && adding.slot === slot;
                     return (
-                      <section
+                      <Card
+                        as="section"
+                        compact
                         key={slot}
                         aria-label={`${formatPlanDay(day.date)}: ${SLOT_LABELS[slot]}`}
-                        className="flex flex-col gap-2 rounded-lg border border-line p-3"
+                        className="flex flex-col gap-2"
                       >
                         <h3 className="font-medium">{SLOT_LABELS[slot]}</h3>
                         {entries.length > 0 ? (
@@ -247,20 +242,20 @@ export function PlannerScreen() {
                             onDone={() => setAdding(null)}
                           />
                         ) : (
-                          <button
-                            type="button"
+                          <Button
                             aria-label={`Dodaj przepis: ${formatPlanDay(day.date)}, ${SLOT_LABELS[slot].toLowerCase()}`}
                             onClick={() => {
                               if (isOffline()) return setOfflineNotice({ date: day.date, slot });
                               setOfflineNotice(null);
                               setAdding({ date: day.date, slot });
                             }}
-                            className={`${buttonClass} self-start border border-ink-muted`}
+                            variant="secondary"
+                            className="self-start"
                           >
                             Dodaj przepis
-                          </button>
+                          </Button>
                         )}
-                      </section>
+                      </Card>
                     );
                   })}
                 </section>

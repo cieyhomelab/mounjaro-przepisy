@@ -16,9 +16,9 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { apiRequest } from '../data/api';
 import { useCollection, type CollectionState } from '../data/collection';
 import { useAction } from '../data/useAction';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
 const WEEK_PARAM = 'tydzien';
 
 type Ready = Extract<CollectionState, { status: 'ready' }>;
@@ -57,15 +57,14 @@ function Row({ row, week }: { row: ShoppingRow; week: string }) {
           <span className={row.checked ? 'text-ink-muted line-through' : ''}>{text}</span>
         </label>
         {row.custom ? (
-          <button
-            type="button"
+          <Button
             disabled={busy}
             aria-label={`Usuń pozycję: ${text}`}
             onClick={() => void remove()}
-            className={`${buttonClass} border border-ink-muted`}
+            variant="secondary"
           >
             Usuń
-          </button>
+          </Button>
         ) : null}
       </div>
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
@@ -107,21 +106,17 @@ function AddItem({ week }: { week: string }) {
         Własna pozycja
       </label>
       <div className="flex flex-wrap gap-2">
-        <input
+        <Input
           id="shopping-own-item"
           autoComplete="off"
           maxLength={200}
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink-muted px-3"
+          className="min-w-0 flex-1"
         />
-        <button
-          type="submit"
-          disabled={busy || !name.trim()}
-          className={`${buttonClass} bg-primary text-on-primary`}
-        >
+        <Button type="submit" disabled={busy || !name.trim()}>
           Dodaj pozycję
-        </button>
+        </Button>
       </div>
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
     </form>
@@ -201,23 +196,15 @@ export function ShoppingScreen() {
       {state.status === 'ready' ? (
         <>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => goTo(addDays(week, -7))}
-              className={`${buttonClass} border border-ink-muted`}
-            >
+            <Button onClick={() => goTo(addDays(week, -7))} variant="secondary">
               Poprzedni tydzień
-            </button>
+            </Button>
             <p role="status" className="font-medium">
               Tydzień od {formatPlanDay(week)} do {formatPlanDay(addDays(week, 6))}
             </p>
-            <button
-              type="button"
-              onClick={() => goTo(addDays(week, 7))}
-              className={`${buttonClass} border border-ink-muted`}
-            >
+            <Button onClick={() => goTo(addDays(week, 7))} variant="secondary">
               Następny tydzień
-            </button>
+            </Button>
           </div>
           <List state={state} week={week} />
         </>

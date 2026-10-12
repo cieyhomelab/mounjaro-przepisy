@@ -9,9 +9,10 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:cursor-not-allowed disabled:opacity-60';
+import { Button } from '../components/ui/Button';
+import { ConfirmPanel } from '../components/ui/ConfirmPanel';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
 
 function SiteRow({
   site,
@@ -25,7 +26,7 @@ function SiteRow({
   onAskDelete: (site: TrustedSite) => void;
 }) {
   return (
-    <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line p-3">
+    <Card as="li" compact className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex flex-col">
         <span className="font-medium">{site.name}</span>
         <span className="text-ink-muted">{site.host}</span>
@@ -42,17 +43,16 @@ function SiteRow({
           />
           <span>{site.active ? 'Aktywny' : 'Wyłączony'}</span>
         </label>
-        <button
-          type="button"
+        <Button
           disabled={busy}
           onClick={() => onAskDelete(site)}
           aria-label={`Usuń serwis ${site.name}`}
-          className={`${buttonClass} border border-accent text-accent`}
+          variant="danger-outline"
         >
           Usuń
-        </button>
+        </Button>
       </div>
-    </li>
+    </Card>
   );
 }
 
@@ -130,23 +130,19 @@ export function TrustedSitesScreen() {
         <label htmlFor="site-address" className="font-medium">
           Adres serwisu
         </label>
-        <input
+        <Input
           id="site-address"
           type="text"
           inputMode="url"
           autoComplete="off"
           value={address}
           onChange={(event) => setAddress(event.target.value)}
-          className="min-h-11 w-full rounded-lg border border-ink-muted px-3 py-2"
+          className="w-full"
         />
         <div>
-          <button
-            type="submit"
-            disabled={busy || address.trim() === ''}
-            className={`${buttonClass} bg-primary text-on-primary`}
-          >
+          <Button type="submit" disabled={busy || address.trim() === ''}>
             Dodaj serwis
-          </button>
+          </Button>
         </div>
         {busy ? (
           <p role="status" className="text-ink-muted">
@@ -155,38 +151,24 @@ export function TrustedSitesScreen() {
         ) : null}
       </form>
       {deleting ? (
-        <div
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="delete-site-title"
-          className="flex flex-col gap-3 rounded-lg border border-accent bg-warn-soft text-on-warn-soft p-4"
-        >
-          <h2 id="delete-site-title" className="text-lg font-semibold">
-            Usunąć serwis {deleting.name}?
-          </h2>
+        <ConfirmPanel titleId="delete-site-title" title={<>Usunąć serwis {deleting.name}?</>}>
           <p>Przepisy zapisane z tego serwisu zostaną w Twojej kolekcji.</p>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => remove(deleting)}
-              className={`${buttonClass} bg-accent text-on-primary`}
-            >
+            <Button disabled={busy} onClick={() => remove(deleting)} variant="danger">
               Usuń serwis
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               disabled={busy}
               onClick={() => {
                 clear();
                 setDeleting(null);
               }}
-              className={`${buttonClass} border border-ink-muted`}
+              variant="secondary"
             >
               Anuluj
-            </button>
+            </Button>
           </div>
-        </div>
+        </ConfirmPanel>
       ) : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
     </section>

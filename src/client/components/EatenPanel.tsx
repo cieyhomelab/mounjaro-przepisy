@@ -8,10 +8,8 @@ import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
 import { ErrorNotice } from './ErrorNotice';
 import { FieldError } from './ui/FieldError';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
-const inputClass = 'min-h-11 rounded-lg border border-ink-muted px-3';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
 
 /** "Zjedzone" on the recipe screen: adds the protein of the servings eaten to today's counter (S25). */
 export function EatenPanel({ recipe }: { recipe: Recipe }) {
@@ -85,12 +83,11 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
             <label htmlFor="eaten-servings" className="font-medium">
               Zjedzone porcje
             </label>
-            <input
+            <Input
               id="eaten-servings"
               inputMode="decimal"
               value={servings}
               onChange={(event) => setServings(event.target.value)}
-              className={inputClass}
             />
             {preview !== null && !manual ? (
               <p className="text-sm text-ink-muted">
@@ -108,45 +105,36 @@ export function EatenPanel({ recipe }: { recipe: Recipe }) {
               <label htmlFor="eaten-grams" className="font-medium">
                 Ilość białka (g)
               </label>
-              <input
+              <Input
                 id="eaten-grams"
                 inputMode="decimal"
                 value={grams}
                 onChange={(event) => setGrams(event.target.value)}
-                className={inputClass}
               />
             </div>
           ) : null}
           {invalid ? <FieldError>{invalid}</FieldError> : null}
           {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
           <div className="flex flex-wrap gap-2">
-            <button
-              type="submit"
-              disabled={busy}
-              className={`${buttonClass} bg-primary text-on-primary`}
-            >
+            <Button type="submit" disabled={busy}>
               Dodaj do licznika
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className={`${buttonClass} border border-ink-muted`}
-            >
+            </Button>
+            <Button onClick={() => setOpen(false)} variant="secondary">
               Anuluj
-            </button>
+            </Button>
           </div>
         </form>
       ) : (
-        <button
-          type="button"
+        <Button
           onClick={() => {
             setOpen(true);
             setAdded(null);
           }}
-          className={`${buttonClass} self-start border border-ink-muted`}
+          variant="secondary"
+          className="self-start"
         >
           Zjedzone
-        </button>
+        </Button>
       )}
     </section>
   );

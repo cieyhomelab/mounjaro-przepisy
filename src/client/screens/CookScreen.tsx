@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { isValidServings, parseServingsInput } from '../../shared/domain/portions';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { OfflineBadge } from '../components/OfflineBadge';
 import { ScaledIngredients } from '../components/ScaledIngredients';
 import { useCollection } from '../data/collection';
 import { useWakeLock } from '../data/useWakeLock';
-
-const buttonClass =
-  'inline-flex min-h-14 min-w-14 flex-1 cursor-pointer items-center justify-center rounded-lg border border-ink-muted px-4 text-2xl font-medium disabled:opacity-60';
-const primaryClass = `${buttonClass} border-primary bg-primary text-on-primary`;
+import { Button } from '../components/ui/Button';
+import { ButtonLink } from '../components/ui/ButtonLink';
 
 /**
  * Full-screen cooking mode (S13): ingredients first, then one step per screen. It lives outside
@@ -41,9 +39,9 @@ export function CookScreen() {
             <ErrorNotice code={state.code} onRetry={() => void sync()} />
           ) : null}
           {state.status === 'ready' ? <p>Nie znaleziono tego przepisu.</p> : null}
-          <Link to="/" className={buttonClass}>
+          <ButtonLink to="/" variant="secondary" size="cook" className="flex-1">
             Wyjdź
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     );
@@ -71,13 +69,9 @@ export function CookScreen() {
         <header className="flex items-center justify-between gap-2">
           <h1 className="text-2xl font-semibold">{recipe.title}</h1>
           <OfflineBadge />
-          <Link
-            to={recipePath}
-            replace
-            className="inline-flex min-h-14 min-w-14 items-center justify-center rounded-lg border border-ink-muted px-4 text-2xl font-medium"
-          >
+          <ButtonLink to={recipePath} replace variant="secondary" size="cook">
             Wyjdź
-          </Link>
+          </ButtonLink>
         </header>
         {unavailable && !noticeDismissed ? (
           <div
@@ -85,13 +79,13 @@ export function CookScreen() {
             className="flex flex-col gap-2 rounded-lg bg-warn-soft text-on-warn-soft p-3 text-2xl"
           >
             <p>Ta przeglądarka nie pozwala utrzymać włączonego ekranu — ekran może zgasnąć.</p>
-            <button
-              type="button"
-              className="inline-flex min-h-11 min-w-11 cursor-pointer items-center self-start rounded-lg border border-ink-muted px-3 text-2xl"
+            <Button
+              variant="secondary"
+              className="self-start text-2xl"
               onClick={() => setNoticeDismissed(true)}
             >
               Rozumiem
-            </button>
+            </Button>
           </div>
         ) : null}
 
@@ -120,40 +114,42 @@ export function CookScreen() {
           {showIngredients ? (
             <>
               {stepIndex !== null ? (
-                <button
-                  type="button"
-                  className={buttonClass}
+                <Button
+                  variant="secondary"
+                  size="cook"
+                  className="flex-1"
                   onClick={() => setShowIngredients(false)}
                 >
                   Wróć do kroku {stepIndex + 1}
-                </button>
+                </Button>
               ) : null}
               {stepIndex === null ? (
-                <button type="button" className={primaryClass} onClick={next}>
+                <Button size="cook" className="flex-1" onClick={next}>
                   Dalej
-                </button>
+                </Button>
               ) : null}
             </>
           ) : (
             <>
-              <button type="button" className={buttonClass} onClick={back}>
+              <Button variant="secondary" size="cook" className="flex-1" onClick={back}>
                 Wstecz
-              </button>
-              <button
-                type="button"
-                className={buttonClass}
+              </Button>
+              <Button
+                variant="secondary"
+                size="cook"
+                className="flex-1"
                 onClick={() => setShowIngredients(true)}
               >
                 Składniki
-              </button>
+              </Button>
               {onLastStep ? (
-                <button type="button" className={primaryClass} onClick={finish}>
+                <Button size="cook" className="flex-1" onClick={finish}>
                   Zakończ
-                </button>
+                </Button>
               ) : (
-                <button type="button" className={primaryClass} onClick={next}>
+                <Button size="cook" className="flex-1" onClick={next}>
                   Dalej
-                </button>
+                </Button>
               )}
             </>
           )}

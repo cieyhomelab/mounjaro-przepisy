@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
 import { REMINDER_BANNER_TEXT, showReminderBanner } from '../../shared/domain/reminder';
 import { useCollection } from '../data/collection';
+import { ButtonLink } from './ui/ButtonLink';
 
 /** "Dziś zaplanowany zastrzyk": from the reminder to the end of the next day while no dose is entered (S23). */
 export function ReminderBanner() {
@@ -25,12 +25,7 @@ export function ReminderBanner() {
       className="flex flex-wrap items-center justify-between gap-2 bg-primary-soft px-4 py-3 text-on-primary-soft"
     >
       <p className="font-medium">{REMINDER_BANNER_TEXT}</p>
-      <Link
-        to="/dawki/nowy"
-        className="inline-flex min-h-11 min-w-11 items-center rounded-md bg-primary px-4 font-medium text-on-primary"
-      >
-        Dodaj wpis dawki
-      </Link>
+      <ButtonLink to="/dawki/nowy">Dodaj wpis dawki</ButtonLink>
     </div>
   );
 }

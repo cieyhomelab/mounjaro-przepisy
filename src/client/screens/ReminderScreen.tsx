@@ -8,12 +8,11 @@ import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { enableNotifications, isSubscribed, pushState, type PushState } from '../data/push';
 import { useAction } from '../data/useAction';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Notice } from '../components/ui/Notice';
 
 const WEEKDAYS = ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota', 'niedziela'];
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:opacity-60';
-const inputClass = 'min-h-11 rounded-lg border border-ink-muted px-3';
 
 /** Why this device shows no notifications and what to do about it; null when it can. */
 function deviceNotice(state: PushState, subscribed: boolean): string | null {
@@ -93,7 +92,6 @@ function ReminderForm({ settings }: { settings: Settings }) {
           id="reminder-weekday"
           value={weekday}
           onChange={(event) => setWeekday(Number(event.target.value))}
-          className={inputClass}
         >
           {WEEKDAYS.map((name, index) => (
             <option key={name} value={index + 1}>
@@ -106,33 +104,24 @@ function ReminderForm({ settings }: { settings: Settings }) {
         <label htmlFor="reminder-time" className="font-medium">
           Godzina
         </label>
-        <input
+        <Input
           id="reminder-time"
           type="time"
           value={time}
           required
           onChange={(event) => setTime(event.target.value)}
-          className={inputClass}
         />
       </div>
-      {notice ? (
-        <p role="status" className="rounded-lg bg-warn-soft p-3 text-on-warn-soft">
-          {notice}
-        </p>
-      ) : null}
+      {notice ? <Notice role="status">{notice}</Notice> : null}
       {errorCode ? <ErrorNotice code={errorCode} onRetry={() => void retry()} /> : null}
       {saved ? (
         <p role="status" className="text-ink">
           Zapisano przypomnienie.
         </p>
       ) : null}
-      <button
-        type="submit"
-        disabled={busy || !/^\d{2}:\d{2}$/.test(time)}
-        className={`${buttonClass} self-start bg-primary text-on-primary`}
-      >
+      <Button type="submit" disabled={busy || !/^\d{2}:\d{2}$/.test(time)} className="self-start">
         Zapisz
-      </button>
+      </Button>
     </form>
   );
 }

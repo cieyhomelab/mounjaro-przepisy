@@ -8,6 +8,8 @@ import { useCollection } from '../data/collection';
 import { ErrorNotice } from './ErrorNotice';
 import { isOffline } from '../data/offline';
 import { FieldError } from './ui/FieldError';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
 
 const LABELS: Record<NutritionKey, { label: string; field: string; unit: string }> = {
   kcal: { label: 'Kalorie', field: 'Kalorie (kcal)', unit: 'kcal' },
@@ -15,9 +17,6 @@ const LABELS: Record<NutritionKey, { label: string; field: string; unit: string 
   fatG: { label: 'Tłuszcz', field: 'Tłuszcz (g)', unit: 'g' },
   fiberG: { label: 'Błonnik', field: 'Błonnik (g)', unit: 'g' },
 };
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-ink-muted px-4 font-medium disabled:opacity-60';
 
 /** "240 kcal", "26 g" or "—": calories to the whole number, the rest to the whole gram. */
 function formatValue(recipe: Recipe, key: NutritionKey): string {
@@ -83,7 +82,7 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
           <label htmlFor={`manual-${nutritionKey}`} className="font-medium">
             {field}
           </label>
-          <input
+          <Input
             id={`manual-${nutritionKey}`}
             type="text"
             inputMode="decimal"
@@ -91,21 +90,16 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
             aria-invalid={invalid !== null}
             aria-describedby={invalid ? `manual-${nutritionKey}-error` : undefined}
             onChange={(event) => setText(event.target.value)}
-            className="min-h-11 w-full rounded-lg border border-ink-muted px-3 py-2"
+            className="w-full"
           />
           {invalid ? <FieldError id={`manual-${nutritionKey}-error`}>{invalid}</FieldError> : null}
           <div className="flex flex-wrap gap-2">
-            <button
-              type="submit"
-              disabled={saving}
-              className={`${buttonClass} border-primary bg-primary text-on-primary`}
-            >
+            <Button type="submit" disabled={saving}>
               Zapisz wartość
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               disabled={saving}
-              className={buttonClass}
+              variant="secondary"
               onClick={() => {
                 setEditing(false);
                 setInvalid(null);
@@ -113,14 +107,13 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
               }}
             >
               Anuluj
-            </button>
+            </Button>
           </div>
         </form>
       ) : (
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={buttonClass}
+          <Button
+            variant="secondary"
             aria-label={`${current.origin === 'none' ? 'Wpisz ręcznie' : 'Zmień'}: ${label.toLowerCase()}`}
             onClick={() => {
               setText(
@@ -130,17 +123,16 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
             }}
           >
             {current.origin === 'none' ? 'Wpisz ręcznie' : 'Zmień'}
-          </button>
+          </Button>
           {current.origin === 'manual' ? (
-            <button
-              type="button"
+            <Button
               disabled={saving}
-              className={buttonClass}
+              variant="secondary"
               aria-label={`Przywróć wyliczenie: ${label.toLowerCase()}`}
               onClick={() => void save(null)}
             >
               Przywróć wyliczenie
-            </button>
+            </Button>
           ) : null}
         </div>
       )}

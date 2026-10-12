@@ -17,9 +17,9 @@ import { useOnline } from '../data/offline';
 import { useAction } from '../data/useAction';
 import { RecipeForm, type FormDraft } from './RecipeFormScreen';
 import { Notice } from '../components/ui/Notice';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium disabled:cursor-not-allowed disabled:opacity-60';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
 
 const formatRating = (rating: number) => rating.toFixed(1).replace('.', ',');
 
@@ -44,7 +44,7 @@ function ResultItem({
   onSave: (result: SearchResult) => void;
 }) {
   return (
-    <li className="flex gap-3 rounded-lg border border-line p-3">
+    <Card as="li" compact className="flex gap-3">
       {result.imageToken ? (
         <img
           src={`/api/search/images/${result.imageToken}`}
@@ -84,18 +84,17 @@ function ResultItem({
             w kolekcji
           </Link>
         ) : (
-          <button
-            type="button"
+          <Button
             disabled={busy}
             onClick={() => onSave(result)}
             aria-label={`Zapisz: ${result.title}`}
-            className={`${buttonClass} self-start bg-primary text-on-primary`}
+            className="self-start"
           >
             Zapisz
-          </button>
+          </Button>
         )}
       </div>
-    </li>
+    </Card>
   );
 }
 
@@ -163,20 +162,16 @@ export function SearchScreen() {
 
   let body;
   if (!online) {
-    body = (
-      <p role="status" className="rounded-lg bg-warn-soft p-4 text-on-warn-soft">
-        Wyszukiwanie w serwisach wymaga połączenia z internetem.
-      </p>
-    );
+    body = <Notice role="status">Wyszukiwanie w serwisach wymaga połączenia z internetem.</Notice>;
   } else if (noActiveSites || errorCode === 'no_trusted_sites') {
     body = (
-      <p role="status" className="rounded-lg bg-warn-soft p-4 text-on-warn-soft">
+      <Notice role="status">
         Nie masz aktywnych zaufanych serwisów. Włącz je w{' '}
         <Link to="/ustawienia/zaufane-serwisy" className="font-medium underline">
           ustawieniach zaufanych serwisów
         </Link>
         .
-      </p>
+      </Notice>
     );
   } else {
     body = (
@@ -185,23 +180,19 @@ export function SearchScreen() {
           <label htmlFor="search-phrase" className="font-medium">
             Czego szukasz?
           </label>
-          <input
+          <Input
             id="search-phrase"
             type="search"
             autoComplete="off"
             maxLength={SEARCH_QUERY_MAX}
             value={phrase}
             onChange={(event) => setPhrase(event.target.value)}
-            className="min-h-11 w-full rounded-lg border border-ink-muted px-3 py-2"
+            className="w-full"
           />
           <div>
-            <button
-              type="submit"
-              disabled={!valid || searching}
-              className={`${buttonClass} bg-primary text-on-primary`}
-            >
+            <Button type="submit" disabled={!valid || searching}>
               Szukaj
-            </button>
+            </Button>
           </div>
         </form>
         {searching ? (

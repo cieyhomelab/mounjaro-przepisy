@@ -13,9 +13,8 @@ import { ApiError, apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { isOffline } from '../data/offline';
 import { FieldError } from '../components/ui/FieldError';
-
-const buttonClass =
-  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg px-4 font-medium';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 
 const FIELDS: Record<ThresholdField, { label: string; unit: string; setting: keyof Settings }> = {
   proteinG: {
@@ -121,7 +120,7 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
               {FIELDS[field].label}
             </label>
             <div className="flex items-center gap-2">
-              <input
+              <Input
                 id={`threshold-${field}`}
                 type="text"
                 inputMode="decimal"
@@ -131,7 +130,7 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
                 onChange={(event) =>
                   setValues((current) => ({ ...current, [field]: event.target.value }))
                 }
-                className="min-h-11 w-28 rounded-lg border border-ink-muted px-3"
+                className="w-28"
               />
               <span className="text-ink-muted">{FIELDS[field].unit}</span>
             </div>
@@ -146,21 +145,12 @@ function ThresholdsForm({ settings }: { settings: Settings }) {
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2">
-        <button
-          type="submit"
-          disabled={busy}
-          className={`${buttonClass} bg-primary text-on-primary`}
-        >
+        <Button type="submit" disabled={busy}>
           Zapisz
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={reset}
-          className={`${buttonClass} border border-ink-muted`}
-        >
+        </Button>
+        <Button disabled={busy} onClick={reset} variant="secondary">
           Przywróć domyślne
-        </button>
+        </Button>
       </div>
     </form>
   );

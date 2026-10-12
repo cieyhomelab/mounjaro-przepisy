@@ -4,6 +4,7 @@ import type { Recipe } from '../../shared/contracts/recipe';
 import { formatKcal, formatProtein } from '../../shared/domain/recipeList';
 import { formatSourceRating } from '../../shared/domain/sourceRating';
 import { RecipeImage } from './RecipeImage';
+import { Badge } from './ui/Badge';
 
 /** Height of one list row in px, including the gap below it. Rows have a fixed height so only the visible ones need to exist. */
 const ROW_HEIGHT = 104;
@@ -43,14 +44,14 @@ function RecipeListItem({
               <span className="shrink-0 rounded-full bg-surface-muted px-2 text-sm">ręczny</span>
             ) : null}
             {recipe.worseDays ? (
-              <span className="shrink-0 rounded-full bg-warn-soft text-on-warn-soft px-2 text-sm">
+              <Badge tone="warn" className="shrink-0">
                 Na gorsze dni
-              </span>
+              </Badge>
             ) : null}
             {recipe.tolerance === 'bad' ? (
-              <span className="shrink-0 rounded-full bg-warn-soft text-on-warn-soft px-2 text-sm">
+              <Badge tone="warn" className="shrink-0">
                 źle toleruję
-              </span>
+              </Badge>
             ) : null}
           </span>
           <span className="flex flex-wrap gap-x-4 text-ink-muted">

@@ -3,7 +3,8 @@ import { SCREENS, prepareScreens } from './screens';
 
 const HEALTH = SCREENS.filter((screen) => screen.area === 'health');
 
-const area = (page: Page) => page.evaluate(() => document.documentElement.getAttribute('data-area'));
+const area = (page: Page) =>
+  page.evaluate(() => document.documentElement.getAttribute('data-area'));
 const bodyBackground = (page: Page) =>
   page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 

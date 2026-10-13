@@ -1,7 +1,15 @@
 import type { ButtonHTMLAttributes } from 'react';
 
-type Variant = 'primary' | 'secondary' | 'soft' | 'danger' | 'danger-outline';
-type Size = 'md' | 'cook' | 'action';
+type Variant =
+  | 'primary'
+  | 'secondary'
+  | 'soft'
+  | 'danger'
+  | 'danger-outline'
+  | 'health'
+  | 'health-outline'
+  | 'warn';
+type Size = 'md' | 'action' | 'cook' | 'save';
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-primary text-on-primary',
@@ -9,12 +17,16 @@ const VARIANTS: Record<Variant, string> = {
   soft: 'bg-primary-soft text-on-primary-soft',
   danger: 'bg-accent text-on-primary',
   'danger-outline': 'border border-accent bg-surface text-accent',
+  health: 'bg-health text-on-health',
+  'health-outline': 'border border-health-line bg-surface text-ink',
+  warn: 'bg-warn-soft text-on-warn-soft',
 };
 
 const SIZES: Record<Size, string> = {
   md: 'min-h-touch min-w-touch px-4',
-  action: 'min-h-action min-w-touch px-4 text-lg',
+  action: 'min-h-action min-w-touch px-4',
   cook: 'min-h-14 min-w-14 px-4 text-2xl',
+  save: 'min-h-save min-w-touch px-6 text-lg font-bold',
 };
 
 /** The classes of a button; shared by `Button` and `ButtonLink` so a link can look like a button. */
@@ -28,7 +40,7 @@ export function buttonClassName(
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size };
 
-/** A button with a touch-sized box (44 px) in one of five variants; `cook` is the large cook-mode size. */
+/** A button with a touch-sized box (44 px) in one of eight variants (`health` ones for the health screens); `action` is the 60 px list-action size, `cook` the large cook-mode size, `save` the 58 px save button of the health forms. */
 export function Button({
   variant = 'primary',
   size = 'md',

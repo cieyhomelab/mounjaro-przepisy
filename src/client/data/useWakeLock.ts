@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 
-type WakeLockSentinelLike = { release: () => Promise<void> };
+type WakeLockSentinelLike = {
+  release: () => Promise<void>;
+  addEventListener?: (type: 'release', listener: () => void) => void;
+};
 type WakeLockApi = { request: (type: 'screen') => Promise<WakeLockSentinelLike> };
 
 const wakeLockApi = () => (navigator as { wakeLock?: WakeLockApi }).wakeLock;
@@ -26,6 +29,10 @@ export function useWakeLock(): { unavailable: boolean; active: boolean } {
         if (!mounted) return void next.release();
         void sentinel?.release();
         sentinel = next;
+        // The system may drop the lock while the page is visible (e.g. battery saver).
+        next.addEventListener?.('release', () => {
+          if (mounted && sentinel === next) setActive(false);
+        });
         setUnavailable(false);
         setActive(true);
       } catch {

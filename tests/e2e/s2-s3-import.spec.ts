@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { TINY_PNG, fillRecipeForm, logIn, resetServer } from './helpers';
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { TINY_PNG, fillRecipeForm, logIn, resetServer, seedRecipe } from './helpers';
 
 // The test pages come from the "fixtures" service (tests/e2e/fixtures); the app fetches them with
 // its real page fetcher. FETCH_TIMEOUT_MS is 3 s in this stack, so "niedostępna" ends quickly.
@@ -15,21 +15,41 @@ async function logInToCollection(page: Page) {
   await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
 }
 
-/** Opens "Z linku" from the empty collection and submits `address`. */
-async function readFromLink(page: Page, address: string) {
-  await page.getByRole('button', { name: 'Z linku' }).click();
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Dodaj przepis z linku' }),
-  ).toBeVisible();
-  await page.getByLabel('Adres strony z przepisem').fill(address);
+const borderOf = (locator: Locator) =>
+  locator.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { width: style.borderTopWidth, color: style.borderTopColor };
+  });
+
+/** The computed colour of the `--{name}` token in the current theme. */
+const tokenColor = (page: Page, name: string) =>
+  page.evaluate((token) => {
+    const probe = document.createElement('span');
+    probe.style.color = `var(--${token})`;
+    document.body.append(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+  }, name);
+
+/** Submits `address` on the "Z linku" card of the "Dodaj przepis" screen. */
+async function submitLink(page: Page, address: string) {
+  await expect(page.getByRole('heading', { level: 1, name: 'Dodaj przepis' })).toBeVisible();
+  await page.getByLabel('Link do przepisu').fill(address);
   await page.getByRole('button', { name: 'Odczytaj przepis' }).click();
 }
 
-/** Opens "Z linku" when the collection already has recipes. */
+/** Opens "Z linku" from the empty collection and submits `address`. */
+async function readFromLink(page: Page, address: string) {
+  await page.getByRole('button', { name: 'Z linku' }).click();
+  await submitLink(page, address);
+}
+
+/** Opens "Dodaj przepis" when the collection already has recipes. */
 async function readAnotherLink(page: Page, address: string) {
   await page.goto('/');
   await page.getByRole('button', { name: 'Dodaj przepis' }).click();
-  await readFromLink(page, address);
+  await submitLink(page, address);
 }
 
 const preview = (page: Page) => page.getByRole('heading', { level: 1, name: 'Podgląd przepisu' });
@@ -51,6 +71,43 @@ async function expectPhotoLoaded(page: Page, title: string) {
 }
 
 test.describe('S2: dodanie przepisu z linku', () => {
+  test('S2: „Dodaj przepis” otwiera kartę „Z linku” z polem „Link do przepisu” i przyciskiem „Odczytaj przepis”', async ({
+    page,
+  }) => {
+    await logInToCollection(page);
+    await seedRecipe(page, { title: 'Pierwszy' });
+    await page.reload();
+
+    await page.getByRole('button', { name: 'Dodaj przepis' }).click();
+
+    await expect(page).toHaveURL(/\/przepisy\/z-linku$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Dodaj przepis' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Z linku' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.getByRole('button', { name: 'Wpiszę sama' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await expect(page.getByLabel('Link do przepisu')).toBeVisible();
+    await expect(page.getByText('Wklej adres strony z przepisem')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Odczytaj przepis' })).toBeVisible();
+    const field = page.getByLabel('Link do przepisu');
+    expect(await borderOf(field)).toEqual({
+      width: '2px',
+      color: await tokenColor(page, 'primary'),
+    });
+    expect((await field.boundingBox())?.height).toBe(56);
+    expect(
+      (await page.getByRole('button', { name: 'Odczytaj przepis' }).boundingBox())?.height,
+    ).toBe(60);
+    await expect(page.getByRole('link', { name: 'Szukaj w zaufanych serwisach' })).toBeVisible();
+
+    await submitLink(page, pageUrl('czytelna'));
+    await expect(preview(page)).toBeVisible();
+  });
+
   test('S2: link do strony „czytelna” pokazuje podgląd z tytułem, zdjęciem, składnikami, krokami, porcjami i oceną ze źródła', async ({
     page,
   }) => {
@@ -248,14 +305,40 @@ test.describe('S3: link, którego nie da się odczytać', () => {
     ['bez-skladnikow', 'Ryba w sosie'],
     ['nie-przepis', 'Nasz blog o gotowaniu'],
   ] as const) {
-    test(`S3: strona „${name}” pokazuje komunikat i otwiera formularz ręczny z linkiem i odczytanymi polami`, async ({
+    test(`S3: strona „${name}” zostawia użytkownika na ekranie linku z komunikatem i bez formularza`, async ({
       page,
     }) => {
       await logInToCollection(page);
 
       await readFromLink(page, pageUrl(name));
 
-      await expect(page.getByText('Nie udało się odczytać całego przepisu')).toBeVisible();
+      const field = page.getByLabel('Link do przepisu');
+      const alert = page.getByRole('alert');
+      await expect(alert).toContainText('Nie udało się odczytać przepisu');
+      await expect(field).toHaveValue(pageUrl(name));
+      await expect(field).toHaveAttribute('aria-invalid', 'true');
+      expect(await borderOf(field)).toEqual({
+        width: '2px',
+        color: await tokenColor(page, 'accent'),
+      });
+      await expect(page.getByRole('button', { name: 'Wpisz przepis ręcznie' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Spróbuj ponownie' })).toBeVisible();
+      await expect(page.getByText('Link zostanie zachowany jako źródło przepisu.')).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1, name: 'Dodaj przepis' })).toBeVisible();
+      await expect(manualForm(page)).toHaveCount(0);
+      await expect(page.getByLabel('Tytuł')).toHaveCount(0);
+      expect(await recipesInCollection(page)).toBe(0);
+    });
+
+    test(`S3: „Wpisz przepis ręcznie” po stronie „${name}” otwiera formularz z linkiem i odczytanymi polami`, async ({
+      page,
+    }) => {
+      await logInToCollection(page);
+      await readFromLink(page, pageUrl(name));
+      await expect(page.getByRole('alert')).toContainText('Nie udało się odczytać przepisu');
+
+      await page.getByRole('button', { name: 'Wpisz przepis ręcznie' }).click();
+
       await expect(manualForm(page)).toBeVisible();
       await expect(page.getByLabel('Link do źródła (opcjonalnie)')).toHaveValue(pageUrl(name));
       await expect(page.getByLabel('Tytuł')).toHaveValue(title);
@@ -263,11 +346,50 @@ test.describe('S3: link, którego nie da się odczytać', () => {
     });
   }
 
+  test('S3: „Spróbuj ponownie” czyta ten sam link i pokazuje ten sam komunikat albo podgląd', async ({
+    page,
+  }) => {
+    await logInToCollection(page);
+    // The first reading asks for a page with no ingredients, the second one for the page typed in.
+    let calls = 0;
+    await page.route('**/api/recipes/import-preview', async (route) => {
+      calls += 1;
+      if (calls === 1) {
+        await route.continue({ postData: JSON.stringify({ url: pageUrl('bez-skladnikow') }) });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await readFromLink(page, pageUrl('czytelna'));
+    await expect(page.getByRole('alert')).toContainText('Nie udało się odczytać przepisu');
+    await page.getByRole('button', { name: 'Spróbuj ponownie' }).click();
+
+    await expect(preview(page)).toBeVisible();
+    await expect(page.getByLabel('Tytuł')).toHaveValue('Kurczak pieczony z cukinią');
+    expect(calls).toBe(2);
+  });
+
+  test('S3: „Spróbuj ponownie” po tej samej nieczytelnej stronie pokazuje ten sam komunikat', async ({
+    page,
+  }) => {
+    await logInToCollection(page);
+    await readFromLink(page, pageUrl('bez-skladnikow'));
+    await expect(page.getByRole('alert')).toContainText('Nie udało się odczytać przepisu');
+
+    await page.getByRole('button', { name: 'Spróbuj ponownie' }).click();
+
+    await expect(page.getByRole('alert')).toContainText('Nie udało się odczytać przepisu');
+    await expect(page.getByLabel('Link do przepisu')).toHaveValue(pageUrl('bez-skladnikow'));
+    await expect(manualForm(page)).toHaveCount(0);
+  });
+
   test('S3: po uzupełnieniu formularza ręcznego przepis trafia do kolekcji z linkiem do źródła', async ({
     page,
   }) => {
     await logInToCollection(page);
     await readFromLink(page, pageUrl('bez-skladnikow'));
+    await page.getByRole('button', { name: 'Wpisz przepis ręcznie' }).click();
     await expect(manualForm(page)).toBeVisible();
     // What could be read is already in the form: servings and both steps.
     await expect(page.getByLabel('Liczba porcji')).toHaveValue('2');
@@ -295,6 +417,7 @@ test.describe('S3: link, którego nie da się odczytać', () => {
   }) => {
     await logInToCollection(page);
     await readFromLink(page, pageUrl('nie-przepis'));
+    await page.getByRole('button', { name: 'Wpisz przepis ręcznie' }).click();
     await expect(manualForm(page)).toBeVisible();
 
     await fillRecipeForm(page, {
@@ -328,13 +451,14 @@ test.describe('S3: link, którego nie da się odczytać', () => {
 
       const alert = page.getByRole('alert');
       await expect(alert).toContainText('Strona nie odpowiada', { timeout: 15_000 });
-      await expect(alert.getByRole('button', { name: 'Spróbuj ponownie' })).toBeVisible();
+      await expect(page.getByLabel('Link do przepisu')).toHaveAttribute('aria-invalid', 'true');
+      await expect(page.getByRole('button', { name: 'Spróbuj ponownie' })).toBeVisible();
 
       // Retry reads the page again (and fails again here).
-      await alert.getByRole('button', { name: 'Spróbuj ponownie' }).click();
+      await page.getByRole('button', { name: 'Spróbuj ponownie' }).click();
       await expect(alert).toContainText('Strona nie odpowiada', { timeout: 15_000 });
 
-      await alert.getByRole('button', { name: 'Wpisz przepis ręcznie' }).click();
+      await page.getByRole('button', { name: 'Wpisz przepis ręcznie' }).click();
 
       await expect(manualForm(page)).toBeVisible();
       await expect(page.getByLabel('Link do źródła (opcjonalnie)')).toHaveValue(address);
@@ -379,7 +503,7 @@ test.describe('S3: link, którego nie da się odczytać', () => {
 
       await readFromLink(page, text);
 
-      const field = page.getByLabel('Adres strony z przepisem');
+      const field = page.getByLabel('Link do przepisu');
       await expect(page.getByText('To nie jest poprawny link')).toBeVisible();
       await expect(field).toHaveValue(text);
       await expect(field).toBeEditable();

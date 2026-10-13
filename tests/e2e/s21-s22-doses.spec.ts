@@ -60,13 +60,15 @@ const openForm = async (page: Page) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Nowy wpis dawki' })).toBeVisible();
 };
 
+const siteGroup = (page: Page) => page.getByRole('group', { name: 'Miejsce wkłucia' });
+
 async function fillAndSave(
   page: Page,
   values: { date?: string; dose?: string; site?: string; note?: string },
 ) {
   if (values.date) await page.getByLabel('Data', { exact: true }).fill(values.date);
   if (values.dose !== undefined) await page.getByLabel('Dawka (mg)').fill(values.dose);
-  if (values.site) await page.getByRole('radio', { name: values.site }).check();
+  if (values.site) await siteGroup(page).getByRole('button', { name: values.site }).click();
   if (values.note) await page.getByLabel('Notatka').fill(values.note);
   await page.getByRole('button', { name: 'Zapisz wpis' }).click();
 }
@@ -91,11 +93,11 @@ test.describe('S21: dziennik dawek', () => {
 
     await expect(page.getByText(NOTICE)).toBeVisible();
     const form = page.getByRole('form', { name: 'Nowy wpis dawki' });
-    await expect(form.locator('input, textarea, select')).toHaveCount(9);
+    await expect(form.locator('input, textarea, select')).toHaveCount(3);
+    await expect(siteGroup(page).getByRole('button')).toHaveCount(6);
     await expect(form.getByLabel('Data', { exact: true })).toHaveValue('2026-10-14');
     await expect(form.getByLabel('Dawka (mg)')).toHaveValue('');
-    await expect(form.getByRole('radio')).toHaveCount(6);
-    await expect(form.getByRole('radio', { checked: true })).toHaveCount(0);
+    await expect(form.getByRole('button', { pressed: true })).toHaveCount(0);
     await expect(form.getByLabel('Notatka')).toHaveValue('');
   });
 
@@ -174,7 +176,9 @@ test.describe('S21: dziennik dawek', () => {
     await page.getByRole('link', { name: 'Edytuj wpis: 7 października 2026' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Edycja wpisu dawki' })).toBeVisible();
     await expect(page.getByLabel('Dawka (mg)')).toHaveValue('2,5');
-    await expect(page.getByRole('radio', { name: 'brzuch lewa strona' })).toBeChecked();
+    await expect(
+      siteGroup(page).getByRole('button', { name: 'brzuch lewa strona' }),
+    ).toHaveAttribute('aria-pressed', 'true');
     await fillAndSave(page, { dose: '5', site: 'ramię prawe', note: 'poprawione' });
     await expect(entries(page)).toHaveCount(1);
     await expect(entries(page).first()).toContainText('Dawka: 5 mg');
@@ -270,13 +274,10 @@ test.describe('S22: rotacja miejsc wkłucia', () => {
     await goToLog(page);
     await openForm(page);
 
-    const form = page.getByRole('form', { name: 'Nowy wpis dawki' });
-    await expect(form.getByRole('radio')).toHaveCount(6);
-    await expect(form.getByRole('radio')).toHaveCount(SITES.length);
-    for (const [index, site] of SITES.entries())
-      await expect(
-        form.locator('label', { has: page.locator('input[type=radio]') }).nth(index),
-      ).toHaveText(site);
+    const options = siteGroup(page).getByRole('button');
+    await expect(options).toHaveCount(6);
+    await expect(options).toHaveCount(SITES.length);
+    for (const [index, site] of SITES.entries()) await expect(options.nth(index)).toHaveText(site);
   });
 
   test('S22: pusty dziennik nie ma propozycji i żadne miejsce nie jest zaznaczone', async ({
@@ -289,7 +290,7 @@ test.describe('S22: rotacja miejsc wkłucia', () => {
 
     await expect(page.getByText(/Proponowane miejsce/)).toHaveCount(0);
     await expect(page.getByText(/Ostatnie wkłucie/)).toHaveCount(0);
-    await expect(page.getByRole('radio', { checked: true })).toHaveCount(0);
+    await expect(siteGroup(page).getByRole('button', { pressed: true })).toHaveCount(0);
   });
 
   test('S22: z wpisem formularz pokazuje miejsce i datę ostatniego wkłucia oraz propozycję, bez zaznaczenia', async ({
@@ -306,7 +307,7 @@ test.describe('S22: rotacja miejsc wkłucia', () => {
       page.getByText('Ostatnie wkłucie: brzuch lewa strona, 7 października 2026'),
     ).toBeVisible();
     await expect(page.getByText('Proponowane miejsce: brzuch prawa strona')).toBeVisible();
-    await expect(page.getByRole('radio', { checked: true })).toHaveCount(0);
+    await expect(siteGroup(page).getByRole('button', { pressed: true })).toHaveCount(0);
   });
 
   test('S22: gdy jakieś miejsce nie było użyte, propozycja to pierwsze nieużyte w kolejności listy', async ({

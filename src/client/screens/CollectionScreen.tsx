@@ -157,9 +157,9 @@ function NoMatches({ onClear }: { onClear: () => void }) {
 
 /** Home screen of a logged-in user: the collection with filters, sorting and search. */
 export function CollectionScreen() {
+  const navigate = useNavigate();
   const { state, sync } = useCollection();
   const { filters, sort, query, collectionId, clearFilters } = useCollectionView();
-  const [adding, setAdding] = useState(false);
   const recipes = state.status === 'ready' ? state.recipes : null;
   const settings = state.status === 'ready' ? state.settings : null;
   const collections = state.status === 'ready' ? state.collections : null;
@@ -188,8 +188,7 @@ export function CollectionScreen() {
           {state.status === 'ready' && state.recipes.length > 0 ? (
             <Button
               aria-label="Dodaj przepis"
-              aria-expanded={adding}
-              onClick={() => setAdding((open) => !open)}
+              onClick={() => void navigate('/przepisy/z-linku')}
               className="size-[52px] rounded-full p-0"
             >
               <Plus aria-hidden="true" className="size-6" />
@@ -218,7 +217,6 @@ export function CollectionScreen() {
           </Link>
         </div>
       ) : null}
-      {adding ? <AddRecipeChoices /> : null}
       {state.status === 'loading' ? (
         <p role="status" className="text-ink-muted">
           Ładowanie…

@@ -200,7 +200,7 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
       <ButtonLink
         to={cookPath}
         size="action"
-        className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] z-[5] w-full shadow-nav md:bottom-4"
+        className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] z-[5] w-full text-lg shadow-nav md:bottom-4"
       >
         Gotuję
       </ButtonLink>

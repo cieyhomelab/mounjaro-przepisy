@@ -14,6 +14,7 @@ import {
 import { ORIGIN_LABELS, type NutritionKey } from '../../shared/domain/nutrition';
 import { formatSourceRating } from '../../shared/domain/sourceRating';
 import type { RecipeField, RecipeFieldCode } from '../../shared/domain/recipeValidation';
+import { AddRecipeTabs } from '../components/AddRecipeTabs';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { RecipeImage } from '../components/RecipeImage';
 import { ApiError, apiRequest } from '../data/api';
@@ -235,6 +236,7 @@ export function RecipeForm({ recipe: existing, draft }: { recipe?: Recipe; draft
             ? 'Podgląd przepisu'
             : 'Nowy przepis'}
       </h1>
+      {!existing && !draft ? <AddRecipeTabs active="manual" /> : null}
       {draft?.notice ? <Notice role="status">{draft.notice}</Notice> : null}
       {draft?.mode === 'preview' ? (
         <div className="flex flex-col gap-2">

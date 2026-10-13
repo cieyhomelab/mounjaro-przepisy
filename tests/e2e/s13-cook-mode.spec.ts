@@ -14,11 +14,18 @@ async function fakeWakeLock(page: Page) {
       configurable: true,
       value: {
         request: () => {
+          const listeners: (() => void)[] = [];
           const lock = {
             released: false,
             release: () => {
               lock.released = true;
               return Promise.resolve();
+            },
+            addEventListener: (_type: string, listener: () => void) => listeners.push(listener),
+            // What the system does: drops the lock and tells the page.
+            systemRelease: () => {
+              lock.released = true;
+              listeners.forEach((listener) => listener());
             },
           };
           locks.push(lock);
@@ -151,6 +158,8 @@ test.describe('S13: tryb gotowania', () => {
       '200 g piersi z kurczaka',
       'sól do smaku',
     ]);
+    await expect(page.getByText('2 porcje', { exact: false })).toBeVisible();
+    await expect(page.getByText('2 porcji')).toHaveCount(0);
   });
 
   test('S13: „Następny krok” pokazuje dokładnie jeden krok z informacją „krok X z Y”', async ({
@@ -224,6 +233,23 @@ test.describe('S13: tryb gotowania', () => {
     await page.getByRole('link', { name: 'Wyjdź' }).click();
     await expect(page.getByRole('button', { name: 'Ugotowane' })).toBeVisible();
     expect(await heldLocks(page)).toBe(0);
+  });
+
+  test('S13: napis „Ekran pozostaje włączony” znika, gdy system zwolni blokadę', async ({
+    page,
+  }) => {
+    await fakeWakeLock(page);
+    await startCooking(page);
+    await page.getByRole('link', { name: 'Gotuj' }).click();
+    await expect(page.getByText('Ekran pozostaje włączony')).toBeVisible();
+
+    await page.evaluate(() =>
+      (
+        window as unknown as { __wakeLocks: { systemRelease: () => void }[] }
+      ).__wakeLocks[0]!.systemRelease(),
+    );
+
+    await expect(page.getByText('Ekran pozostaje włączony')).toHaveCount(0);
   });
 
   test('S13: przeglądarka bez blokady wygaszania pokazuje informację, że ekran może zgasnąć, a tryb działa', async ({

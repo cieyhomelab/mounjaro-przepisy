@@ -18,10 +18,8 @@ import { useCollection } from '../data/collection';
 import { OFFLINE_MESSAGE } from '../data/errors';
 import { isOffline } from '../data/offline';
 import { useAction } from '../data/useAction';
+import { buttonClassName } from '../components/ui/Button';
 import { FieldError } from '../components/ui/FieldError';
-
-const buttonClass =
-  'inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center rounded-md px-4 font-medium disabled:opacity-60';
 
 function Entry({ entry }: { entry: WellbeingEntry }) {
   const { changeSaved } = useCollection();
@@ -59,14 +57,14 @@ function Entry({ entry }: { entry: WellbeingEntry }) {
               type="button"
               disabled={busy}
               onClick={() => void remove().then((done) => done && setConfirming(false))}
-              className={`${buttonClass} bg-warn-soft text-on-warn-soft`}
+              className={buttonClassName('warn')}
             >
               Potwierdź usunięcie
             </button>
             <button
               type="button"
               onClick={() => setConfirming(false)}
-              className={`${buttonClass} border border-health-line bg-surface text-ink`}
+              className={buttonClassName('health-outline')}
             >
               Anuluj
             </button>
@@ -77,7 +75,7 @@ function Entry({ entry }: { entry: WellbeingEntry }) {
           <Link
             to={`/waga/nowy?data=${entry.date}`}
             aria-label={`Edytuj wpis: ${label}`}
-            className={`${buttonClass} border border-health-line bg-surface text-ink`}
+            className={buttonClassName('health-outline')}
           >
             Edytuj
           </Link>
@@ -85,7 +83,7 @@ function Entry({ entry }: { entry: WellbeingEntry }) {
             type="button"
             aria-label={`Usuń wpis: ${label}`}
             onClick={() => setConfirming(true)}
-            className={`${buttonClass} border border-health-line bg-surface text-ink`}
+            className={buttonClassName('health-outline')}
           >
             Usuń
           </button>
@@ -128,7 +126,7 @@ export function WellbeingLogScreen() {
               setOfflineNotice(false);
               void navigate('/waga/nowy');
             }}
-            className={`${buttonClass} self-start bg-health text-on-health`}
+            className={buttonClassName('health', 'md', 'self-start')}
           >
             Dodaj wpis
           </button>

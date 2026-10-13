@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { parseIngredientLine } from './ingredientLine';
-import { formatQuantity, isValidServings, parseServingsInput, scaleIngredient } from './portions';
+import {
+  formatQuantity,
+  formatServings,
+  isValidServings,
+  parseServingsInput,
+  scaleIngredient,
+} from './portions';
 
 const scale = (line: string, from: number, to: number) =>
   scaleIngredient(parseIngredientLine(line), from, to);
@@ -75,5 +81,26 @@ describe('servings input', () => {
     expect(isValidServings(99)).toBe(true);
     expect(isValidServings(99.5)).toBe(false);
     expect(isValidServings(1.2)).toBe(false);
+  });
+});
+
+describe('formatServings', () => {
+  it.each([
+    [1, '1 porcja'],
+    [2, '2 porcje'],
+    [3, '3 porcje'],
+    [4, '4 porcje'],
+    [5, '5 porcji'],
+    [12, '12 porcji'],
+    [14, '14 porcji'],
+    [22, '22 porcje'],
+    [24, '24 porcje'],
+    [25, '25 porcji'],
+    [99, '99 porcji'],
+    [0.5, '0,5 porcji'],
+    [1.5, '1,5 porcji'],
+    [2.5, '2,5 porcji'],
+  ])('formats %s as "%s"', (servings, expected) => {
+    expect(formatServings(servings)).toBe(expected);
   });
 });

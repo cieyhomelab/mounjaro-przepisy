@@ -19,10 +19,11 @@ import { MedicalNotice } from '../components/MedicalNotice';
 import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
+import { Button } from '../components/ui/Button';
+import { ButtonLink } from '../components/ui/ButtonLink';
+import { ChoiceButton } from '../components/ui/ChoiceButton';
 import { FieldError } from '../components/ui/FieldError';
 
-const buttonClass =
-  'inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center rounded-md px-4 font-medium disabled:opacity-60';
 const inputClass = 'min-h-touch rounded-md border border-line bg-surface px-3 text-ink';
 
 type FieldErrors = Partial<Record<'date' | 'doseMg' | 'site', string>>;
@@ -178,26 +179,24 @@ function DoseForm({
             className={`${inputClass} w-32`}
           />
         </Field>
-        <fieldset
+        <div
+          role="group"
+          aria-labelledby="dose-site-label"
           aria-describedby={errors.site ? 'dose-site-error' : undefined}
-          className="flex flex-col gap-1"
+          className="flex flex-col gap-2"
         >
-          <legend className="font-medium">Miejsce wkłucia</legend>
-          {INJECTION_SITES.map((option) => (
-            <label key={option} className="flex min-h-touch cursor-pointer items-center gap-3">
-              <input
-                type="radio"
-                name="dose-site"
-                value={option}
-                checked={site === option}
-                onChange={() => setSite(option)}
-                className="size-6 shrink-0"
-              />
-              <span>{SITE_LABELS[option]}</span>
-            </label>
-          ))}
+          <p id="dose-site-label" className="font-medium">
+            Miejsce wkłucia
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {INJECTION_SITES.map((option) => (
+              <ChoiceButton key={option} selected={site === option} onClick={() => setSite(option)}>
+                {SITE_LABELS[option]}
+              </ChoiceButton>
+            ))}
+          </div>
           {errors.site ? <FieldError id="dose-site-error">{errors.site}</FieldError> : null}
-        </fieldset>
+        </div>
         <Field id="dose-note" label="Notatka">
           <textarea
             id="dose-note"
@@ -215,19 +214,12 @@ function DoseForm({
           />
         ) : null}
         <div className="flex flex-wrap gap-2">
-          <button
-            type="submit"
-            disabled={busy}
-            className={`${buttonClass} bg-health text-on-health`}
-          >
+          <Button type="submit" variant="health" size="save" disabled={busy}>
             Zapisz wpis
-          </button>
-          <Link
-            to="/dawki"
-            className={`${buttonClass} border border-health-line bg-surface text-ink`}
-          >
+          </Button>
+          <ButtonLink to="/dawki" variant="health-outline" size="save">
             Anuluj
-          </Link>
+          </ButtonLink>
         </div>
       </form>
     </section>

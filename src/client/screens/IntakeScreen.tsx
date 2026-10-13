@@ -21,10 +21,10 @@ import { MedicalNotice } from '../components/MedicalNotice';
 import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
+import { buttonClassName } from '../components/ui/Button';
+import { ProgressBar } from '../components/ui/ProgressBar';
 import { FieldError } from '../components/ui/FieldError';
 
-const buttonClass =
-  'inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center rounded-md px-4 font-medium disabled:opacity-60';
 const inputClass = 'min-h-touch rounded-md border border-line bg-surface px-3 text-ink';
 
 /** Today in Warsaw, checked every so often so the counters start from zero after midnight. */
@@ -55,6 +55,14 @@ function Summary({
       <p className="text-xl font-medium" data-testid={`sum-${title}`}>
         {progress.text}
       </p>
+      {goal !== null ? (
+        <ProgressBar
+          label={`Postęp: ${title.toLowerCase()}`}
+          value={total}
+          max={goal}
+          tone={unit === 'g' ? 'accent' : 'primary'}
+        />
+      ) : null}
       {progress.reached ? <p className="font-medium text-health">cel osiągnięty</p> : null}
       {goal === null ? (
         <p className="text-ink-muted">
@@ -94,7 +102,7 @@ function ProteinRow({ entry, editable }: { entry: ProteinEntry; editable: boolea
           disabled={busy}
           aria-label={`Usuń wpis białka: ${name}`}
           onClick={() => void remove()}
-          className={`${buttonClass} self-start border border-health-line bg-surface text-ink`}
+          className={buttonClassName('health-outline', 'md', 'self-start')}
         >
           Usuń
         </button>
@@ -124,7 +132,7 @@ function WaterRow({ entry, editable }: { entry: WaterEntry; editable: boolean })
           disabled={busy}
           aria-label={`Usuń wpis wody: ${entry.ml} ml`}
           onClick={() => void remove()}
-          className={`${buttonClass} self-start border border-health-line bg-surface text-ink`}
+          className={buttonClassName('health-outline', 'md', 'self-start')}
         >
           Usuń
         </button>
@@ -194,7 +202,7 @@ function ManualProteinForm() {
       <button
         type="submit"
         disabled={busy}
-        className={`${buttonClass} self-start bg-health text-on-health`}
+        className={buttonClassName('health', 'md', 'self-start')}
       >
         Dopisz białko
       </button>
@@ -218,7 +226,7 @@ function AddWater({ glassMl }: { glassMl: number }) {
         type="button"
         disabled={busy}
         onClick={() => void add()}
-        className={`${buttonClass} self-start bg-health text-on-health`}
+        className={buttonClassName('health', 'md', 'self-start')}
       >
         Dodaj szklankę wody ({glassMl} ml)
       </button>
@@ -255,7 +263,7 @@ export function IntakeScreen() {
               type="button"
               disabled={!isToday}
               onClick={() => setOffset(1)}
-              className={`${buttonClass} border border-health-line bg-surface text-ink`}
+              className={buttonClassName('health-outline')}
             >
               Poprzedni dzień
             </button>
@@ -263,7 +271,7 @@ export function IntakeScreen() {
               type="button"
               disabled={isToday}
               onClick={() => setOffset(0)}
-              className={`${buttonClass} border border-health-line bg-surface text-ink`}
+              className={buttonClassName('health-outline')}
             >
               Dzisiaj
             </button>

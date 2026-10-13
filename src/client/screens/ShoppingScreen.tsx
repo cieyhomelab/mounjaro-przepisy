@@ -5,19 +5,24 @@ import {
   customItemResponseSchema,
 } from '../../shared/contracts/shopping';
 import { addDays, warsawDate, weekStart } from '../../shared/domain/cookStats';
-import { formatPlanDay, parseWeekParam } from '../../shared/domain/mealPlan';
+import { parseWeekParam } from '../../shared/domain/mealPlan';
 import {
   buildShoppingItems,
+  basketProgress,
   buildShoppingRows,
+  formatBasketProgress,
   formatShoppingItem,
+  formatShoppingWeek,
   type ShoppingRow,
 } from '../../shared/domain/shoppingList';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { apiRequest } from '../data/api';
 import { useCollection, type CollectionState } from '../data/collection';
 import { useAction } from '../data/useAction';
+import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { ProgressBar } from '../components/ui/ProgressBar';
 
 const WEEK_PARAM = 'tydzien';
 
@@ -27,6 +32,7 @@ function Row({ row, week }: { row: ShoppingRow; week: string }) {
   const { changeSaved, checkItem } = useCollection();
   const { run, retry, busy, errorCode } = useAction();
   const text = formatShoppingItem(row);
+  const quantity = text.slice(row.name.length).trim();
 
   const toggle = () =>
     void checkItem({
@@ -47,14 +53,24 @@ function Row({ row, week }: { row: ShoppingRow; week: string }) {
   return (
     <li className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        <label className="flex min-h-11 flex-1 cursor-pointer items-center gap-3">
+        <label className="flex min-h-row flex-1 cursor-pointer items-center gap-3 rounded-lg bg-surface px-3 py-2">
           <input
             type="checkbox"
             checked={row.checked}
             onChange={toggle}
-            className="size-6 shrink-0"
+            className="size-6 shrink-0 accent-primary"
           />
-          <span className={row.checked ? 'text-ink-muted line-through' : ''}>{text}</span>
+          <span className={row.checked ? 'text-ink-muted line-through' : 'text-ink'}>
+            {row.name}
+          </span>
+          {quantity ? (
+            <>
+              {' '}
+              <span data-testid="shopping-quantity" className="text-accent">
+                {quantity}
+              </span>
+            </>
+          ) : null}
         </label>
         {row.custom ? (
           <Button
@@ -134,9 +150,16 @@ function List({ state, week }: { state: Ready; week: string }) {
   const planned = buildShoppingItems(state.mealPlan, state.recipes, week).length > 0;
   const open = rows.filter((row) => !row.checked);
   const done = rows.filter((row) => row.checked);
+  const progress = basketProgress(rows);
 
   return (
     <>
+      {rows.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <p className="font-medium">{formatBasketProgress(progress)}</p>
+          <ProgressBar label="Postęp zakupów" value={progress.percent} max={100} />
+        </div>
+      ) : null}
       {!planned ? (
         <p role="status" className="rounded-lg bg-surface-muted p-3">
           Zaplanuj posiłki, żeby wygenerować listę
@@ -178,13 +201,14 @@ export function ShoppingScreen() {
 
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Lista zakupów</h1>
+      <h1 className="text-2xl font-semibold">Zakupy</h1>
       <Link
         to={week === currentWeek ? '/planer' : `/planer?${WEEK_PARAM}=${week}`}
         className="inline-flex min-h-11 items-center self-start underline"
       >
         Wróć do planera
       </Link>
+      <Badge className="self-start">Działa offline</Badge>
       {state.status === 'loading' ? (
         <p role="status" className="text-ink-muted">
           Ładowanie…
@@ -200,7 +224,7 @@ export function ShoppingScreen() {
               Poprzedni tydzień
             </Button>
             <p role="status" className="font-medium">
-              Tydzień od {formatPlanDay(week)} do {formatPlanDay(addDays(week, 6))}
+              {formatShoppingWeek(week)}
             </p>
             <Button onClick={() => goTo(addDays(week, 7))} variant="secondary">
               Następny tydzień

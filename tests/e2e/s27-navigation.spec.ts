@@ -104,7 +104,7 @@ test.describe('S27: nawigacja', () => {
     expect(await activeItem(page)).toBe('Planer');
 
     await nav.getByRole('link', { name: 'Zakupy', exact: true }).click();
-    await expect(page.getByRole('heading', { level: 1, name: 'Lista zakupów' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Zakupy' })).toBeVisible();
     expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe('/zakupy');
 
     await nav.getByRole('link', { name: 'Zdrowie', exact: true }).click();

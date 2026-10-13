@@ -52,7 +52,7 @@ async function fillAndSave(
 ) {
   if (values.date) await page.getByLabel('Data', { exact: true }).fill(values.date);
   if (values.weight !== undefined) await page.getByLabel('Waga (kg)').fill(values.weight);
-  if (values.mood) await page.getByRole('radio', { name: values.mood }).check();
+  if (values.mood) await page.getByRole('button', { name: values.mood }).click();
   if (values.note) await page.getByLabel('Notatka').fill(values.note);
   await page.getByRole('button', { name: 'Zapisz wpis' }).click();
 }
@@ -158,7 +158,10 @@ test.describe('S24: dziennik wagi i samopoczucia', () => {
     await page.getByLabel('Data', { exact: true }).fill('2026-10-12');
 
     await expect(page.getByLabel('Waga (kg)')).toHaveValue('82,5');
-    await expect(page.getByRole('radio', { name: '4 – dobrze' })).toBeChecked();
+    await expect(page.getByRole('button', { name: '4 – dobrze' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     await expect(page.getByLabel('Notatka')).toHaveValue('rano');
     await page.getByLabel('Waga (kg)').fill('81');
     await page.getByRole('button', { name: 'Zapisz wpis' }).click();
@@ -190,7 +193,10 @@ test.describe('S24: dziennik wagi i samopoczucia', () => {
       page.getByRole('heading', { level: 1, name: 'Nowy wpis wagi i samopoczucia' }),
     ).toBeVisible();
     await expect(page.getByLabel('Waga (kg)')).toHaveValue('');
-    await expect(page.getByRole('radio', { name: '4 – dobrze' })).not.toBeChecked();
+    await expect(page.getByRole('button', { name: '4 – dobrze' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
     await expect(page.getByLabel('Notatka')).toHaveValue('');
   });
 
@@ -206,6 +212,31 @@ test.describe('S24: dziennik wagi i samopoczucia', () => {
     await expect(entries(page).nth(0)).toContainText('13 października 2026');
     await expect(entries(page).nth(1)).toContainText('9 października 2026');
     await expect(entries(page).nth(2)).toContainText('5 października 2026');
+  });
+
+  test('S24: formularz ma pięć przycisków samopoczucia z opisem skrajnych wartości, bez pola Nudności', async ({
+    page,
+    request,
+  }) => {
+    await open(page, request);
+    await goToLog(page);
+    await openForm(page);
+
+    const mood = page.getByRole('group', { name: 'Samopoczucie' });
+    await expect(mood.getByRole('button')).toHaveCount(5);
+    await expect(mood.getByRole('button', { pressed: true })).toHaveCount(0);
+    await expect(mood.getByRole('button', { name: '1 – bardzo źle' })).toBeVisible();
+    await expect(mood.getByRole('button', { name: '5 – bardzo dobrze' })).toBeVisible();
+    await expect(mood.getByText('bardzo źle', { exact: true })).toBeVisible();
+    await expect(mood.getByText('bardzo dobrze', { exact: true })).toBeVisible();
+    await expect(page.getByText('Nudności')).toHaveCount(0);
+
+    await mood.getByRole('button', { name: '3 – średnio' }).click();
+    await expect(mood.getByRole('button', { pressed: true })).toHaveCount(1);
+    await expect(mood.getByRole('button', { name: '3 – średnio' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
   test('S24: wykres wagi pokazuje się od dwóch pomiarów, wcześniej jest tekst zastępczy', async ({

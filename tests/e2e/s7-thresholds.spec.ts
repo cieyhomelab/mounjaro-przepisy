@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { logIn, resetServer, seedRecipe, goToSettings, goHome } from './helpers';
+import { logIn, resetServer, seedRecipe, goToSettings, goHome, toggleFilter } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -48,7 +48,7 @@ test.describe('S7: progi filtrów', () => {
     await page.getByRole('button', { name: 'Zapisz' }).click();
     await expect(page.getByText('Zapisano progi.')).toBeVisible();
     await goHome(page);
-    await page.getByRole('button', { name: 'Wysokie białko' }).click();
+    await toggleFilter(page, 'Wysokie białko');
 
     const items = page.getByRole('list', { name: 'Przepisy' }).getByRole('listitem');
     await expect(items).toHaveCount(1);

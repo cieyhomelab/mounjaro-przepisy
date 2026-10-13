@@ -1,5 +1,14 @@
 import { expect, test, type Page } from '@playwright/test';
-import { apiCall, logIn, resetServer, seedRecipe, type RecipeSeed } from './helpers';
+import {
+  apiCall,
+  filterButton,
+  logIn,
+  openFilterPanel,
+  resetServer,
+  seedRecipe,
+  toggleFilter,
+  type RecipeSeed,
+} from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -7,8 +16,6 @@ test.beforeEach(async ({ request }) => {
 
 const recipeList = (page: Page) => page.getByRole('list', { name: 'Przepisy' });
 const items = (page: Page) => recipeList(page).getByRole('listitem');
-const filterButton = (page: Page, name: string) =>
-  page.getByRole('group', { name: 'Filtry' }).getByRole('button', { name });
 const titles = (page: Page) => items(page).locator('span.truncate').allTextContents();
 
 async function openCollection(page: Page, seeds: RecipeSeed[]) {
@@ -18,6 +25,7 @@ async function openCollection(page: Page, seeds: RecipeSeed[]) {
   await page.reload();
   await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
   await expect(items(page).first()).toBeVisible();
+  await openFilterPanel(page);
 }
 
 const nutrition = (kcal?: number, proteinG?: number, fatG?: number, fiberG?: number) => ({
@@ -39,7 +47,7 @@ test.describe('S6: filtry pod Mounjaro', () => {
       { title: 'Dużo', ...nutrition(undefined, 40) },
     ]);
 
-    await filterButton(page, 'Wysokie białko').click();
+    await toggleFilter(page, 'Wysokie białko');
 
     await expect(filterButton(page, 'Wysokie białko')).toHaveAttribute('aria-pressed', 'true');
     await expect.poll(() => titles(page)).toEqual(['Dużo', 'Równo 25']);
@@ -52,7 +60,7 @@ test.describe('S6: filtry pod Mounjaro', () => {
       { title: 'Lekki', ...nutrition(120, 5) },
     ]);
 
-    await filterButton(page, 'Mała porcja').click();
+    await toggleFilter(page, 'Mała porcja');
 
     await expect.poll(() => titles(page)).toEqual(['Równo 300', 'Lekki']);
   });
@@ -66,7 +74,7 @@ test.describe('S6: filtry pod Mounjaro', () => {
       { title: 'Chudy', ...nutrition(undefined, 5, 2) },
     ]);
 
-    await filterButton(page, 'Lekkostrawne (mało tłuszczu)').click();
+    await toggleFilter(page, 'Lekkostrawne (mało tłuszczu)');
 
     await expect.poll(() => titles(page)).toEqual(['Równo 15', 'Chudy']);
   });
@@ -80,7 +88,7 @@ test.describe('S6: filtry pod Mounjaro', () => {
       { title: 'Dużo błonnika', ...nutrition(undefined, 5, undefined, 12) },
     ]);
 
-    await filterButton(page, 'Dużo błonnika').click();
+    await toggleFilter(page, 'Dużo błonnika');
 
     await expect.poll(() => titles(page)).toEqual(['Równo 5', 'Dużo błonnika']);
   });
@@ -94,10 +102,10 @@ test.describe('S6: filtry pod Mounjaro', () => {
       { title: 'Między progami', ...nutrition(350, 10) },
     ]);
 
-    await filterButton(page, 'Mało kalorii').click();
+    await toggleFilter(page, 'Mało kalorii');
     await expect.poll(() => titles(page)).toEqual(['Równo 400', 'Między progami']);
 
-    await filterButton(page, 'Mała porcja').click();
+    await toggleFilter(page, 'Mała porcja');
     await expect(page.getByText('Brak przepisów dla tych filtrów')).toBeVisible();
   });
 
@@ -110,10 +118,10 @@ test.describe('S6: filtry pod Mounjaro', () => {
       { title: 'Z białkiem', ...nutrition(200, 30) },
     ]);
 
-    await filterButton(page, 'Wysokie białko').click();
+    await toggleFilter(page, 'Wysokie białko');
     await expect.poll(() => titles(page)).toEqual(['Z białkiem']);
-    await filterButton(page, 'Wysokie białko').click();
-    await filterButton(page, 'Lekkostrawne (mało tłuszczu)').click();
+    await toggleFilter(page, 'Wysokie białko');
+    await toggleFilter(page, 'Lekkostrawne (mało tłuszczu)');
 
     await expect(page.getByText('Brak przepisów dla tych filtrów')).toBeVisible();
   });
@@ -125,8 +133,8 @@ test.describe('S6: filtry pod Mounjaro', () => {
       { title: 'Tylko mało kcal', ...nutrition(250, 10) },
     ]);
 
-    await filterButton(page, 'Wysokie białko').click();
-    await filterButton(page, 'Mała porcja').click();
+    await toggleFilter(page, 'Wysokie białko');
+    await toggleFilter(page, 'Mała porcja');
 
     await expect.poll(() => titles(page)).toEqual(['Oba']);
   });
@@ -139,7 +147,7 @@ test.describe('S6: filtry pod Mounjaro', () => {
       { title: 'B', ...nutrition(600, 12) },
     ]);
 
-    await filterButton(page, 'Mała porcja').click();
+    await toggleFilter(page, 'Mała porcja');
 
     await expect(page.getByText('Brak przepisów dla tych filtrów')).toBeVisible();
     await expect(recipeList(page)).toHaveCount(0);
@@ -228,6 +236,7 @@ test.describe('S6: sortowanie', () => {
     }
     await page.reload();
     await expect(items(page).first()).toBeVisible();
+    await openFilterPanel(page);
 
     await sortSelect(page).selectOption({ label: 'Własna ocena malejąco' });
 
@@ -284,7 +293,7 @@ test.describe('S6: wyszukiwanie', () => {
     ]);
 
     await search(page).fill('losos');
-    await filterButton(page, 'Wysokie białko').click();
+    await toggleFilter(page, 'Wysokie białko');
 
     await expect.poll(() => titles(page)).toEqual(['Łosoś z piekarnika']);
   });
@@ -299,7 +308,7 @@ test.describe('S6: zachowanie wyboru', () => {
       { title: 'Zupa', ...nutrition(150, 28) },
       { title: 'Kotlet', ...nutrition(600, 35) },
     ]);
-    await filterButton(page, 'Mała porcja').click();
+    await toggleFilter(page, 'Mała porcja');
     await page.getByLabel('Sortowanie').selectOption({ label: 'Kalorie rosnąco' });
     await page.getByRole('searchbox', { name: 'Szukaj w kolekcji' }).fill('o');
     await expect.poll(() => titles(page)).toEqual(['Zupa', 'Łosoś']);
@@ -307,6 +316,7 @@ test.describe('S6: zachowanie wyboru', () => {
     await items(page).first().getByRole('link').click();
     await expect(page.getByRole('heading', { level: 1, name: 'Zupa' })).toBeVisible();
     await page.getByRole('link', { name: 'Wróć do kolekcji' }).click();
+    await openFilterPanel(page);
 
     await expect(filterButton(page, 'Mała porcja')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByLabel('Sortowanie')).toHaveValue('kcalAsc');
@@ -314,6 +324,7 @@ test.describe('S6: zachowanie wyboru', () => {
     await expect.poll(() => titles(page)).toEqual(['Zupa', 'Łosoś']);
 
     await page.reload();
+    await openFilterPanel(page);
 
     await expect(filterButton(page, 'Mała porcja')).toHaveAttribute('aria-pressed', 'false');
     await expect(page.getByLabel('Sortowanie')).toHaveValue('proteinDesc');
@@ -392,5 +403,92 @@ test.describe('S6: wydajność przy 1000 przepisów', () => {
     expect(typeMs).toBeLessThan(1000);
     // Only the rows near the screen exist, not all 500.
     expect(await items(page).count()).toBeLessThan(60);
+  });
+});
+
+test.describe('S6: panel filtrów i licznik', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+  });
+
+  const toggle = (page: Page) => page.getByRole('button', { name: /^Filtry/ });
+  const panel = (page: Page) => page.getByRole('group', { name: 'Filtry' });
+
+  async function openClosedCollection(page: Page) {
+    await logIn(page);
+    await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
+    await seedRecipe(page, { title: 'Łosoś', ...nutrition(250, 30) });
+    await seedRecipe(page, { title: 'Zupa', ...nutrition(150, 12) });
+    await page.reload();
+    await expect(items(page).first()).toBeVisible();
+  }
+
+  test('S6: „Filtry” otwiera panel z pięcioma filtrami, „Dobrze toleruję” i sortowaniem, a ponowne wybranie zamyka go bez wyłączania filtrów', async ({
+    page,
+  }) => {
+    await openClosedCollection(page);
+    await expect(panel(page)).toBeHidden();
+
+    await toggle(page).click();
+
+    await expect(toggle(page)).toHaveAttribute('aria-expanded', 'true');
+    await expect(panel(page).getByRole('button')).toHaveText([
+      'Wysokie białko',
+      'Mała porcja',
+      'Lekkostrawne (mało tłuszczu)',
+      'Dużo błonnika',
+      'Mało kalorii',
+      'Dobrze toleruję',
+    ]);
+    await expect(page.getByLabel('Sortowanie')).toBeVisible();
+
+    await panel(page).getByRole('button', { name: 'Wysokie białko' }).click();
+    await expect.poll(() => titles(page)).toEqual(['Łosoś']);
+    await toggle(page).click();
+
+    await expect(panel(page)).toBeHidden();
+    await expect(page.getByLabel('Sortowanie')).toBeHidden();
+    await expect.poll(() => titles(page)).toEqual(['Łosoś']);
+  });
+
+  test('S6: przycisk „Filtry” pokazuje licznik włączonych filtrów i kolekcji, bez tekstu wyszukiwania i sortowania, a bez filtrów go nie ma', async ({
+    page,
+  }) => {
+    await openClosedCollection(page);
+    await apiCall(page, 'POST', '/api/collections', { name: 'Obiady' });
+    await page.reload();
+    await expect(items(page).first()).toBeVisible();
+    const counter = toggle(page).locator('span.bg-accent');
+    await expect(counter).toHaveCount(0);
+
+    await page.getByRole('searchbox', { name: 'Szukaj w kolekcji' }).fill('o');
+    await openFilterPanel(page);
+    await page.getByLabel('Sortowanie').selectOption({ label: 'Kalorie rosnąco' });
+    await expect(counter).toHaveCount(0);
+
+    await filterButton(page, 'Wysokie białko').click();
+    await filterButton(page, 'Na gorsze dni').click();
+    await page.getByRole('button', { name: 'Obiady', exact: true }).click();
+
+    await expect(counter).toHaveText('3');
+
+    await filterButton(page, 'Na gorsze dni').click();
+    await expect(counter).toHaveText('2');
+    await page.getByRole('button', { name: 'Wyczyść filtry' }).click();
+    await expect(counter).toHaveCount(0);
+  });
+});
+
+test.describe('S29: plakietka białka na karcie', () => {
+  test('S29: przepis z „brak danych” dla białka ma na zdjęciu plakietkę „— białka”', async ({
+    page,
+  }) => {
+    await openCollection(page, [
+      { title: 'Bez białka', ...nutrition(200) },
+      { title: 'Z białkiem', ...nutrition(200, 28) },
+    ]);
+
+    await expect(items(page).filter({ hasText: 'Bez białka' })).toContainText('— białka');
+    await expect(items(page).filter({ hasText: 'Z białkiem' })).toContainText('28 g białka');
   });
 });

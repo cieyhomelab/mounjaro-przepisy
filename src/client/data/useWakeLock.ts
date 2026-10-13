@@ -7,27 +7,33 @@ const wakeLockApi = () => (navigator as { wakeLock?: WakeLockApi }).wakeLock;
 
 /**
  * Keeps the screen on while the component using it is mounted. Returns whether the browser
- * refused or lacks the Wake Lock API, so the screen can warn that the display may turn off.
+ * refused or lacks the Wake Lock API (so the screen can warn that the display may turn off)
+ * and whether the lock is held right now (so it can say the screen stays on).
  */
-export function useWakeLock(): { unavailable: boolean } {
+export function useWakeLock(): { unavailable: boolean; active: boolean } {
   const [unavailable, setUnavailable] = useState(() => !wakeLockApi());
+  const [active, setActive] = useState(false);
 
   useEffect(() => {
     const api = wakeLockApi();
     if (!api) return;
-    let active = true;
+    let mounted = true;
     let sentinel: WakeLockSentinelLike | null = null;
 
     const acquire = async () => {
       try {
         const next = await api.request('screen');
-        if (!active) return void next.release();
+        if (!mounted) return void next.release();
         void sentinel?.release();
         sentinel = next;
         setUnavailable(false);
+        setActive(true);
       } catch {
         // Refused (battery saver, permissions): the cooking screen still works.
-        if (active) setUnavailable(true);
+        if (mounted) {
+          setUnavailable(true);
+          setActive(false);
+        }
       }
     };
     // The browser drops the lock when the page is hidden; take it again when it comes back.
@@ -38,11 +44,11 @@ export function useWakeLock(): { unavailable: boolean } {
     void acquire();
     document.addEventListener('visibilitychange', onVisible);
     return () => {
-      active = false;
+      mounted = false;
       document.removeEventListener('visibilitychange', onVisible);
       void sentinel?.release();
     };
   }, []);
 
-  return { unavailable };
+  return { unavailable, active };
 }

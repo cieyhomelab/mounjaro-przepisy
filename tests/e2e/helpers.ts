@@ -152,3 +152,25 @@ export async function goToSettings(page: Page) {
   if (!(await collectionHeading.isVisible())) await goHome(page);
   await page.getByRole('link', { name: 'Ustawienia' }).click();
 }
+
+/** A chip of the collection screen: one of the filters in the panel or "Na gorsze dni"/a collection in the quick row. */
+export const filterButton = (page: Page, name: string) =>
+  page
+    .getByRole('group', { name: /^(Filtry|Kolekcje i tagi)$/ })
+    .getByRole('button', { name, exact: true });
+
+/** Opens the filter panel when it is closed (below 768 px); on a wide screen it is always open. */
+export async function openFilterPanel(page: Page) {
+  await page.getByRole('searchbox', { name: 'Szukaj w kolekcji' }).waitFor();
+  const toggle = page.getByRole('button', { name: /^Filtry/ });
+  if ((await toggle.isVisible()) && (await toggle.getAttribute('aria-expanded')) === 'false') {
+    await toggle.click();
+  }
+  await expect(page.getByRole('group', { name: 'Filtry' })).toBeVisible();
+}
+
+/** Switches a filter chip on or off, opening the panel first when needed. */
+export async function toggleFilter(page: Page, name: string) {
+  await openFilterPanel(page);
+  await filterButton(page, name).click();
+}

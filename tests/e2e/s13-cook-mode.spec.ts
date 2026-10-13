@@ -71,15 +71,72 @@ test.describe('S13: tryb gotowania', () => {
     await expect(items).toHaveText(['400 g piersi z kurczaka', 'sól do smaku']);
     await expect(page.getByRole('navigation')).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Mounjaro Przepisy' })).toHaveCount(0);
-    await expect(page.getByRole('link')).toHaveText(['Wyjdź']);
+    await expect(page.getByRole('link')).toHaveCount(1);
+    await expect(page.getByRole('link', { name: 'Wyjdź' })).toBeVisible();
     for (const element of [
       items.first(),
       items.last(),
-      page.getByRole('button', { name: 'Dalej' }),
+      page.getByRole('button', { name: 'Następny krok' }),
     ]) {
       const size = await element.evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
       expect(size).toBeGreaterThanOrEqual(22);
     }
+  });
+
+  test('S13: składniki są w pigułkach z ilością w kolorze akcentu, a ekran ma tło trybu gotowania', async ({
+    page,
+  }) => {
+    await startCooking(page);
+    await page.getByRole('link', { name: 'Gotuję' }).click();
+
+    const pill = page.getByRole('listitem').first();
+    await expect(pill).toHaveText('400 g piersi z kurczaka');
+    const colors = await page.evaluate(() => {
+      const probe = (value: string) => {
+        const node = document.createElement('div');
+        node.style.color = value;
+        document.body.append(node);
+        const color = getComputedStyle(node).color;
+        node.remove();
+        return color;
+      };
+      const li = document.querySelector('li')!;
+      const style = getComputedStyle(li);
+      const quantity = getComputedStyle(li.querySelector('span')!).color;
+      const root = getComputedStyle(document.documentElement);
+      return {
+        pillBg: style.backgroundColor,
+        radius: parseFloat(style.borderTopLeftRadius),
+        quantity,
+        surface: probe(root.getPropertyValue('--surface')),
+        accent: probe(root.getPropertyValue('--accent')),
+      };
+    });
+    expect(colors.pillBg).toBe(colors.surface);
+    expect(colors.quantity).toBe(colors.accent);
+    expect(colors.radius).toBeGreaterThan(0);
+  });
+
+  test('S13: numer kroku ma 120 px w formie „X / Y”, a przyciski kroków mają 76 px wysokości', async ({
+    page,
+  }) => {
+    await startCooking(page);
+    await page.getByRole('link', { name: 'Gotuję' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
+
+    const step = page.locator('#cook-step');
+    await expect(step).toHaveText('1/ 3');
+    const size = await step
+      .locator('span')
+      .first()
+      .evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
+    expect(size).toBe(120);
+    for (const name of ['Poprzedni krok', 'Następny krok']) {
+      const box = await page.getByRole('button', { name }).boundingBox();
+      expect(box?.height).toBeGreaterThanOrEqual(76);
+    }
+    await expect(page.getByRole('button', { name: 'Składniki' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Zakończ' })).toHaveCount(0);
   });
 
   test('S13: przepis przeskalowany w S12 pokazuje w trybie gotowania przeskalowane ilości', async ({
@@ -96,11 +153,13 @@ test.describe('S13: tryb gotowania', () => {
     ]);
   });
 
-  test('S13: „Dalej” pokazuje dokładnie jeden krok z informacją „krok X z Y”', async ({ page }) => {
+  test('S13: „Następny krok” pokazuje dokładnie jeden krok z informacją „krok X z Y”', async ({
+    page,
+  }) => {
     await startCooking(page);
     await page.getByRole('link', { name: 'Gotuję' }).click();
 
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
 
     await expect(stepCounter(page, 'krok 1 z 3')).toBeVisible();
     await expect(page.getByText('Pokrój kurczaka.')).toBeVisible();
@@ -108,17 +167,19 @@ test.describe('S13: tryb gotowania', () => {
     await expect(page.getByText('Podaj z ryżem.')).toHaveCount(0);
   });
 
-  test('S13: „Wstecz” i „Dalej” pokazują krok poprzedni albo następny', async ({ page }) => {
+  test('S13: „Poprzedni krok” i „Następny krok” pokazują krok poprzedni albo następny', async ({
+    page,
+  }) => {
     await startCooking(page);
     await page.getByRole('link', { name: 'Gotuję' }).click();
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
 
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
     await expect(stepCounter(page, 'krok 2 z 3')).toBeVisible();
     await expect(page.getByText('Usmaż kurczaka.')).toBeVisible();
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
     await expect(stepCounter(page, 'krok 3 z 3')).toBeVisible();
-    await page.getByRole('button', { name: 'Wstecz' }).click();
+    await page.getByRole('button', { name: 'Poprzedni krok' }).click();
 
     await expect(stepCounter(page, 'krok 2 z 3')).toBeVisible();
     await expect(page.getByText('Usmaż kurczaka.')).toBeVisible();
@@ -129,8 +190,8 @@ test.describe('S13: tryb gotowania', () => {
   }) => {
     await startCooking(page);
     await page.getByRole('link', { name: 'Gotuję' }).click();
-    await page.getByRole('button', { name: 'Dalej' }).click();
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
     await expect(stepCounter(page, 'krok 2 z 3')).toBeVisible();
 
     await page.getByRole('button', { name: 'Składniki' }).click();
@@ -158,6 +219,7 @@ test.describe('S13: tryb gotowania', () => {
     await page.clock.fastForward(5 * 60 * 1000);
     expect(await heldLocks(page)).toBe(1);
     await expect(page.getByRole('status')).toHaveCount(0);
+    await expect(page.getByText('Ekran pozostaje włączony')).toBeVisible();
 
     await page.getByRole('link', { name: 'Wyjdź' }).click();
     await expect(page.getByRole('button', { name: 'Ugotowane' })).toBeVisible();
@@ -173,9 +235,10 @@ test.describe('S13: tryb gotowania', () => {
     await page.getByRole('link', { name: 'Gotuję' }).click();
 
     await expect(page.getByRole('status')).toContainText('ekran może zgasnąć');
+    await expect(page.getByText('Ekran pozostaje włączony')).toHaveCount(0);
     await page.getByRole('button', { name: 'Rozumiem' }).click();
     await expect(page.getByRole('status')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
     await expect(stepCounter(page, 'krok 1 z 3')).toBeVisible();
     await expect(page.getByRole('status')).toHaveCount(0);
   });
@@ -185,9 +248,9 @@ test.describe('S13: tryb gotowania', () => {
   }) => {
     await startCooking(page);
     await page.getByRole('link', { name: 'Gotuję' }).click();
-    await page.getByRole('button', { name: 'Dalej' }).click();
-    await page.getByRole('button', { name: 'Dalej' }).click();
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
     await expect(stepCounter(page, 'krok 3 z 3')).toBeVisible();
 
     await page.getByRole('button', { name: 'Zakończ' }).click();

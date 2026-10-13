@@ -32,15 +32,36 @@ const goToPlanner = async (page: Page) => {
 const meal = (page: Page, day: string, slot: string) =>
   page.getByRole('region', { name: `${day}: ${slot}` });
 
+const DAY_BUTTON: Record<string, string> = {
+  'poniedziałek, 12 października': 'pon. 12',
+  'wtorek, 13 października': 'wt. 13',
+  'środa, 14 października': 'śr. 14',
+  'czwartek, 15 października': 'czw. 15',
+  'poniedziałek, 19 października': 'pon. 19',
+};
+
+/** Chooses a day in the strip; the planner shows one day at a time. */
+async function pickDay(page: Page, day: string) {
+  const button = page.getByRole('button', { name: DAY_BUTTON[day] ?? day, exact: true });
+  await expect(async () => {
+    if ((await button.getAttribute('aria-pressed')) !== 'true')
+      await button.click({ timeout: 2000 });
+    await expect(button).toHaveAttribute('aria-pressed', 'true', { timeout: 2000 });
+  }).toPass({ timeout: 15000 });
+}
+
+const protein = (page: Page) => page.getByText(/^Białko zaplanowane:/);
+
 async function plan(page: Page, day: string, slot: string, title: string, servings?: string) {
   // The planner first shows the local copy and re-renders when the snapshot arrives, so opening the
   // form and choosing the recipe is repeated until it sticks. Everything is scoped to this slot, so a
   // form of a previous, still-saving addition is never mistaken for this one.
+  await pickDay(page, day);
   const region = meal(page, day, slot);
   const form = region.getByRole('form', { name: /^Dodaj przepis/ });
   await expect(async () => {
     if (!(await form.isVisible())) {
-      await region.getByRole('button', { name: /^Dodaj przepis/ }).click({ timeout: 2000 });
+      await region.getByRole('button', { name: '+ Dodaj przepis' }).click({ timeout: 2000 });
     }
     await form
       .getByLabel('Przepis', { exact: true })
@@ -57,28 +78,126 @@ async function plan(page: Page, day: string, slot: string, title: string, servin
 }
 
 test.describe('S19: planer posiłków na tydzień', () => {
-  test('S19: pusty planer pokazuje 7 dni bieżącego tygodnia, każdy z czterema porami', async ({
+  test('S19: pusty planer pokazuje pasek 7 dni z dniem dzisiejszym i cztery pory z przyciskiem dodania', async ({
     page,
     request,
   }) => {
     await openPlanner(page, request);
     await goToPlanner(page);
 
-    await expect(page.getByText('Tydzień od poniedziałek, 12 października')).toBeVisible();
-    const days = page.getByRole('heading', { level: 2 });
-    await expect(days).toHaveText([
-      'poniedziałek, 12 października',
-      'wtorek, 13 października',
-      'środa, 14 października',
-      'czwartek, 15 października',
-      'piątek, 16 października',
-      'sobota, 17 października',
-      'niedziela, 18 października',
+    await expect(page.getByText('Ten tydzień', { exact: true })).toBeVisible();
+    const strip = page.getByRole('button', { name: /^(pon|wt|śr|czw|pt|sob|niedz)\. \d+$/ });
+    await expect(strip).toHaveCount(7);
+    await expect(strip).toHaveText([
+      'pon.12',
+      'wt.13',
+      'śr.14',
+      'czw.15',
+      'pt.16',
+      'sob.17',
+      'niedz.18',
     ]);
-    await expect(page.getByRole('heading', { level: 3 })).toHaveCount(28);
-    for (const slot of ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska']) {
-      await expect(meal(page, 'środa, 14 października', slot)).toBeVisible();
+    for (const name of ['pon. 12', 'wt. 13', 'czw. 15', 'pt. 16', 'sob. 17', 'niedz. 18']) {
+      await expect(page.getByRole('button', { name, exact: true })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      );
     }
+    await expect(page.getByRole('button', { name: 'śr. 14', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.getByRole('heading', { level: 2 })).toHaveText('środa, 14 października');
+    await expect(page.getByRole('heading', { level: 3 })).toHaveText([
+      'Śniadanie',
+      'Obiad',
+      'Kolacja',
+      'Przekąska',
+    ]);
+    for (const slot of ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska']) {
+      await expect(
+        meal(page, 'środa, 14 października', slot).getByRole('button', { name: '+ Dodaj przepis' }),
+      ).toBeVisible();
+    }
+  });
+
+  test('S19: wybranie innego dnia przestawia aria-pressed i pokazuje tylko przepisy tego dnia', async ({
+    page,
+    request,
+  }) => {
+    await openPlanner(page, request);
+    await seedRecipe(page, { title: 'Zupa dyniowa' });
+    await seedRecipe(page, { title: 'Omlet' });
+    await page.reload();
+    await goToPlanner(page);
+    await plan(page, 'środa, 14 października', 'Obiad', 'Zupa dyniowa');
+    await plan(page, 'czwartek, 15 października', 'Śniadanie', 'Omlet');
+
+    await expect(page.getByRole('button', { name: 'czw. 15', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.getByRole('button', { name: 'śr. 14', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await expect(page.getByRole('link', { name: 'Omlet' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Zupa dyniowa' })).toHaveCount(0);
+
+    await pickDay(page, 'środa, 14 października');
+    await expect(page.getByRole('link', { name: 'Zupa dyniowa' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Omlet' })).toHaveCount(0);
+  });
+
+  test('S19: suma białka dnia liczy białko na porcję razy zaplanowane porcje', async ({
+    page,
+    request,
+  }) => {
+    await openPlanner(page, request);
+    await seedRecipe(page, { title: 'Kurczak', nutritionManual: { proteinG: 30 } });
+    await seedRecipe(page, { title: 'Twaróg', nutritionManual: { proteinG: 20 } });
+    await page.reload();
+    await goToPlanner(page);
+
+    await expect(page.getByText('Białko zaplanowane: 0 g', { exact: true })).toBeVisible();
+    await plan(page, 'środa, 14 października', 'Obiad', 'Kurczak', '2');
+    await plan(page, 'środa, 14 października', 'Kolacja', 'Twaróg');
+
+    await expect(page.getByText('Białko zaplanowane: 80 g', { exact: true })).toBeVisible();
+    await pickDay(page, 'czwartek, 15 października');
+    await expect(page.getByText('Białko zaplanowane: 0 g', { exact: true })).toBeVisible();
+  });
+
+  test('S19: suma białka pomija przepisy bez danych i mówi o tym dopiskiem', async ({
+    page,
+    request,
+  }) => {
+    await openPlanner(page, request);
+    await seedRecipe(page, { title: 'Kurczak', nutritionManual: { proteinG: 30 } });
+    await seedRecipe(page, { title: 'Sałatka' });
+    await seedRecipe(page, { title: 'Zupa dyniowa' });
+    await page.reload();
+    await goToPlanner(page);
+
+    await plan(page, 'środa, 14 października', 'Obiad', 'Kurczak');
+    await plan(page, 'środa, 14 października', 'Kolacja', 'Sałatka');
+    await expect(protein(page)).toContainText('Białko zaplanowane: 30 g');
+    await expect(page.getByText('bez 1 przepisu bez danych', { exact: true })).toBeVisible();
+
+    await plan(page, 'środa, 14 października', 'Przekąska', 'Zupa dyniowa');
+    await expect(protein(page)).toContainText('Białko zaplanowane: 30 g');
+    await expect(page.getByText('bez 2 przepisów bez danych', { exact: true })).toBeVisible();
+  });
+
+  test('S19: suma białka jest zaokrąglona do 1 g', async ({ page, request }) => {
+    await openPlanner(page, request);
+    await seedRecipe(page, { title: 'Jajka', nutritionManual: { proteinG: 25 } });
+    await page.reload();
+    await goToPlanner(page);
+
+    await plan(page, 'środa, 14 października', 'Śniadanie', 'Jajka', '0,5');
+
+    await expect(page.getByText('Białko zaplanowane: 13 g', { exact: true })).toBeVisible();
   });
 
   test('S19: przepis dodany do pory jest widoczny z liczbą porcji, domyślnie 1', async ({
@@ -113,7 +232,7 @@ test.describe('S19: planer posiłków na tydzień', () => {
     await goToPlanner(page);
 
     await meal(page, 'środa, 14 października', 'Obiad')
-      .getByRole('button', { name: /^Dodaj przepis/ })
+      .getByRole('button', { name: '+ Dodaj przepis' })
       .click();
     await page.getByLabel('Przepis', { exact: true }).selectOption({ label: 'Zupa dyniowa' });
     await page.getByLabel('Liczba porcji', { exact: true }).fill('100');
@@ -189,7 +308,11 @@ test.describe('S19: planer posiłków na tydzień', () => {
     await plan(page, 'środa, 14 października', 'Obiad', 'Zupa dyniowa');
 
     await page.getByRole('button', { name: 'Następny tydzień' }).click();
-    await expect(page.getByText('Tydzień od poniedziałek, 19 października')).toBeVisible();
+    await expect(page.getByText('19–25 października 2026', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'pon. 19', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     await expect(page.getByRole('link', { name: 'Zupa dyniowa' })).toHaveCount(0);
     await plan(page, 'poniedziałek, 19 października', 'Przekąska', 'Omlet');
     await expect(
@@ -197,12 +320,33 @@ test.describe('S19: planer posiłków na tydzień', () => {
     ).toBeVisible();
 
     await page.getByRole('button', { name: 'Poprzedni tydzień' }).click();
-    await expect(page.getByText('Tydzień od poniedziałek, 12 października')).toBeVisible();
+    await expect(page.getByText('Ten tydzień', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'śr. 14', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     await expect(page.getByRole('link', { name: 'Zupa dyniowa' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Omlet' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Poprzedni tydzień' }).click();
-    await expect(page.getByText('Tydzień od poniedziałek, 5 października')).toBeVisible();
+    await expect(page.getByText('5–11 października 2026', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Zupa dyniowa' })).toHaveCount(0);
+  });
+
+  test('S19: nagłówek innego tygodnia to zakres dat, także na przełomie miesięcy, a przycisk listy zakupów niesie oglądany tydzień', async ({
+    page,
+    request,
+  }) => {
+    await openPlanner(page, request);
+    await goToPlanner(page);
+
+    const create = page.getByRole('link', { name: 'Utwórz listę zakupów na tydzień' });
+    await expect(create).toHaveAttribute('href', '/zakupy');
+    await page.getByRole('button', { name: 'Poprzedni tydzień' }).click();
+    await page.getByRole('button', { name: 'Poprzedni tydzień' }).click();
+    await expect(
+      page.getByText('28 września – 4 października 2026', { exact: true }),
+    ).toBeVisible();
+    await expect(create).toHaveAttribute('href', '/zakupy?tydzien=2026-09-28');
   });
 
   test('S19: usunięcie zaplanowanego przepisu z kolekcji uprzedza o planerze, a po potwierdzeniu planer go nie zawiera', async ({
@@ -263,8 +407,9 @@ test.describe('S19: planer posiłków na tydzień', () => {
     await lunch.getByRole('button', { name: 'Usuń z pory: Zupa dyniowa' }).click();
     await expect(page.getByText(OFFLINE_MESSAGE)).toBeVisible();
     await expect(lunch.getByRole('link', { name: 'Zupa dyniowa' })).toBeVisible();
+    await pickDay(page, 'czwartek, 15 października');
     const thursday = meal(page, 'czwartek, 15 października', 'Obiad');
-    await thursday.getByRole('button', { name: /^Dodaj przepis/ }).click();
+    await thursday.getByRole('button', { name: '+ Dodaj przepis' }).click();
     await expect(thursday.getByText(OFFLINE_MESSAGE)).toBeInViewport();
     await expect(thursday.getByRole('button', { name: 'Dodaj do planera' })).toHaveCount(0);
   });

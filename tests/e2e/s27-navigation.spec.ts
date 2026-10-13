@@ -163,7 +163,9 @@ test.describe('S27: nawigacja', () => {
     await page.getByRole('complementary').getByRole('button', { name: 'Obiady' }).click();
 
     await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
-    await expect(page.getByLabel('Kolekcja własna')).toHaveValue(body.collection.id);
+    await expect(
+      page.getByRole('group', { name: 'Kolekcje i tagi' }).getByRole('button', { name: 'Obiady' }),
+    ).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByRole('list', { name: 'Przepisy' }).getByRole('listitem')).toHaveCount(1);
     await expect(page.getByText('Zupa w kolekcji')).toBeVisible();
     await expect(page.getByText('Sałatka poza kolekcją')).toHaveCount(0);

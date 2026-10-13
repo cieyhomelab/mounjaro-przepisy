@@ -2,6 +2,7 @@ import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import {
   TINY_PNG,
   logIn,
+  openFilterPanel,
   resetServer,
   seedRecipe,
   setServerClockAhead,
@@ -197,6 +198,7 @@ test.describe('S14: dane offline', () => {
     await expect(page.getByRole('link', { name: /Kurczak/ })).toBeVisible();
     await expect(page.getByRole('link', { name: /Sałatka/ })).toHaveCount(0);
     await page.getByRole('searchbox', { name: 'Szukaj w kolekcji' }).fill('');
+    await openFilterPanel(page);
     await page.getByLabel('Sortowanie').selectOption({ label: 'Kalorie rosnąco' });
     await expect(page.getByLabel('Sortowanie')).toHaveValue('kcalAsc');
     await expect(page.getByRole('link', { name: /Sałatka/ })).toBeVisible();
@@ -207,7 +209,7 @@ test.describe('S14: dane offline', () => {
 
     await page.getByRole('link', { name: 'Gotuję' }).click();
     await expect(page.getByText('offline', { exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
     await expect(page.getByText('Usmaż kurczaka.')).toBeVisible();
   });
 
@@ -331,7 +333,7 @@ test.describe('S14: blokada zmian offline', () => {
     await goOffline(context, page);
     await page.goto(`/przepisy/${id}/gotuj`);
 
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
     await page.getByRole('button', { name: 'Zakończ' }).click();
 
     await expect(page.getByRole('button', { name: 'Ugotowane' })).toBeDisabled();

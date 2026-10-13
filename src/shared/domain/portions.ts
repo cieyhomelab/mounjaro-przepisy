@@ -59,3 +59,14 @@ export function scaleIngredient(
   const text = [quantity, ingredient.unit, ingredient.name].filter(Boolean).join(' ');
   return { text, status: 'scaled' };
 }
+
+/** "1 porcja", "2 porcje", "5 porcji", "1,5 porcji": the noun agrees with the count (fractions take the genitive). */
+export function formatServings(servings: number): string {
+  const text = formatQuantity(servings);
+  if (!Number.isInteger(servings)) return `${text} porcji`;
+  const lastTwo = servings % 100;
+  const last = servings % 10;
+  if (servings === 1) return `${text} porcja`;
+  if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return `${text} porcje`;
+  return `${text} porcji`;
+}

@@ -158,6 +158,8 @@ test.describe('S13: tryb gotowania', () => {
       '200 g piersi z kurczaka',
       'sól do smaku',
     ]);
+    await expect(page.getByText('2 porcje', { exact: false })).toBeVisible();
+    await expect(page.getByText('2 porcji')).toHaveCount(0);
   });
 
   test('S13: „Następny krok” pokazuje dokładnie jeden krok z informacją „krok X z Y”', async ({

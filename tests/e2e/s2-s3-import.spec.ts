@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { TINY_PNG, fillRecipeForm, logIn, resetServer, seedRecipe } from './helpers';
 
 // The test pages come from the "fixtures" service (tests/e2e/fixtures); the app fetches them with
@@ -14,6 +14,23 @@ async function logInToCollection(page: Page) {
   await logIn(page);
   await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
 }
+
+const borderOf = (locator: Locator) =>
+  locator.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { width: style.borderTopWidth, color: style.borderTopColor };
+  });
+
+/** The computed colour of the `--{name}` token in the current theme. */
+const tokenColor = (page: Page, name: string) =>
+  page.evaluate((token) => {
+    const probe = document.createElement('span');
+    probe.style.color = `var(--${token})`;
+    document.body.append(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+  }, name);
 
 /** Submits `address` on the "Z linku" card of the "Dodaj przepis" screen. */
 async function submitLink(page: Page, address: string) {
@@ -76,6 +93,15 @@ test.describe('S2: dodanie przepisu z linku', () => {
     await expect(page.getByLabel('Link do przepisu')).toBeVisible();
     await expect(page.getByText('Wklej adres strony z przepisem')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Odczytaj przepis' })).toBeVisible();
+    const field = page.getByLabel('Link do przepisu');
+    expect(await borderOf(field)).toEqual({
+      width: '2px',
+      color: await tokenColor(page, 'primary'),
+    });
+    expect((await field.boundingBox())?.height).toBe(56);
+    expect(
+      (await page.getByRole('button', { name: 'Odczytaj przepis' }).boundingBox())?.height,
+    ).toBe(60);
     await expect(page.getByRole('link', { name: 'Szukaj w zaufanych serwisach' })).toBeVisible();
 
     await submitLink(page, pageUrl('czytelna'));
@@ -291,6 +317,10 @@ test.describe('S3: link, którego nie da się odczytać', () => {
       await expect(alert).toContainText('Nie udało się odczytać przepisu');
       await expect(field).toHaveValue(pageUrl(name));
       await expect(field).toHaveAttribute('aria-invalid', 'true');
+      expect(await borderOf(field)).toEqual({
+        width: '2px',
+        color: await tokenColor(page, 'accent'),
+      });
       await expect(page.getByRole('button', { name: 'Wpisz przepis ręcznie' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Spróbuj ponownie' })).toBeVisible();
       await expect(page.getByText('Link zostanie zachowany jako źródło przepisu.')).toBeVisible();

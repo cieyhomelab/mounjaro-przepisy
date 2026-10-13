@@ -114,7 +114,8 @@ export function ImportScreen() {
             type="text"
             inputMode="url"
             autoComplete="off"
-            className={`w-full ${failed ? 'border-2 border-accent' : 'border-2 border-primary'}`}
+            emphasis={failed ? 'accent' : 'primary'}
+            className="w-full"
             value={address}
             aria-invalid={invalid}
             aria-describedby={
@@ -138,7 +139,7 @@ export function ImportScreen() {
         </div>
         {failed ? null : (
           <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={reading}>
+            <Button type="submit" size="action" disabled={reading}>
               Odczytaj przepis
             </Button>
           </div>

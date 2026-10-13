@@ -177,7 +177,7 @@ export const SCREENS: readonly Screen[] = [
   }),
   screen('gotowanie-krok', 'culinary', async (page, data) => {
     await page.goto(`/przepisy/${data.recipeId}/gotuj`);
-    await page.getByRole('button', { name: 'Dalej' }).click();
+    await page.getByRole('button', { name: 'Następny krok' }).click();
     await expect(page.getByRole('heading', { level: 2, name: 'krok 1 z 3' })).toBeVisible();
   }),
   simple('planer', '/planer', 'Planer'),

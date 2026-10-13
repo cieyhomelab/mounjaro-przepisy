@@ -4,8 +4,11 @@ import type { Ingredient } from '../contracts/recipe';
 import type { ShoppingCheck, ShoppingCustomItem } from '../contracts/shopping';
 import {
   buildShoppingItems,
+  basketProgress,
   buildShoppingRows,
+  formatBasketProgress,
   formatShoppingItem,
+  formatShoppingWeek,
   isItemChecked,
 } from './shoppingList';
 
@@ -189,5 +192,45 @@ describe('buildShoppingRows', () => {
       ['jajko', false],
       ['ryż', false],
     ]);
+  });
+});
+
+describe('basketProgress', () => {
+  const rows = (...checked: boolean[]) => checked.map((value) => ({ checked: value }));
+
+  it('S20: counts 2 of 5 as 40 percent', () => {
+    const progress = basketProgress(rows(true, true, false, false, false));
+    expect(progress).toEqual({ checked: 2, total: 5, percent: 40 });
+    expect(formatBasketProgress(progress)).toBe('2 z 5 w koszyku');
+  });
+
+  it('S20: counts one more tick as 3 of 5', () => {
+    expect(formatBasketProgress(basketProgress(rows(true, true, true, false, false)))).toBe(
+      '3 z 5 w koszyku',
+    );
+  });
+
+  it('rounds the percent to a whole number', () => {
+    expect(basketProgress(rows(true, false, false)).percent).toBe(33);
+    expect(basketProgress(rows(true, true, false)).percent).toBe(67);
+  });
+
+  it('is 0 percent for an empty list and 100 for a full basket', () => {
+    expect(basketProgress([])).toEqual({ checked: 0, total: 0, percent: 0 });
+    expect(basketProgress(rows(true, true)).percent).toBe(100);
+  });
+});
+
+describe('formatShoppingWeek', () => {
+  it('S20: writes a week inside one month', () => {
+    expect(formatShoppingWeek('2026-10-12')).toBe('12–18 października 2026');
+  });
+
+  it('S20: writes a week across two months', () => {
+    expect(formatShoppingWeek('2026-09-28')).toBe('28 września – 4 października 2026');
+  });
+
+  it('writes a week across a new year', () => {
+    expect(formatShoppingWeek('2026-12-28')).toBe('28 grudnia 2026 – 3 stycznia 2027');
   });
 });

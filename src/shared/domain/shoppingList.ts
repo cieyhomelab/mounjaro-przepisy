@@ -161,3 +161,46 @@ export function exportShoppingLists(input: {
     }))
     .filter((list) => list.items.length > 0);
 }
+
+/** How much of the list is in the basket: ticked and all rows, own items included (S20). */
+export type BasketProgress = { checked: number; total: number; percent: number };
+
+/** "2 z 5 w koszyku" worked out from the rows; the percent is whole and 0 for an empty list. */
+export function basketProgress(rows: readonly Pick<ShoppingRow, 'checked'>[]): BasketProgress {
+  const total = rows.length;
+  const checked = rows.filter((row) => row.checked).length;
+  return { checked, total, percent: total > 0 ? Math.round((checked / total) * 100) : 0 };
+}
+
+export const formatBasketProgress = ({ checked, total }: BasketProgress): string =>
+  `${checked} z ${total} w koszyku`;
+
+const dayMonth = new Intl.DateTimeFormat('pl-PL', {
+  timeZone: 'UTC',
+  day: 'numeric',
+  month: 'long',
+});
+const monthOf = (day: string) =>
+  dayMonth
+    .format(new Date(`${day}T00:00:00Z`))
+    .replace(/^\d+\s*/, '')
+    .trim();
+const dayOf = (day: string) => String(Number(day.slice(8, 10)));
+
+/**
+ * The span of the week starting at `weekStart` (a Monday), as the planner writes it:
+ * "12–18 października 2026", "28 września – 4 października 2026" or across a new year
+ * "28 grudnia 2026 – 3 stycznia 2027".
+ */
+export function formatShoppingWeek(weekStart: string): string {
+  const end = addDays(weekStart, 6);
+  const [startYear, endYear] = [weekStart.slice(0, 4), end.slice(0, 4)];
+  const [startMonth, endMonth] = [monthOf(weekStart), monthOf(end)];
+  if (startYear !== endYear) {
+    return `${dayOf(weekStart)} ${startMonth} ${startYear} – ${dayOf(end)} ${endMonth} ${endYear}`;
+  }
+  if (startMonth !== endMonth) {
+    return `${dayOf(weekStart)} ${startMonth} – ${dayOf(end)} ${endMonth} ${endYear}`;
+  }
+  return `${dayOf(weekStart)}–${dayOf(end)} ${endMonth} ${endYear}`;
+}

@@ -18,6 +18,9 @@ import { inputClassName } from './ui/Input';
 type Level = (typeof TOLERANCE_LEVELS)[number];
 type Symptom = (typeof TOLERANCE_SYMPTOMS)[number];
 
+/** Labels of the three buttons; the stored value names stay as they are. */
+const BUTTON_LABELS: Record<Level, string> = { good: 'Dobrze', medium: 'Tak sobie', bad: 'Źle' };
+
 /** Polish summary of a saved tolerance rating, e.g. "średnio (nudności, zgaga)". */
 function summary(recipe: Recipe): string | null {
   if (recipe.tolerance === null) return null;
@@ -59,23 +62,25 @@ export function ToleranceEditor({ recipe }: { recipe: Recipe }) {
   const shownLevel = draft?.level ?? recipe.tolerance;
   const text = summary(recipe);
   return (
-    <section aria-labelledby="tolerance-heading" className="flex flex-col gap-2">
+    <section
+      aria-labelledby="tolerance-heading"
+      className="flex flex-col gap-2 rounded-lg bg-primary-soft p-4 text-on-primary-soft"
+    >
       <h2 id="tolerance-heading" className="text-lg font-semibold">
-        Tolerancja
+        Jak się czułaś po tym posiłku?
       </h2>
       <p>Tolerancja: {text ?? 'brak oceny'}</p>
       {recipe.toleranceNote ? <p>Notatka: {recipe.toleranceNote}</p> : null}
-      <div role="radiogroup" aria-label="Ocena tolerancji" className="flex flex-wrap gap-2">
+      <div role="group" aria-label="Ocena tolerancji" className="flex flex-wrap gap-2">
         {TOLERANCE_LEVELS.map((level) => (
           <Button
             key={level}
-            role="radio"
-            aria-checked={shownLevel === level}
+            aria-pressed={shownLevel === level}
             disabled={busy}
             onClick={() => choose(level)}
             variant={shownLevel === level ? 'primary' : 'secondary'}
           >
-            {TOLERANCE_LABELS[level]}
+            {BUTTON_LABELS[level]}
           </Button>
         ))}
         {recipe.tolerance !== null ? (
@@ -89,7 +94,7 @@ export function ToleranceEditor({ recipe }: { recipe: Recipe }) {
         ) : null}
       </div>
       {draft ? (
-        <fieldset className="flex flex-col gap-2 rounded-lg border border-line p-3">
+        <fieldset className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-3 text-ink">
           <legend className="px-1 font-medium">Objawy</legend>
           {TOLERANCE_SYMPTOMS.map((symptom) => (
             <label key={symptom} className="flex min-h-11 items-center gap-2">

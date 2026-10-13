@@ -105,7 +105,7 @@ test.describe('S12: skalowanie porcji', () => {
       ingredients: ['400 g marchewki'],
       nutritionManual: { kcal: 320, proteinG: 25, fatG: 10, fiberG: 6 },
     });
-    const nutrition = page.getByRole('region', { name: /wartości odżywcze/i });
+    const nutrition = page.getByRole('list', { name: 'Wartości odżywcze' });
     const before = await nutrition.innerText();
     expect(before).toContain('320');
 

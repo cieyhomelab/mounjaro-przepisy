@@ -143,7 +143,21 @@ function NutritionRow({ recipe, nutritionKey }: { recipe: Recipe; nutritionKey: 
   );
 }
 
-/** The four values with their origin, and the details: each value, ingredients left out of the sum. */
+/** One line with the four values and their origin: secondary text, the protein bold in `accent`. */
+export function NutritionSummary({ recipe }: { recipe: Recipe }) {
+  return (
+    <ul aria-label="Wartości odżywcze" className="flex flex-wrap gap-x-4 gap-y-1 text-ink-muted">
+      {NUTRITION_KEYS.map((key) => (
+        <li key={key} className={key === 'proteinG' ? 'font-bold text-accent' : undefined}>
+          {LABELS[key].label}: {formatValue(recipe, key)} (
+          {ORIGIN_LABELS[recipe.nutrition[key].origin]})
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The details: each value with a way to type it, ingredients left out of the sum. */
 export function NutritionDetails({ recipe }: { recipe: Recipe }) {
   const unrecognized = recipe.unrecognizedIngredients;
   // The details are drawn only while open, so their text is not in the page twice.
@@ -153,14 +167,6 @@ export function NutritionDetails({ recipe }: { recipe: Recipe }) {
       <h2 id="nutrition-heading" className="text-lg font-semibold">
         Wartości odżywcze na porcję
       </h2>
-      <ul aria-label="Wartości odżywcze">
-        {NUTRITION_KEYS.map((key) => (
-          <li key={key}>
-            {LABELS[key].label}: {formatValue(recipe, key)} (
-            {ORIGIN_LABELS[recipe.nutrition[key].origin]})
-          </li>
-        ))}
-      </ul>
       <details
         open={open}
         onToggle={(event) => setOpen(event.currentTarget.open)}

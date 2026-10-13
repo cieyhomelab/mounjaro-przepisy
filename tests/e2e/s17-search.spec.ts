@@ -43,6 +43,7 @@ test.describe('S17: wyszukiwanie przepisów w zaufanych serwisach', () => {
     page,
   }) => {
     await logIn(page);
+    await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
     await page.goto('/przepisy/z-linku');
     await page.getByRole('link', { name: 'Szukaj w zaufanych serwisach' }).click();
     await expect(searchHeading(page)).toBeVisible();

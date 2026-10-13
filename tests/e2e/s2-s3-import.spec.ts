@@ -320,27 +320,12 @@ test.describe('S3: link, którego nie da się odczytać', () => {
     page,
   }) => {
     await logInToCollection(page);
-    // The first reading is a page with no ingredients, the second one a complete page.
+    // The first reading asks for a page with no ingredients, the second one for the page typed in.
     let calls = 0;
     await page.route('**/api/recipes/import-preview', async (route) => {
       calls += 1;
       if (calls === 1) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            status: 'partial',
-            draft: {
-              title: 'Ryba w sosie',
-              servings: 2,
-              ingredients: [],
-              steps: ['Ugotuj rybę na parze.'],
-              sourceUrl: pageUrl('czytelna'),
-              photoId: null,
-              sourceImport: null,
-            },
-          }),
-        });
+        await route.continue({ postData: JSON.stringify({ url: pageUrl('bez-skladnikow') }) });
       } else {
         await route.continue();
       }

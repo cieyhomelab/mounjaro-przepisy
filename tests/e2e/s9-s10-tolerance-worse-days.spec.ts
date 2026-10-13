@@ -7,8 +7,11 @@ test.beforeEach(async ({ request }) => {
 
 const items = (page: Page) => page.getByRole('list', { name: 'Przepisy' }).getByRole('listitem');
 const titles = (page: Page) => items(page).locator('span.truncate').allTextContents();
-const level = (page: Page, name: string) =>
-  page.getByRole('radiogroup', { name: 'Ocena tolerancji' }).getByRole('radio', { name });
+const LEVEL_BUTTON = { dobrze: 'Dobrze', średnio: 'Tak sobie', źle: 'Źle' } as const;
+const level = (page: Page, name: keyof typeof LEVEL_BUTTON) =>
+  page
+    .getByRole('group', { name: 'Ocena tolerancji' })
+    .getByRole('button', { name: LEVEL_BUTTON[name], exact: true });
 
 async function loggedIn(page: Page) {
   await logIn(page);
@@ -17,7 +20,9 @@ async function loggedIn(page: Page) {
 
 async function openRecipe(page: Page, id: string) {
   await page.goto(`/przepisy/${id}`);
-  await expect(page.getByRole('heading', { level: 2, name: 'Tolerancja' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Jak się czułaś po tym posiłku?' }),
+  ).toBeVisible();
 }
 
 async function backToList(page: Page) {
@@ -35,7 +40,40 @@ test.describe('S9: tolerancja', () => {
     await level(page, 'dobrze').click();
 
     await expect(page.getByText('Tolerancja: dobrze')).toBeVisible();
-    await expect(level(page, 'dobrze')).toHaveAttribute('aria-checked', 'true');
+    await expect(level(page, 'dobrze')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('S9: „Tak sobie” zapisane przyciskiem ma po ponownym otwarciu aria-pressed tylko na sobie', async ({
+    page,
+  }) => {
+    await loggedIn(page);
+    const id = await seedRecipe(page, { title: 'Zupa' });
+    await openRecipe(page, id);
+
+    await level(page, 'średnio').click();
+    await page.getByRole('button', { name: 'Zapisz tolerancję' }).click();
+    await expect(page.getByText('Tolerancja: średnio')).toBeVisible();
+    await page.reload();
+    await expect(level(page, 'dobrze')).toHaveAttribute('aria-pressed', 'false');
+
+    await expect(level(page, 'średnio')).toHaveAttribute('aria-pressed', 'true');
+    await expect(level(page, 'źle')).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('S9: „Usuń ocenę tolerancji” zdejmuje aria-pressed ze wszystkich trzech przycisków', async ({
+    page,
+  }) => {
+    await loggedIn(page);
+    const id = await seedRecipe(page, { title: 'Zupa' });
+    await openRecipe(page, id);
+    await level(page, 'dobrze').click();
+    await expect(level(page, 'dobrze')).toHaveAttribute('aria-pressed', 'true');
+
+    await page.getByRole('button', { name: 'Usuń ocenę tolerancji' }).click();
+
+    for (const name of ['dobrze', 'średnio', 'źle'] as const) {
+      await expect(level(page, name)).toHaveAttribute('aria-pressed', 'false');
+    }
   });
 
   test('S9: „średnio” z wybranymi objawami zapisuje je i pokazuje w szczegółach', async ({

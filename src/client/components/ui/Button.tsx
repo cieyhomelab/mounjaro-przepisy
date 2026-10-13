@@ -1,11 +1,12 @@
 import type { ButtonHTMLAttributes } from 'react';
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'danger-outline';
+type Variant = 'primary' | 'secondary' | 'soft' | 'danger' | 'danger-outline';
 type Size = 'md' | 'cook';
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-primary text-on-primary',
   secondary: 'border border-line bg-surface text-ink',
+  soft: 'bg-primary-soft text-on-primary-soft',
   danger: 'bg-accent text-on-primary',
   'danger-outline': 'border border-accent bg-surface text-accent',
 };
@@ -26,7 +27,7 @@ export function buttonClassName(
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size };
 
-/** A button with a touch-sized box (44 px) in one of four variants; `cook` is the large cook-mode size. */
+/** A button with a touch-sized box (44 px) in one of five variants; `cook` is the large cook-mode size. */
 export function Button({
   variant = 'primary',
   size = 'md',

@@ -31,7 +31,7 @@ async function openList(page: Page) {
     }
     await expect(planner).toBeVisible({ timeout: 2000 });
   }).toPass();
-  await page.getByRole('link', { name: 'Lista zakupów' }).click();
+  await page.getByRole('link', { name: 'Utwórz listę zakupów na tydzień' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Lista zakupów' })).toBeVisible();
 }
 

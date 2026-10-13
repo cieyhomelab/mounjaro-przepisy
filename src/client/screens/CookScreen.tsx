@@ -1,7 +1,12 @@
 import { ChevronLeft, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
-import { isValidServings, parseServingsInput, scaleIngredient } from '../../shared/domain/portions';
+import {
+  formatServings,
+  isValidServings,
+  parseServingsInput,
+  scaleIngredient,
+} from '../../shared/domain/portions';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { OfflineBadge } from '../components/OfflineBadge';
 import { useCollection } from '../data/collection';
@@ -81,7 +86,7 @@ export function CookScreen() {
           <div className="flex min-w-0 flex-1 flex-col">
             <h1 className="font-heading text-xl font-semibold">{recipe.title}</h1>
             <p className="text-base text-ink-muted">
-              {servings.toLocaleString('pl-PL')} porcji
+              {formatServings(servings)}
               {active ? <> · Ekran pozostaje włączony</> : null}
             </p>
           </div>

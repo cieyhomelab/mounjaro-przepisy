@@ -1,10 +1,13 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router';
+import { Search } from 'lucide-react';
 import {
   importPreviewResponseSchema,
   type ImportPreviewResponse,
 } from '../../shared/contracts/recipeImport';
 import { importDraftToForm } from '../../shared/domain/recipeForm';
 import { parseSourceUrl } from '../../shared/domain/sourceUrl';
+import { AddRecipeTabs } from '../components/AddRecipeTabs';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { ApiError, apiRequest } from '../data/api';
 import { errorMessage } from '../data/errors';
@@ -16,34 +19,25 @@ import { Notice } from '../components/ui/Notice';
 import { ButtonLink } from '../components/ui/ButtonLink';
 import { Input } from '../components/ui/Input';
 
-const PARTIAL_NOTICE = 'Nie udało się odczytać całego przepisu';
-
 type Failure =
   | { kind: 'invalid_url' }
   | { kind: 'unavailable' }
+  /** Read, but not whole: the draft waits until the user chooses "Wpisz przepis ręcznie". */
+  | { kind: 'unreadable'; draft: FormDraft }
   | { kind: 'duplicate'; recipeId: string }
   | { kind: 'other'; code: string };
 
-/** The form opened from a reading: a preview when complete, the by-hand form when not. */
-function draftFrom(response: ImportPreviewResponse): FormDraft {
-  const { draft } = response;
-  return response.status === 'complete'
-    ? {
-        mode: 'preview',
-        values: importDraftToForm(draft),
-        photoId: draft.photoId,
-        sourceImport: draft.sourceImport,
-      }
-    : {
-        mode: 'manual',
-        values: importDraftToForm(draft),
-        photoId: null,
-        sourceImport: null,
-        notice: PARTIAL_NOTICE,
-      };
+/** The by-hand form opened with whatever could be read from the page. */
+function manualDraft(response: ImportPreviewResponse): FormDraft {
+  return {
+    mode: 'manual',
+    values: importDraftToForm(response.draft),
+    photoId: null,
+    sourceImport: null,
+  };
 }
 
-/** "Dodaj przepis" → "Z linku": paste an address, see what was read, save (S2, S3). */
+/** "Dodaj przepis" → "Z linku": paste an address, see what was read, save (S2, S3). A reading that fails stays on this screen. */
 export function ImportScreen() {
   const [address, setAddress] = useState('');
   const [reading, setReading] = useState(false);
@@ -62,7 +56,15 @@ export function ImportScreen() {
           body: { url: address.trim() },
         }),
       );
-      setDraft(draftFrom(response));
+      if (response.status === 'complete') {
+        const { draft: read } = response;
+        setDraft({
+          mode: 'preview',
+          values: importDraftToForm(read),
+          photoId: read.photoId,
+          sourceImport: read.sourceImport,
+        });
+      } else setFailure({ kind: 'unreadable', draft: manualDraft(response) });
     } catch (error) {
       const code = error instanceof ApiError ? error.code : 'internal';
       if (code === 'invalid_url') setFailure({ kind: 'invalid_url' });
@@ -82,64 +84,96 @@ export function ImportScreen() {
 
   if (draft) return <RecipeForm draft={draft} />;
 
-  const invalid = failure?.kind === 'invalid_url';
+  const invalid =
+    failure?.kind === 'invalid_url' ||
+    failure?.kind === 'unavailable' ||
+    failure?.kind === 'unreadable';
+  const failed = failure?.kind === 'unavailable' || failure?.kind === 'unreadable';
+  const openManual = () =>
+    setDraft(
+      failure?.kind === 'unreadable'
+        ? failure.draft
+        : {
+            mode: 'manual',
+            values: importDraftToForm(emptyDraft(address)),
+            photoId: null,
+            sourceImport: null,
+          },
+    );
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Dodaj przepis z linku</h1>
+      <h1 className="text-2xl font-semibold">Dodaj przepis</h1>
+      <AddRecipeTabs active="link" />
       <form noValidate onSubmit={onSubmit} className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
           <label htmlFor="recipe-url" className="font-medium">
-            Adres strony z przepisem
+            Link do przepisu
           </label>
           <Input
             id="recipe-url"
             type="text"
             inputMode="url"
             autoComplete="off"
+            emphasis={failed ? 'accent' : 'primary'}
             className="w-full"
             value={address}
             aria-invalid={invalid}
-            aria-describedby={invalid ? 'recipe-url-error' : undefined}
-            onChange={(event) => setAddress(event.target.value)}
+            aria-describedby={
+              failure?.kind === 'invalid_url'
+                ? 'recipe-url-error recipe-url-hint'
+                : failed
+                  ? 'recipe-url-failure recipe-url-hint'
+                  : 'recipe-url-hint'
+            }
+            onChange={(event) => {
+              setAddress(event.target.value);
+              setFailure(null);
+            }}
           />
-          {invalid ? (
+          <p id="recipe-url-hint" className="text-sm text-ink-muted">
+            Wklej adres strony z przepisem
+          </p>
+          {failure?.kind === 'invalid_url' ? (
             <FieldError id="recipe-url-error">{errorMessage('invalid_url')}</FieldError>
           ) : null}
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="submit" disabled={reading}>
-            Odczytaj przepis
-          </Button>
-          <ButtonLink to="/" variant="secondary">
-            Anuluj
-          </ButtonLink>
-        </div>
+        {failed ? null : (
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" size="action" disabled={reading}>
+              Odczytaj przepis
+            </Button>
+          </div>
+        )}
+        {failed ? (
+          <Notice id="recipe-url-failure" className="flex flex-col gap-1">
+            <p className="font-semibold">
+              {failure?.kind === 'unreadable'
+                ? 'Nie udało się odczytać przepisu'
+                : errorMessage('source_unavailable')}
+            </p>
+            <p>
+              {failure?.kind === 'unreadable'
+                ? 'Na tej stronie nie znaleźliśmy całego przepisu. Możesz wpisać go ręcznie albo spróbować jeszcze raz.'
+                : 'Nie udało się połączyć ze stroną. Spróbuj jeszcze raz albo wpisz przepis ręcznie.'}
+            </p>
+          </Notice>
+        ) : null}
+        {failed ? (
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={openManual}>Wpisz przepis ręcznie</Button>
+              <Button variant="secondary" disabled={reading} onClick={() => void read()}>
+                Spróbuj ponownie
+              </Button>
+            </div>
+            <p className="text-sm text-ink-muted">Link zostanie zachowany jako źródło przepisu.</p>
+          </div>
+        ) : null}
       </form>
       {reading ? (
         <p role="status" className="text-ink-muted">
           Odczytuję przepis…
         </p>
-      ) : null}
-      {failure?.kind === 'unavailable' ? (
-        <Notice className="flex flex-col items-start gap-3">
-          <p>{errorMessage('source_unavailable')}</p>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => void read()}>Spróbuj ponownie</Button>
-            <Button
-              variant="secondary"
-              onClick={() =>
-                setDraft({
-                  mode: 'manual',
-                  values: importDraftToForm(emptyDraft(address)),
-                  photoId: null,
-                  sourceImport: null,
-                })
-              }
-            >
-              Wpisz przepis ręcznie
-            </Button>
-          </div>
-        </Notice>
       ) : null}
       {failure?.kind === 'duplicate' ? (
         <Notice className="flex flex-col items-start gap-3">
@@ -150,6 +184,13 @@ export function ImportScreen() {
       {failure?.kind === 'other' ? (
         <ErrorNotice code={failure.code} onRetry={() => void read()} />
       ) : null}
+      <Link
+        to="/szukaj"
+        className="flex min-h-touch items-center gap-3 rounded-lg bg-primary-soft p-4 font-semibold text-on-primary-soft"
+      >
+        <Search aria-hidden="true" className="size-6 shrink-0" />
+        Szukaj w zaufanych serwisach
+      </Link>
     </section>
   );
 }

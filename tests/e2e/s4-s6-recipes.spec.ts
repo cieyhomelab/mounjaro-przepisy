@@ -133,7 +133,7 @@ test.describe('S4: ręczne dodanie przepisu', () => {
     await expect(item).toContainText('Białko: 23 g');
   });
 
-  test('S4: przycisk „Dodaj przepis” w niepustej kolekcji prowadzi do formularza „Ręcznie”', async ({
+  test('S4: „Dodaj przepis” → „Wpiszę sama” otwiera formularz ręczny, który da się zapisać', async ({
     page,
   }) => {
     await logInToCollection(page);
@@ -141,8 +141,21 @@ test.describe('S4: ręczne dodanie przepisu', () => {
     await page.reload();
 
     await page.getByRole('button', { name: 'Dodaj przepis' }).click();
-    await expect(page.getByRole('button', { name: 'Z linku' })).toBeEnabled();
-    await openManualForm(page);
+    await expect(page.getByRole('button', { name: 'Z linku' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await page.getByRole('button', { name: 'Wpiszę sama' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Nowy przepis' })).toBeVisible();
+    await expect(page).toHaveURL(/\/przepisy\/nowy$/);
+    await expect(page.getByRole('button', { name: 'Wpiszę sama' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await fillRecipeForm(page, { title: 'Drugi' });
+    await page.getByRole('button', { name: 'Zapisz' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Drugi' })).toBeVisible();
   });
 
   test('S4: przepis z wpisanymi wartościami odżywczymi pokazuje je na liście', async ({ page }) => {

@@ -147,9 +147,7 @@ test.describe('S15: edycja przepisu z linku', () => {
   }) => {
     await logInToCollection(page);
     await page.getByRole('button', { name: 'Z linku' }).click();
-    await page
-      .getByLabel('Adres strony z przepisem')
-      .fill('http://fixtures.test:8080/przepisy/czytelna');
+    await page.getByLabel('Link do przepisu').fill('http://fixtures.test:8080/przepisy/czytelna');
     await page.getByRole('button', { name: 'Odczytaj przepis' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Podgląd przepisu' })).toBeVisible();
     await page.getByRole('button', { name: 'Zapisz' }).click();

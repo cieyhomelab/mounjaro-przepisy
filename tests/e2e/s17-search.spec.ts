@@ -39,6 +39,16 @@ test.describe('S17: wyszukiwanie przepisów w zaufanych serwisach', () => {
     await expect(searchHeading(page)).toBeVisible();
   });
 
+  test('S17: karta „Szukaj w zaufanych serwisach” na ekranie „Dodaj przepis” otwiera wyszukiwanie', async ({
+    page,
+  }) => {
+    await logIn(page);
+    await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
+    await page.goto('/przepisy/z-linku');
+    await page.getByRole('link', { name: 'Szukaj w zaufanych serwisach' }).click();
+    await expect(searchHeading(page)).toBeVisible();
+  });
+
   test('S17: lista ma najwyżej 10 wyników z serwisu, a każdy pokazuje tytuł, zdjęcie, serwis, ocenę i liczbę opinii', async ({
     page,
     request,
@@ -231,6 +241,8 @@ test.describe('S17: wyszukiwanie przepisów w zaufanych serwisach', () => {
       await item.getByRole('button', { name: 'Zapisz' }).click();
 
       await expect(page.getByText('Nie udało się odczytać całego przepisu')).toBeVisible();
+      // No in-between message of S3: the user did not paste a link here.
+      await expect(page.getByText('Nie udało się odczytać przepisu')).toHaveCount(0);
       await expect(page.getByRole('heading', { level: 1, name: 'Nowy przepis' })).toBeVisible();
       await expect(page.getByLabel('Tytuł')).toHaveValue(title);
       await expect(page.getByLabel('Link do źródła (opcjonalnie)')).not.toHaveValue('');

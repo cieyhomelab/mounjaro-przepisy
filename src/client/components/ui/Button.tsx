@@ -9,7 +9,7 @@ type Variant =
   | 'health'
   | 'health-outline'
   | 'warn';
-type Size = 'md' | 'cook' | 'save';
+type Size = 'md' | 'action' | 'cook' | 'save';
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-primary text-on-primary',
@@ -24,6 +24,7 @@ const VARIANTS: Record<Variant, string> = {
 
 const SIZES: Record<Size, string> = {
   md: 'min-h-touch min-w-touch px-4',
+  action: 'min-h-action min-w-touch px-4',
   cook: 'min-h-14 min-w-14 px-4 text-2xl',
   save: 'min-h-save min-w-touch px-6 text-lg font-bold',
 };
@@ -39,7 +40,7 @@ export function buttonClassName(
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size };
 
-/** A button with a touch-sized box (44 px) in one of eight variants (`health` ones for the health screens); `cook` is the large cook-mode size, `save` the 58 px save button of the health forms. */
+/** A button with a touch-sized box (44 px) in one of eight variants (`health` ones for the health screens); `action` is the 60 px list-action size, `cook` the large cook-mode size, `save` the 58 px save button of the health forms. */
 export function Button({
   variant = 'primary',
   size = 'md',

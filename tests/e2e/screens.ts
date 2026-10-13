@@ -195,6 +195,7 @@ export const SCREENS: readonly Screen[] = [
   }),
   simple('ustawienia-moje-dane', '/ustawienia/moje-dane', 'Moje dane'),
   simple('konto', '/konto', 'Konto'),
+  simple('zdrowie', '/zdrowie', 'Zdrowie', 'health'),
   simple('dawki', '/dawki', 'Dziennik dawek', 'health'),
   simple('dawki-nowy', '/dawki/nowy', 'Nowy wpis dawki', 'health'),
   simple('waga', '/waga', 'Waga i samopoczucie', 'health'),

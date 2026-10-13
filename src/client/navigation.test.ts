@@ -40,8 +40,8 @@ describe('placementOf', () => {
     ]);
   });
 
-  it('points Zakupy at the current week and Zdrowie at the dose log', () => {
+  it('points Zakupy at the current week and Zdrowie at the Zdrowie screen', () => {
     expect(NAV_ITEMS.find((item) => item.id === 'shopping')?.to).toBe('/zakupy');
-    expect(NAV_ITEMS.find((item) => item.id === 'health')?.to).toBe('/dawki');
+    expect(NAV_ITEMS.find((item) => item.id === 'health')?.to).toBe('/zdrowie');
   });
 });

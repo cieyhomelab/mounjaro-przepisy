@@ -93,7 +93,7 @@ test.describe('S27: nawigacja', () => {
     await expect(page.locator('nav.fixed')).toBeHidden();
   });
 
-  test('S27: pozycje otwierają kolekcję, planer, listę zakupów bieżącego tygodnia i dziennik dawek', async ({
+  test('S27: pozycje otwierają kolekcję, planer, listę zakupów bieżącego tygodnia i ekran Zdrowie', async ({
     page,
   }) => {
     await loggedIn(page);
@@ -108,7 +108,8 @@ test.describe('S27: nawigacja', () => {
     expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe('/zakupy');
 
     await nav.getByRole('link', { name: 'Zdrowie', exact: true }).click();
-    await expect(page.getByRole('heading', { level: 1, name: 'Dziennik dawek' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Zdrowie' })).toBeVisible();
+    expect(await activeItem(page)).toBe('Zdrowie');
 
     await nav.getByRole('link', { name: 'Przepisy', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
@@ -129,6 +130,7 @@ test.describe('S27: nawigacja', () => {
       ['/kolekcje', 'Przepisy'],
       ['/planer', 'Planer'],
       ['/zakupy', 'Zakupy'],
+      ['/zdrowie', 'Zdrowie'],
       ['/dawki', 'Zdrowie'],
       ['/dawki/nowy', 'Zdrowie'],
       ['/waga', 'Zdrowie'],

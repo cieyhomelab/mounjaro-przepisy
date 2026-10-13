@@ -1,5 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router';
+import { useState, type FormEvent } from 'react';
 import {
   intakeDeletedResponseSchema,
   proteinEntryResponseSchema,
@@ -7,75 +6,25 @@ import {
   type ProteinEntry,
   type WaterEntry,
 } from '../../shared/contracts/intake';
-import { formatCookedOn, warsawDate } from '../../shared/domain/cookStats';
+import { formatCookedOn } from '../../shared/domain/cookStats';
 import {
   entriesOnDay,
   formatAmount,
-  goalProgress,
   parsePositiveInput,
   previousDay,
   sumAmounts,
 } from '../../shared/domain/intake';
 import { ErrorNotice } from '../components/ErrorNotice';
+import { IntakeSummary } from '../components/IntakeSummary';
 import { MedicalNotice } from '../components/MedicalNotice';
 import { apiRequest } from '../data/api';
 import { useCollection } from '../data/collection';
 import { useAction } from '../data/useAction';
+import { useToday } from '../data/useToday';
 import { buttonClassName } from '../components/ui/Button';
-import { ProgressBar } from '../components/ui/ProgressBar';
 import { FieldError } from '../components/ui/FieldError';
 
 const inputClass = 'min-h-touch rounded-md border border-line bg-surface px-3 text-ink';
-
-/** Today in Warsaw, checked every so often so the counters start from zero after midnight. */
-function useToday(): string {
-  const [today, setToday] = useState(() => warsawDate(new Date()));
-  useEffect(() => {
-    const timer = window.setInterval(() => setToday(warsawDate(new Date())), 30_000);
-    return () => window.clearInterval(timer);
-  }, []);
-  return today;
-}
-
-function Summary({
-  title,
-  total,
-  goal,
-  unit,
-}: {
-  title: string;
-  total: number;
-  goal: number | null;
-  unit: string;
-}) {
-  const progress = goalProgress(total, goal, unit);
-  return (
-    <div className="flex flex-col gap-1 rounded-md border border-health-line bg-surface p-3 text-ink">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="text-xl font-medium" data-testid={`sum-${title}`}>
-        {progress.text}
-      </p>
-      {goal !== null ? (
-        <ProgressBar
-          label={`Postęp: ${title.toLowerCase()}`}
-          value={total}
-          max={goal}
-          tone={unit === 'g' ? 'accent' : 'primary'}
-        />
-      ) : null}
-      {progress.reached ? <p className="font-medium text-health">cel osiągnięty</p> : null}
-      {goal === null ? (
-        <p className="text-ink-muted">
-          Brak ustawionego celu.{' '}
-          <Link to="/ustawienia/cele" className="underline">
-            Ustaw cel w ustawieniach
-          </Link>
-          .
-        </p>
-      ) : null}
-    </div>
-  );
-}
 
 function ProteinRow({ entry, editable }: { entry: ProteinEntry; editable: boolean }) {
   const { changeSaved } = useCollection();
@@ -289,13 +238,13 @@ export function IntakeScreen() {
             const water = entriesOnDay(state.waterEntries, viewed);
             return (
               <>
-                <Summary
+                <IntakeSummary
                   title="Białko"
                   total={sumAmounts(protein.map((entry) => entry.grams))}
                   goal={state.settings.proteinGoalG}
                   unit="g"
                 />
-                <Summary
+                <IntakeSummary
                   title="Woda"
                   total={sumAmounts(water.map((entry) => entry.ml))}
                   goal={state.settings.waterGoalMl}

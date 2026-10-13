@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_REMINDER,
   dueReminders,
+  formatNextInjection,
   isoWeekday,
+  nextInjectionDay,
   showReminderBanner,
   warsawInstant,
   type DueReminder,
@@ -161,5 +163,43 @@ describe('helpers', () => {
     expect(warsawInstant(THU, '19:00').toISOString()).toBe('2026-10-15T17:00:00.000Z');
     expect(warsawInstant('2026-11-05', '19:00').toISOString()).toBe('2026-11-05T18:00:00.000Z');
     expect(DEFAULT_REMINDER.reminderEnabled).toBe(false);
+  });
+});
+
+describe('S28: next injection', () => {
+  const next = (now: string, over: Partial<typeof settings> = {}) =>
+    nextInjectionDay({ ...settings, ...over, now: at(now) });
+
+  it('shows the nearest reminder day from a day before it', () => {
+    expect(next('2026-10-12T08:00:00Z')).toBe(THU);
+    expect(next('2026-10-14T21:00:00Z')).toBe(THU);
+  });
+
+  it('stays on the reminder day all day, before and after the time', () => {
+    expect(next('2026-10-15T05:00:00Z')).toBe(THU);
+    expect(next(THU_1900)).toBe(THU);
+    expect(next('2026-10-15T21:59:00Z')).toBe(THU);
+  });
+
+  it('moves to the next week at Warsaw midnight', () => {
+    expect(next('2026-10-15T22:00:00Z')).toBe('2026-10-22');
+    expect(next(FRI_1900)).toBe('2026-10-22');
+  });
+
+  it('counts calendar days across the change of time (25 October 2026)', () => {
+    // Sunday 2026-10-25 has 25 hours; Saturday evening to Sunday reminder.
+    expect(next('2026-10-24T10:00:00Z', { reminderWeekday: 7 })).toBe('2026-10-25');
+    expect(next('2026-10-25T10:00:00Z', { reminderWeekday: 7 })).toBe('2026-10-25');
+    expect(next('2026-10-25T23:00:00Z', { reminderWeekday: 7 })).toBe('2026-11-01');
+    expect(next('2026-03-28T12:00:00Z', { reminderWeekday: 7 })).toBe('2026-03-29');
+  });
+
+  it('has no date while the reminder is off', () => {
+    expect(next('2026-10-12T08:00:00Z', { reminderEnabled: false })).toBeNull();
+  });
+
+  it('formats the day with weekday, month and time', () => {
+    expect(formatNextInjection(THU, '19:00')).toBe('czwartek, 15 października, 19:00');
+    expect(formatNextInjection('2026-11-01', '08:30')).toBe('niedziela, 1 listopada, 08:30');
   });
 });

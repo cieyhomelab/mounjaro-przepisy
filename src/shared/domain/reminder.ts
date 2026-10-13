@@ -138,3 +138,29 @@ export function showReminderBanner(input: ReminderInput): boolean {
       !hasDose(input.doseDates, occurrence, addDays(occurrence, 1)),
   );
 }
+
+/**
+ * The day shown on the "Następny zastrzyk" card (S28): the nearest reminder day, counted in Warsaw
+ * calendar days. On the reminder day itself it stays today for the whole day, also after the time
+ * and whatever the journal holds; from midnight it is the same weekday of the next week. Null while
+ * the reminder is off: the app then shows no date at all.
+ */
+export function nextInjectionDay(
+  input: Pick<ReminderSettings, 'reminderEnabled' | 'reminderWeekday'> & { now: Date },
+): string | null {
+  if (!input.reminderEnabled) return null;
+  const today = warsawDate(input.now);
+  return addDays(today, (input.reminderWeekday - isoWeekday(today) + 7) % 7);
+}
+
+const dayWithWeekday = new Intl.DateTimeFormat('pl-PL', {
+  timeZone: 'UTC',
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+});
+
+/** "czwartek, 15 października, 19:00" for `2026-10-15` and `19:00`. */
+export function formatNextInjection(day: string, time: string): string {
+  return `${dayWithWeekday.format(new Date(`${day}T00:00:00Z`))}, ${time}`;
+}

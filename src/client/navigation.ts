@@ -9,8 +9,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { id: 'planner', label: 'Planer', to: '/planer' },
   // No "tydzien" parameter: the shopping list of the current week.
   { id: 'shopping', label: 'Zakupy', to: '/zakupy' },
-  // Until the Health screen exists (stage 5.5) this is the dose log.
-  { id: 'health', label: 'Zdrowie', to: '/dawki' },
+  { id: 'health', label: 'Zdrowie', to: '/zdrowie' },
 ];
 
 export type Placement = { item: NavItemId | null; area: AppArea };

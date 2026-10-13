@@ -69,3 +69,29 @@ export function parseDoseInput(text: string): number | null {
   const value = Number(trimmed.replace(',', '.'));
   return Number.isFinite(value) ? value : null;
 }
+
+/** The short names of the sites on the Zdrowie grid; the full ones (`SITE_LABELS`) are for screen readers. */
+export const SITE_SHORT_LABELS: Record<InjectionSite, string> = {
+  abdomen_left: 'Brzuch L',
+  abdomen_right: 'Brzuch P',
+  thigh_left: 'Udo L',
+  thigh_right: 'Udo P',
+  arm_left: 'Ramię L',
+  arm_right: 'Ramię P',
+};
+
+const dayAndMonth = new Intl.DateTimeFormat('pl-PL', {
+  timeZone: 'UTC',
+  day: 'numeric',
+  month: 'long',
+});
+
+/** "Ostatnia dawka: 5 mg, udo lewe, 8 października": only what the user saved; no entries, no dose. */
+export function formatLastDose(
+  entries: readonly Pick<DoseEntry, 'date' | 'doseMg' | 'site' | 'createdAt' | 'id'>[],
+): string {
+  const [latest] = sortDoseEntries(entries);
+  if (!latest) return 'Brak zapisanych dawek';
+  const day = dayAndMonth.format(new Date(`${latest.date}T00:00:00Z`));
+  return `Ostatnia dawka: ${formatDose(latest.doseMg)} mg, ${SITE_LABELS[latest.site]}, ${day}`;
+}

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { INJECTION_SITES, type DoseEntry } from '../contracts/dose';
-import { parseDoseInput, sortDoseEntries, suggestSite } from './doseSites';
+import { INJECTION_SITES, type DoseEntry, type InjectionSite } from '../contracts/dose';
+import {
+  SITE_SHORT_LABELS,
+  formatLastDose,
+  parseDoseInput,
+  sortDoseEntries,
+  suggestSite,
+} from './doseSites';
 
 let counter = 0;
 const entry = (overrides: Partial<DoseEntry>): DoseEntry => {
@@ -104,5 +110,53 @@ describe('parseDoseInput', () => {
   it('refuses everything else', () => {
     for (const text of ['', 'abc', '-2', '2,5mg', '1e3', '1,2345', '2,,5'])
       expect(parseDoseInput(text)).toBeNull();
+  });
+});
+
+describe('formatLastDose', () => {
+  const row = (
+    id: string,
+    date: string,
+    doseMg: number,
+    site: InjectionSite,
+    createdAt: string,
+  ) => ({
+    id,
+    date,
+    doseMg,
+    site,
+    createdAt,
+  });
+
+  it('says there is nothing for an empty journal', () => {
+    expect(formatLastDose([])).toBe('Brak zapisanych dawek');
+  });
+
+  it('shows the entry of the newest date, with the site and the day without a year', () => {
+    expect(
+      formatLastDose([
+        row('a', '2026-10-01', 2.5, 'abdomen_left', '2026-10-01T08:00:00Z'),
+        row('b', '2026-10-08', 5, 'thigh_left', '2026-10-08T08:00:00Z'),
+      ]),
+    ).toBe('Ostatnia dawka: 5 mg, udo lewe, 8 października');
+  });
+
+  it('writes a fractional dose with a comma', () => {
+    expect(formatLastDose([row('a', '2026-10-01', 2.5, 'arm_right', '2026-10-01T08:00:00Z')])).toBe(
+      'Ostatnia dawka: 2,5 mg, ramię prawe, 1 października',
+    );
+  });
+});
+
+describe('SITE_SHORT_LABELS', () => {
+  it('names the six sites in the order of the grid rows', () => {
+    expect(INJECTION_SITES.map((site) => SITE_SHORT_LABELS[site])).toEqual([
+      'Brzuch L',
+      'Brzuch P',
+      'Udo L',
+      'Udo P',
+      'Ramię L',
+      'Ramię P',
+    ]);
   });
 });

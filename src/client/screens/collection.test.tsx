@@ -69,6 +69,7 @@ describe('S6: collection list', () => {
     expect(within(items[0] as HTMLElement).getByRole('img', { name: 'Brak zdjęcia' })).toBeTruthy();
     expect(items[1]?.textContent).toContain('Moja ocena: 4/5');
     expect(items[2]?.textContent).toContain('Białko: —');
+    expect(items[2]?.textContent).toContain('— białka');
     expect(items[2]?.textContent).toContain('Kalorie: 150 kcal');
   });
 

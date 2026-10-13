@@ -54,7 +54,9 @@ describe('App without a session', () => {
     expect(alert.textContent).toContain('Coś poszło nie tak');
     expect(alert.textContent).not.toContain('internal');
     fireEvent.click(screen.getByRole('button', { name: 'Spróbuj ponownie' }));
-    expect(await screen.findByRole('heading', { name: 'Kolekcja' })).toBeTruthy();
+    expect(
+      await screen.findByRole('heading', { name: /^Kolekcja:\s*Co dziś\s*ugotujemy\?/ }),
+    ).toBeTruthy();
   });
 });
 
@@ -66,7 +68,9 @@ describe('App with a session', () => {
 
     expect(await screen.findByText('owner@example.test')).toBeTruthy();
     fireEvent.click(screen.getByRole('link', { name: 'Mounjaro Przepisy' }));
-    expect(await screen.findByRole('heading', { name: 'Kolekcja' })).toBeTruthy();
+    expect(
+      await screen.findByRole('heading', { name: /^Kolekcja:\s*Co dziś\s*ugotujemy\?/ }),
+    ).toBeTruthy();
   });
 
   it('logs out and returns to the login screen', async () => {

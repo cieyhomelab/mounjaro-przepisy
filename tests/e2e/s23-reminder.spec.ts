@@ -174,7 +174,10 @@ test.describe('S23: przypomnienie o zastrzyku, baner', () => {
     await banner(page).getByRole('link', { name: 'Dodaj wpis dawki' }).click();
     await page.getByLabel('Data', { exact: true }).fill('2026-10-16');
     await page.getByLabel('Dawka (mg)').fill('2,5');
-    await page.getByRole('radio', { name: 'udo lewe' }).check();
+    await page
+      .getByRole('group', { name: 'Miejsce wkłucia' })
+      .getByRole('button', { name: 'udo lewe' })
+      .click();
     await page.getByRole('button', { name: 'Zapisz wpis' }).click();
 
     await expect(page.getByRole('heading', { level: 1, name: 'Dziennik dawek' })).toBeVisible();

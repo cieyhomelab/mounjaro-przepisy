@@ -181,7 +181,7 @@ export const SCREENS: readonly Screen[] = [
     await expect(page.getByRole('heading', { level: 2, name: 'krok 1 z 3' })).toBeVisible();
   }),
   simple('planer', '/planer', 'Planer'),
-  simple('zakupy', `/zakupy?tydzien=${WEEK_START}`, 'Lista zakupów'),
+  simple('zakupy', `/zakupy?tydzien=${WEEK_START}`, 'Zakupy'),
   simple('szukaj', '/szukaj', 'Szukaj w serwisach'),
   simple('kolekcje', '/kolekcje', 'Kolekcje własne'),
   simple('ustawienia', '/ustawienia', 'Ustawienia'),

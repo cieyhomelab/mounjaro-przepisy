@@ -108,6 +108,14 @@ test.describe('S19: planer posiłków na tydzień', () => {
       'true',
     );
     await expect(page.getByRole('heading', { level: 2 })).toHaveText('środa, 14 października');
+    // Tylko pierwsza litera nagłówka jest wielka; nazwa miesiąca zostaje mała (nie `capitalize`).
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCSS('text-transform', 'none');
+    // Pierwsza litera nagłówka jest wielka dzięki `first-letter:uppercase`.
+    expect(
+      await page
+        .getByRole('heading', { level: 2 })
+        .evaluate((el) => getComputedStyle(el, '::first-letter').textTransform),
+    ).toBe('uppercase');
     await expect(page.getByRole('heading', { level: 3 })).toHaveText([
       'Śniadanie',
       'Obiad',

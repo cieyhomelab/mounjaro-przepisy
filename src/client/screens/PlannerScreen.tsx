@@ -155,6 +155,7 @@ function PlannedEntry({ entry, recipe }: { entry: MealPlanEntry; recipe: Planned
           photoId={recipe.photoId}
           title={title}
           className="h-16 w-16 shrink-0 rounded-md"
+          placeholder="letter"
         />
         <div className="flex min-w-0 flex-1 flex-col">
           <Link

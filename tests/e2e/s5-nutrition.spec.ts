@@ -33,7 +33,7 @@ async function openDetails(page: Page) {
 
 /** Saves the recipe read from `name` and returns its id. */
 async function importPage(page: Page, name: string): Promise<string> {
-  await page.getByRole('button', { name: 'Z linku' }).click();
+  await page.getByRole('button', { name: 'Dodaj pierwszy przepis' }).click();
   await page.getByLabel('Link do przepisu').fill(pageUrl(name));
   await page.getByRole('button', { name: 'Odczytaj przepis' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Podgląd przepisu' })).toBeVisible();
@@ -147,7 +147,8 @@ test.describe('S5: pochodzenie wartości odżywczych', () => {
 
   test('S5: wartość wpisana przy tworzeniu przepisu jest „wpisana ręcznie”', async ({ page }) => {
     await logInToCollection(page);
-    await page.getByRole('button', { name: 'Ręcznie' }).click();
+    await page.getByRole('button', { name: 'Dodaj pierwszy przepis' }).click();
+    await page.getByRole('button', { name: 'Wpiszę sama' }).click();
     await fillRecipeForm(page);
     await page.getByLabel('Białko (g)').fill('41');
 

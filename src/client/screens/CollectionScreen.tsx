@@ -13,7 +13,9 @@ import {
   type SortKey,
 } from '../../shared/domain/recipeList';
 import { Chip } from '../components/ui/Chip';
-import { ErrorNotice } from '../components/ErrorNotice';
+import { CollectionLoadError } from '../components/CollectionLoadError';
+import { CollectionLoading } from '../components/CollectionLoading';
+import { EmptyCollection } from '../components/EmptyCollection';
 import { VirtualRecipeList } from '../components/VirtualRecipeList';
 import { WeeklyCounter } from '../components/WeeklyCounter';
 import { useCollection } from '../data/collection';
@@ -21,30 +23,6 @@ import { countActiveFilters, useCollectionView } from '../data/collectionView';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { inputClassName } from '../components/ui/Input';
-
-/** The ways to add a recipe: from a link, by hand or from a search in the trusted sites. */
-function AddRecipeChoices() {
-  const navigate = useNavigate();
-  return (
-    <div className="flex flex-wrap gap-2">
-      <Button onClick={() => void navigate('/przepisy/z-linku')}>Z linku</Button>
-      <Button onClick={() => void navigate('/przepisy/nowy')}>Ręcznie</Button>
-      <Button onClick={() => void navigate('/szukaj')} variant="secondary">
-        Szukaj w serwisach
-      </Button>
-    </div>
-  );
-}
-
-function EmptyCollection() {
-  return (
-    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-line p-4">
-      <p className="text-lg font-medium">Dodaj pierwszy przepis</p>
-      <p className="text-ink-muted">Twoja kolekcja jest pusta. Wybierz, jak dodać przepis.</p>
-      <AddRecipeChoices />
-    </div>
-  );
-}
 
 /** The filters in the panel: the five Mounjaro ones and "Dobrze toleruję". "Na gorsze dni" is in the chip row. */
 const PANEL_FILTER_IDS = FILTER_IDS.filter((id) => id !== 'worseDays');
@@ -217,14 +195,8 @@ export function CollectionScreen() {
           </Link>
         </div>
       ) : null}
-      {state.status === 'loading' ? (
-        <p role="status" className="text-ink-muted">
-          Ładowanie…
-        </p>
-      ) : null}
-      {state.status === 'error' ? (
-        <ErrorNotice code={state.code} onRetry={() => void sync()} />
-      ) : null}
+      {state.status === 'loading' ? <CollectionLoading /> : null}
+      {state.status === 'error' ? <CollectionLoadError onRetry={() => void sync()} /> : null}
       {state.status === 'ready' && state.recipes.length === 0 ? <EmptyCollection /> : null}
       {state.status === 'ready' ? <WeeklyCounter cookEvents={state.cookEvents} /> : null}
       {state.status === 'ready' && state.recipes.length > 0 ? (

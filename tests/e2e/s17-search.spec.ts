@@ -35,7 +35,7 @@ test.describe('S17: wyszukiwanie przepisów w zaufanych serwisach', () => {
   test('S17: „Szukaj w serwisach” otwiera się z kolekcji', async ({ page }) => {
     await logIn(page);
     await expect(page.getByRole('heading', { level: 1, name: 'Kolekcja' })).toBeVisible();
-    await page.getByRole('button', { name: 'Szukaj w serwisach' }).click();
+    await page.getByRole('button', { name: 'Szukaj w zaufanych serwisach' }).click();
     await expect(searchHeading(page)).toBeVisible();
   });
 

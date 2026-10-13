@@ -15,17 +15,17 @@ const withRecipes = (...recipes: Parameters<typeof snapshotOf>[0] & object) =>
   json(200, snapshotOf(recipes, 3), { ETag: snapshotEtag(3) });
 
 describe('S6: collection list', () => {
-  it('S6: an empty collection invites to add the first recipe, "Z linku" is enabled', async () => {
+  it('S6: an empty collection shows its title and the two buttons', async () => {
     stubFetch(loggedIn);
 
     renderAt('/');
 
-    expect(await screen.findByText('Dodaj pierwszy przepis')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Z linku' }).hasAttribute('disabled')).toBe(false);
-    const manualButton = screen.getByRole('button', { name: 'Ręcznie' });
-    expect(manualButton.hasAttribute('disabled')).toBe(false);
-    fireEvent.click(manualButton);
-    expect(await screen.findByRole('heading', { name: 'Nowy przepis' })).toBeTruthy();
+    expect(
+      await screen.findByRole('heading', { name: 'Twoja kolekcja jest jeszcze pusta' }),
+    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Szukaj w zaufanych serwisach' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Dodaj pierwszy przepis' }));
+    expect(await screen.findByRole('heading', { name: 'Dodaj przepis' })).toBeTruthy();
   });
 
   it('S6: lists recipes by protein, highest first, with placeholders and "—" for missing values', async () => {
@@ -113,9 +113,12 @@ describe('S6: collection list', () => {
 
     renderAt('/');
 
-    expect((await screen.findByRole('alert')).textContent).toContain('Coś poszło nie tak');
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toContain('Nie udało się wczytać danych');
+    expect(alert.textContent).toContain('Twoje zapisane przepisy są bezpieczne');
+    expect(alert.textContent).not.toContain('internal');
     fireEvent.click(screen.getByRole('button', { name: 'Spróbuj ponownie' }));
-    expect(await screen.findByText('Dodaj pierwszy przepis')).toBeTruthy();
+    expect(await screen.findByText('Twoja kolekcja jest jeszcze pusta')).toBeTruthy();
   });
 });
 

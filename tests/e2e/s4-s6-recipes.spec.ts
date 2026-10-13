@@ -23,21 +23,42 @@ async function logInToCollection(page: Page) {
 }
 
 async function openManualForm(page: Page) {
-  await page.getByRole('button', { name: 'Ręcznie' }).click();
+  await page.getByRole('button', { name: 'Dodaj pierwszy przepis' }).click();
+  await page.getByRole('button', { name: 'Wpiszę sama' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Nowy przepis' })).toBeVisible();
 }
 
 test.describe('S6: lista kolekcji', () => {
-  test('S6: pusta kolekcja zachęca do dodania pierwszego przepisu przyciskami „Z linku” i „Ręcznie”', async ({
+  test('S6: pusta kolekcja pokazuje tytuł, zachętę i przyciski „Dodaj pierwszy przepis” oraz „Szukaj w zaufanych serwisach”', async ({
     page,
   }) => {
     await logInToCollection(page);
 
     await expect(collectionHeading(page)).toBeVisible();
-    await expect(page.getByText('Dodaj pierwszy przepis')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Z linku' })).toBeEnabled();
-    await expect(page.getByRole('button', { name: 'Ręcznie' })).toBeEnabled();
+    await expect(
+      page.getByRole('heading', { name: 'Twoja kolekcja jest jeszcze pusta' }),
+    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Dodaj pierwszy przepis' })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Szukaj w zaufanych serwisach' })).toBeEnabled();
     await expect(recipeList(page)).toHaveCount(0);
+  });
+
+  test('S6: „Dodaj pierwszy przepis” otwiera ekran „Dodaj przepis” z kartami „Z linku” i „Wpiszę sama”', async ({
+    page,
+  }) => {
+    await logInToCollection(page);
+    await page.getByRole('button', { name: 'Dodaj pierwszy przepis' }).click();
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Dodaj przepis' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Z linku' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Wpiszę sama' })).toBeVisible();
+  });
+
+  test('S6: „Szukaj w zaufanych serwisach” otwiera wyszukiwanie', async ({ page }) => {
+    await logInToCollection(page);
+    await page.getByRole('button', { name: 'Szukaj w zaufanych serwisach' }).click();
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Szukaj w serwisach' })).toBeVisible();
   });
 
   test('S6: przepisy są posortowane malejąco według białka, a pozycja pokazuje tytuł, grafikę zastępczą, białko i kalorie', async ({

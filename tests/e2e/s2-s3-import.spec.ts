@@ -41,7 +41,7 @@ async function submitLink(page: Page, address: string) {
 
 /** Opens "Z linku" from the empty collection and submits `address`. */
 async function readFromLink(page: Page, address: string) {
-  await page.getByRole('button', { name: 'Z linku' }).click();
+  await page.getByRole('button', { name: 'Dodaj pierwszy przepis' }).click();
   await submitLink(page, address);
 }
 

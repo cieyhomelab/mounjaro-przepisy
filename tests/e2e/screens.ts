@@ -151,7 +151,7 @@ const screen = (
   open: async (page, data) => {
     await open(page, data);
     // Headings render before the local copy of the data is ready; wait for the loading notes to go.
-    await expect(page.getByText(/^Ładowanie/)).toHaveCount(0);
+    await expect(page.getByText(/^(Ładowanie|Wczytuję)/)).toHaveCount(0);
   },
   ...(sample === undefined ? {} : { sample }),
 });

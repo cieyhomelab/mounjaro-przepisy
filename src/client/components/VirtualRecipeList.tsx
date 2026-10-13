@@ -41,6 +41,7 @@ function RecipeListItem({
             photoId={recipe.photoId}
             title={recipe.title}
             className="h-full w-full rounded-lg"
+            placeholder="card"
           />
           <span className="absolute bottom-2 left-2 rounded-full bg-surface px-3 py-1 text-sm font-bold text-ink">
             <span className="sr-only">Białko: </span>

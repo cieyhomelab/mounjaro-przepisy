@@ -466,6 +466,36 @@ test.describe('S3: link, którego nie da się odczytać', () => {
     });
   }
 
+  test('S3: zmiana linku w trakcie odczytu pomija odpowiedź dla poprzedniego adresu', async ({
+    page,
+  }) => {
+    await logInToCollection(page);
+    // The first reading is held until the address has been changed, then it answers "niedostępna".
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await page.route('**/api/recipes/import-preview', async (route) => {
+      await held;
+      await route.fulfill({
+        status: 502,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: { code: 'source_unavailable' } }),
+      });
+    });
+
+    await readFromLink(page, pageUrl('niedostepna'));
+    await expect(page.getByRole('status')).toContainText('Odczytuję przepis');
+    await page.getByLabel('Link do przepisu').fill(pageUrl('czytelna'));
+    release();
+
+    // The late answer for the old address is dropped: no message, no preview, field still valid.
+    await expect(page.getByRole('status')).toHaveCount(0);
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    await expect(preview(page)).toHaveCount(0);
+    await expect(page.getByLabel('Link do przepisu')).toHaveValue(pageUrl('czytelna'));
+    await expect(page.getByLabel('Link do przepisu')).not.toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByRole('button', { name: 'Odczytaj przepis' })).toBeEnabled();
+  });
+
   test('S3: ponowienie po chwilowej awarii kończy się podglądem', async ({ page }) => {
     await logInToCollection(page);
     // The first answer is an error, the second one the real page.

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import { Search } from 'lucide-react';
 import {
@@ -44,7 +44,12 @@ export function ImportScreen() {
   const [failure, setFailure] = useState<Failure | null>(null);
   const [draft, setDraft] = useState<FormDraft | null>(null);
 
+  /** Identifies the reading whose answer may still land; a changed address supersedes it. */
+  const readingId = useRef(0);
+
   const read = async () => {
+    const id = ++readingId.current;
+    const current = () => id === readingId.current;
     setFailure(null);
     if (!parseSourceUrl(address)) return setFailure({ kind: 'invalid_url' });
     if (isOffline()) return setFailure({ kind: 'other', code: 'offline' });
@@ -56,6 +61,7 @@ export function ImportScreen() {
           body: { url: address.trim() },
         }),
       );
+      if (!current()) return;
       if (response.status === 'complete') {
         const { draft: read } = response;
         setDraft({
@@ -66,6 +72,7 @@ export function ImportScreen() {
         });
       } else setFailure({ kind: 'unreadable', draft: manualDraft(response) });
     } catch (error) {
+      if (!current()) return;
       const code = error instanceof ApiError ? error.code : 'internal';
       if (code === 'invalid_url') setFailure({ kind: 'invalid_url' });
       else if (code === 'source_unavailable') setFailure({ kind: 'unavailable' });
@@ -73,7 +80,7 @@ export function ImportScreen() {
         setFailure({ kind: 'duplicate', recipeId: error.recipeId });
       } else setFailure({ kind: 'other', code });
     } finally {
-      setReading(false);
+      if (current()) setReading(false);
     }
   };
 
@@ -126,6 +133,8 @@ export function ImportScreen() {
                   : 'recipe-url-hint'
             }
             onChange={(event) => {
+              readingId.current += 1;
+              setReading(false);
               setAddress(event.target.value);
               setFailure(null);
             }}

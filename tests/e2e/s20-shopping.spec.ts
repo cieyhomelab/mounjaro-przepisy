@@ -216,7 +216,7 @@ test.describe('S20: lista zakupów z planera', () => {
     await openApp(page, request);
     await page.goto('/planer?tydzien=2026-10-19');
 
-    await page.getByRole('link', { name: /lista zakupów/i }).click();
+    await page.getByRole('link', { name: 'Utwórz listę zakupów na tydzień' }).click();
 
     await expect(page.getByRole('heading', { level: 1, name: 'Zakupy' })).toBeVisible();
     await expect(page.getByText('19–25 października 2026')).toBeVisible();

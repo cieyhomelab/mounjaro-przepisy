@@ -1,5 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { FIXTURE_SITES, apiCall, logIn, resetServer, useTestSites } from './helpers';
+import {
+  FIXTURE_SITES,
+  apiCall,
+  logIn,
+  openFilterPanel,
+  resetServer,
+  useTestSites,
+} from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -201,6 +208,7 @@ test.describe('S17: wyszukiwanie przepisów w zaufanych serwisach', () => {
     await page.getByRole('link', { name: 'Wróć do kolekcji' }).click();
     const list = page.getByRole('list', { name: 'Przepisy' });
     await expect(list.getByRole('listitem')).toContainText('Kurczak pieczony z cukinią');
+    await openFilterPanel(page);
     const filters = page.getByRole('group', { name: 'Filtry' }).getByRole('button');
     await filters.first().click();
     await expect(filters.first()).toHaveAttribute('aria-pressed', 'true');

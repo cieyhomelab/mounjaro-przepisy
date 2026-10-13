@@ -20,6 +20,17 @@ type CollectionViewValue = {
   clearFilters: () => void;
 };
 
+/**
+ * The number on the "Filtry" button: every switched-on filter chip plus the chosen own
+ * collection. The search text and the sorting are not filters, so they do not count.
+ */
+export function countActiveFilters(
+  filters: readonly FilterId[],
+  collectionId: string | null,
+): number {
+  return filters.length + (collectionId === null ? 0 : 1);
+}
+
 const CollectionViewContext = createContext<CollectionViewValue | null>(null);
 
 /**

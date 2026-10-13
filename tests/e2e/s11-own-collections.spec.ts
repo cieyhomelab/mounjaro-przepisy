@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { apiCall, logIn, resetServer, seedRecipe } from './helpers';
+import { apiCall, logIn, resetServer, seedRecipe, toggleFilter } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   await resetServer(request);
@@ -9,9 +9,9 @@ const items = (page: Page) => page.getByRole('list', { name: 'Przepisy' }).getBy
 const titles = (page: Page) => items(page).locator('span.truncate').allTextContents();
 const collectionRows = (page: Page) =>
   page.getByRole('list', { name: 'Kolekcje własne' }).getByRole('listitem');
-const filterButton = (page: Page, name: string) =>
-  page.getByRole('group', { name: 'Filtry' }).getByRole('button', { name });
-const ownSelect = (page: Page) => page.getByLabel('Kolekcja własna');
+const ownChips = (page: Page) => page.getByRole('group', { name: 'Kolekcje i tagi' });
+const ownChip = (page: Page, name: string) =>
+  ownChips(page).getByRole('button', { name, exact: true });
 
 async function loggedIn(page: Page) {
   await logIn(page);
@@ -110,7 +110,7 @@ test.describe('S11: kolekcje własne', () => {
     );
     await expect(collectionRows(page).filter({ hasText: 'Obiady' })).toHaveCount(1);
     await page.getByRole('link', { name: 'Wróć do kolekcji' }).click();
-    await ownSelect(page).selectOption({ label: 'Szybkie obiady' });
+    await ownChip(page, 'Szybkie obiady').click();
     await expect.poll(() => titles(page)).toEqual(['Zupa']);
   });
 
@@ -130,9 +130,9 @@ test.describe('S11: kolekcje własne', () => {
     await expect(page.getByRole('checkbox', { name: 'Szybkie' })).toBeChecked();
     await page.getByRole('link', { name: 'Wróć do kolekcji' }).click();
 
-    await ownSelect(page).selectOption({ label: 'Obiady' });
+    await ownChip(page, 'Obiady').click();
     await expect.poll(() => titles(page)).toEqual(['Zupa']);
-    await ownSelect(page).selectOption({ label: 'Szybkie' });
+    await ownChip(page, 'Szybkie').click();
     await expect.poll(() => titles(page)).toEqual(['Zupa']);
   });
 
@@ -152,18 +152,18 @@ test.describe('S11: kolekcje własne', () => {
     await page.reload();
     await expect(items(page).first()).toBeVisible();
 
-    await ownSelect(page).selectOption({ label: 'Obiady' });
+    await ownChip(page, 'Obiady').click();
     await expect
       .poll(() => titles(page).then((all) => [...all].sort()))
       .toEqual(['Gulasz', 'Zupa']);
-    await filterButton(page, 'Na gorsze dni').click();
+    await toggleFilter(page, 'Na gorsze dni');
     await expect.poll(() => titles(page)).toEqual(['Zupa']);
-    await ownSelect(page).selectOption({ label: 'Słodkie' });
+    await ownChip(page, 'Słodkie').click();
 
     await expect(page.getByText('Brak przepisów dla tych filtrów')).toBeVisible();
-    await expect(ownSelect(page)).toHaveValue(sweets);
+    await expect(ownChip(page, 'Słodkie')).toHaveAttribute('aria-pressed', 'true');
     await page.getByRole('button', { name: 'Wyczyść filtry' }).click();
-    await expect(ownSelect(page)).toHaveValue('');
+    await expect(ownChip(page, 'Słodkie')).toHaveAttribute('aria-pressed', 'false');
     await expect(items(page)).toHaveCount(3);
   });
 
@@ -189,6 +189,6 @@ test.describe('S11: kolekcje własne', () => {
     await expect(page.getByText('Nie masz jeszcze kolekcji własnych.')).toBeVisible();
     await page.getByRole('link', { name: 'Wróć do kolekcji' }).click();
     await expect.poll(() => titles(page)).toEqual(['Zupa']);
-    await expect(ownSelect(page).locator('option')).toHaveText(['Wszystkie przepisy']);
+    await expect(ownChips(page).getByRole('button')).toHaveText(['Na gorsze dni']);
   });
 });

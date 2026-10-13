@@ -290,7 +290,9 @@ export function PlannerScreen() {
               );
             })}
           </div>
-          <h2 className="text-lg font-semibold capitalize">{formatPlanDay(selected.date)}</h2>
+          <h2 className="text-lg font-semibold first-letter:uppercase">
+            {formatPlanDay(selected.date)}
+          </h2>
           <p className="font-medium text-accent">
             Białko zaplanowane: {protein.grams} g
             {protein.withoutData > 0 ? (

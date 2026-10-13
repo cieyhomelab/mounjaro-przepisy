@@ -184,12 +184,6 @@ export function CollectionScreen() {
       </div>
       {state.status === 'ready' ? (
         <div className="flex flex-wrap items-center gap-x-4">
-          <Link to="/waga" className="inline-flex min-h-11 items-center underline">
-            Waga i samopoczucie
-          </Link>
-          <Link to="/licznik" className="inline-flex min-h-11 items-center underline">
-            Licznik białka i wody
-          </Link>
           <Link to="/kolekcje" className="inline-flex min-h-11 items-center underline">
             Kolekcje własne
           </Link>

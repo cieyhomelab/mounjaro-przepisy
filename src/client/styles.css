@@ -122,6 +122,8 @@ html[data-theme='dark'] {
   --text-display--letter-spacing: -0.02em;
   --text-title: 30px;
   --text-title--line-height: 1.08;
+  --text-date: 22px;
+  --text-date--line-height: 1.2;
   --text-cook: 27px;
   --text-cook--line-height: 1.38;
   --text-cook-ingredient: 22px;

@@ -25,7 +25,8 @@ const setGoals = (
 ) => apiCall(page, 'PUT', '/api/settings/goals', goals);
 
 const goToCounter = async (page: Page) => {
-  await page.getByRole('link', { name: 'Licznik białka i wody' }).click();
+  await page.getByRole('link', { name: 'Zdrowie', exact: true }).click();
+  await page.getByRole('link', { name: 'Białko i woda' }).click();
   await expect(
     page.getByRole('heading', { level: 1, name: 'Licznik białka i wody' }),
   ).toBeVisible();

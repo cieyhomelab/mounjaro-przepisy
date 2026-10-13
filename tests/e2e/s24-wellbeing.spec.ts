@@ -35,6 +35,7 @@ async function seed(
 }
 
 const goToLog = async (page: Page) => {
+  await page.getByRole('link', { name: 'Zdrowie', exact: true }).click();
   await page.getByRole('link', { name: 'Waga i samopoczucie' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Waga i samopoczucie' })).toBeVisible();
 };

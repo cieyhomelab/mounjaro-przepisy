@@ -52,6 +52,7 @@ async function seedDose(
 
 const goToLog = async (page: Page) => {
   await page.getByRole('link', { name: 'Zdrowie', exact: true }).click();
+  await page.getByRole('link', { name: 'Dziennik dawek' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Dziennik dawek' })).toBeVisible();
 };
 

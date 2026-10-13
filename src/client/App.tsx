@@ -12,6 +12,7 @@ import { DoseFormScreen } from './screens/DoseFormScreen';
 import { DoseLogScreen } from './screens/DoseLogScreen';
 import { DoseReminderScreen } from './screens/DoseReminderScreen';
 import { GoalsScreen } from './screens/GoalsScreen';
+import { HealthScreen } from './screens/HealthScreen';
 import { IntakeScreen } from './screens/IntakeScreen';
 import { WellbeingFormScreen } from './screens/WellbeingFormScreen';
 import { WellbeingLogScreen } from './screens/WellbeingLogScreen';
@@ -76,6 +77,7 @@ export function App() {
               <Route path="przepisy/:id" element={<RecipeScreen />} />
               <Route path="planer" element={<PlannerScreen />} />
               <Route path="zakupy" element={<ShoppingScreen />} />
+              <Route path="zdrowie" element={<HealthScreen />} />
               <Route path="dawki" element={<DoseLogScreen />} />
               <Route path="dawki/przypomnienie" element={<DoseReminderScreen />} />
               <Route path="dawki/nowy" element={<DoseFormScreen />} />

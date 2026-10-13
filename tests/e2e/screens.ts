@@ -170,7 +170,7 @@ export const SCREENS: readonly Screen[] = [
   screen('przepis-edycja', 'culinary', (page, data) =>
     heading(`/przepisy/${data.recipeId}/edycja`, 'Edycja przepisu')(page),
   ),
-  simple('przepis-z-linku', '/przepisy/z-linku', 'Dodaj przepis z linku'),
+  simple('przepis-z-linku', '/przepisy/z-linku', 'Dodaj przepis'),
   screen('gotowanie-skladniki', 'culinary', async (page, data) => {
     await page.goto(`/przepisy/${data.recipeId}/gotuj`);
     await expect(page.getByRole('heading', { level: 2, name: /^Składniki/ })).toBeVisible();
@@ -206,14 +206,22 @@ export const SCREENS: readonly Screen[] = [
     await expect(page.locator('[aria-invalid="true"]').first()).toBeVisible();
   }),
   screen('przepis-z-linku-blad-odczytu', 'culinary', async (page) => {
-    await heading('/przepisy/z-linku', 'Dodaj przepis z linku')(page);
+    await heading('/przepisy/z-linku', 'Dodaj przepis')(page);
     await page
-      .getByLabel('Adres strony z przepisem')
+      .getByLabel('Link do przepisu')
       .fill('http://fixtures.test:8080/przepisy/niedostepna');
     await page.getByRole('button', { name: 'Odczytaj przepis' }).click();
     await expect(page.getByRole('alert')).toContainText('Strona nie odpowiada', {
       timeout: 15_000,
     });
+  }),
+  screen('przepis-z-linku-nieczytelny', 'culinary', async (page) => {
+    await heading('/przepisy/z-linku', 'Dodaj przepis')(page);
+    await page
+      .getByLabel('Link do przepisu')
+      .fill('http://fixtures.test:8080/przepisy/bez-skladnikow');
+    await page.getByRole('button', { name: 'Odczytaj przepis' }).click();
+    await expect(page.getByRole('alert')).toContainText('Nie udało się odczytać przepisu');
   }),
   screen('kolekcja-offline', 'culinary', async (page) => {
     await heading('/', 'Kolekcja')(page);

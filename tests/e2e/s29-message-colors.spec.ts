@@ -92,7 +92,7 @@ for (const scheme of ['light', 'dark'] as const) {
     }) => {
       await openApp(page, scheme);
       await page.goto('/przepisy/z-linku');
-      await page.getByLabel('Adres strony z przepisem').fill(FAILING_PAGE);
+      await page.getByLabel('Link do przepisu').fill(FAILING_PAGE);
       await page.getByRole('button', { name: 'Odczytaj przepis' }).click();
 
       const notice = page.getByRole('alert').filter({ hasText: 'Strona nie odpowiada' });
@@ -102,7 +102,7 @@ for (const scheme of ['light', 'dark'] as const) {
         color: ON_WARN_SOFT[scheme],
       });
       for (const name of ['Spróbuj ponownie', 'Wpisz przepis ręcznie']) {
-        const button = notice.getByRole('button', { name });
+        const button = page.getByRole('button', { name });
         const { background, color, border } = await button.evaluate((element) => {
           const style = getComputedStyle(element);
           return {

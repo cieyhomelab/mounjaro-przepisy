@@ -108,6 +108,8 @@ test.describe('S19: planer posiłków na tydzień', () => {
       'true',
     );
     await expect(page.getByRole('heading', { level: 2 })).toHaveText('środa, 14 października');
+    // Tylko pierwsza litera nagłówka jest wielka; nazwa miesiąca zostaje mała (nie `capitalize`).
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCSS('text-transform', 'none');
     await expect(page.getByRole('heading', { level: 3 })).toHaveText([
       'Śniadanie',
       'Obiad',

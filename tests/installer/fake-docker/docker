@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Fake `docker` for the installer tests (docs/adr/0003-instalator-na-serwer.md, decision 8).
+#
+# The harness copies this directory per test and puts it first on PATH. Behaviour comes from
+# the file `state` next to this script (KEY=value lines), not from environment variables,
+# because the installer clears the environment before calling Compose. Every call is appended
+# to `calls.log` as one line: the arguments, then ` | env: ` and the variable names it received.
+#
+# Supported state keys (extend together with the installer):
+#   ACCESS=denied              `docker info` fails like a socket without permission
+#   COMPOSE_VERSION=2.29.1     printed by `docker compose version --short`; `none` = no plugin
+#   EXIT_<word>=<code>         exit code for a call whose arguments contain <word> (e.g. EXIT_build=1)
+set -u
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+state="$dir/state"
+
+get() {
+  local key="$1" default="$2" line
+  if [ -f "$state" ]; then
+    while IFS= read -r line; do
+      if [ "${line%%=*}" = "$key" ]; then
+        printf '%s' "${line#*=}"
+        return
+      fi
+    done <"$state"
+  fi
+  printf '%s' "$default"
+}
+
+printf '%s | env: %s\n' "$*" "$(env | cut -d= -f1 | sort | tr '\n' ' ')" >>"$dir/calls.log"
+
+for word in "$@"; do
+  code="$(get "EXIT_${word}" '')"
+  if [ -n "$code" ]; then
+    exit "$code"
+  fi
+done
+
+case "${1:-}" in
+  info)
+    if [ "$(get ACCESS ok)" = denied ]; then
+      echo 'permission denied while trying to connect to the Docker daemon socket' >&2
+      exit 1
+    fi
+    ;;
+  compose)
+    if [ "${2:-}" = version ]; then
+      version="$(get COMPOSE_VERSION 2.29.1)"
+      if [ "$version" = none ]; then
+        echo "docker: 'compose' is not a docker command." >&2
+        exit 1
+      fi
+      echo "$version"
+    fi
+    ;;
+esac
+exit 0

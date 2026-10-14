@@ -11,6 +11,10 @@ RUN npm ci
 
 # dev: toolchain image used by scripts/ for lint, unit and integration tests.
 FROM deps AS dev
+# shellcheck lints the bash scripts (scripts/lint.sh); see docs/adr/0003-instalator-na-serwer.md.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends shellcheck \
+  && rm -rf /var/lib/apt/lists/*
 COPY . .
 
 FROM dev AS build

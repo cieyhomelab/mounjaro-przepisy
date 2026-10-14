@@ -9,10 +9,11 @@
   "scripts": {
     "dev:server": "tsx watch src/server/main.ts",
     "dev:client": "vite",
-    "lint": "eslint . --max-warnings 0 && prettier --check . && npm run typecheck",
+    "lint": "eslint . --max-warnings 0 && prettier --check . && npm run typecheck && npm run lint:sh",
+    "lint:sh": "find scripts backup tests/installer -name '*.sh' -print0 | xargs -0 shellcheck -x -S warning tests/installer/fake-docker/docker",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit && tsc --noEmit -p src/client && tsc --noEmit -p tests/e2e",
-    "test:unit": "vitest run --project unit-node --project unit-client",
+    "test:unit": "vitest run --project unit-node --project unit-client --project installer",
     "test:integration": "vitest run --project integration",
     "test:e2e": "playwright test",
     "build": "npm run build:client && npm run build:server",

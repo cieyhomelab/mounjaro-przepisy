@@ -15,6 +15,7 @@ REQUIRED_COMPOSE_MINOR=24
 # Used by the question steps K3-K5 (stage 2.2).
 # shellcheck disable=SC2034
 INTERACTIVE=0
+# shellcheck disable=SC2034
 if [ -t 0 ]; then INTERACTIVE=1; fi
 
 trap env_cleanup_tmp EXIT

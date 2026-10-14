@@ -27,7 +27,7 @@ Wspólne zasady wszystkich scenariuszy:
 - Komunikaty są po polsku.
 - Wartości sekretów (`POSTGRES_PASSWORD`, `GOOGLE_CLIENT_SECRET`, `VAPID_PRIVATE_KEY`) nigdy nie trafiają na wyjście instalatora, także przy błędzie. Komunikaty podają nazwę zmiennej, nigdy jej wartość.
 - **Tryb z pytaniami** działa, gdy instalator ma terminal. **Tryb bez interakcji** działa, gdy go nie ma (potok, CI).
-- Brakującą wartość instalator bierze najpierw ze zmiennej środowiskowej o tej samej nazwie co klucz w `.env`. Pyta o nią tylko w trybie z pytaniami. Wartość już ustawiona w `.env` zawsze ma pierwszeństwo przed zmienną środowiskową.
+- Brakującą wartość instalator bierze najpierw ze zmiennej środowiskowej o tej samej nazwie co klucz w `.env`. Pyta o nią tylko w trybie z pytaniami. Wartość już ustawiona w `.env` zawsze ma pierwszeństwo przed zmienną środowiskową, także przy uruchamianiu aplikacji: Compose domyślnie przedkłada zmienne powłoki nad `.env`, więc instalator nie może przekazać mu zmiennej środowiskowej, która różni się od wartości zapisanej w `.env`.
 
 ### Kroki instalatora
 
@@ -40,7 +40,7 @@ Wspólne zasady wszystkich scenariuszy:
 | K5 Wartości od właściciela | Uzupełnia puste: domenę (`APP_DOMAIN` i `APP_BASE_URL`), `ALLOWED_EMAIL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BACKUP_AGE_RECIPIENT`. Każdą poprawną odpowiedź zapisuje do `.env` od razu. | Wszystkie są niepuste. |
 | K6 Klucze push | Generuje parę `VAPID_PUBLIC_KEY` i `VAPID_PRIVATE_KEY`. | Obie wartości są niepuste. |
 | K7 Kontrola `.env` | Sprawdza cały `.env` według sekcji „Zasady poprawności”. Przy problemie zatrzymuje się przed startem, wymienia nazwy zmiennych i niczego nie zmienia. | Nigdy, sprawdza zawsze. |
-| K8 Start | Buduje i uruchamia aplikację w zapisanym wariancie. W wariancie z własnym proxy zatrzymuje usługę `caddy`, jeśli działa. | Nigdy. Przebudowa z bieżącego kodu działa jako aktualizacja. |
+| K8 Start | Buduje i uruchamia aplikację w zapisanym wariancie, z wartościami z `.env` (zmienne środowiskowe o tych samych nazwach nie trafiają do Compose). W wariancie z własnym proxy zatrzymuje usługę `caddy`, jeśli działa. | Nigdy. Przebudowa z bieżącego kodu działa jako aktualizacja. |
 | K9 Sprawdzenie | Czeka do 3 minut, aż sprawdzenie zdrowia aplikacji na serwerze zwróci `ok`. Potem wypisuje przypomnienie o krokach ręcznych. | Nigdy. |
 
 „Drugie uruchomienie pomija wszystko” w kryteriach poniżej dotyczy kroków K2–K6.
@@ -52,7 +52,7 @@ Wspólne zasady wszystkich scenariuszy:
 **Zasady poprawności** (K5 dla wpisywanych wartości, K7 dla całego `.env`):
 - Żaden klucz nie występuje w `.env` więcej niż raz.
 - `APP_DOMAIN`: sama nazwa hosta, bez `https://`, ścieżki i końcowego ukośnika. Wymagana w wariancie `caddy`.
-- `APP_BASE_URL`: `https://<host>` bez końcowego ukośnika. W wariancie `caddy` host jest równy `APP_DOMAIN`.
+- `APP_BASE_URL`: `https://<host>` bez ścieżki i końcowego ukośnika. W wariancie z własnym proxy dozwolony jest port (`https://<host>:<port>`). W wariancie `caddy` port jest niedozwolony, a host jest równy `APP_DOMAIN`.
 - `ALLOWED_EMAIL`: poprawny adres e-mail.
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `POSTGRES_PASSWORD`: niepuste.
 - `BACKUP_AGE_RECIPIENT`: zaczyna się od `age1`.
@@ -109,6 +109,7 @@ Przypomnienie na końcu (K9) wymienia:
   - kończy się kodem 0;
   - `.env` zawiera podane wartości.
 - Zakładając zmienną środowiskową z wartością dla klucza, który w `.env` jest już niepusty, gdy instalator zostanie uruchomiony, wtedy wartość w `.env` się nie zmienia.
+- Zakładając zakończoną instalację i zmienne środowiskowe `ALLOWED_EMAIL` oraz `POSTGRES_PASSWORD` z wartościami innymi niż w `.env`, gdy instalator zostanie uruchomiony ponownie, wtedy uruchomiona aplikacja korzysta z wartości z `.env`, a sprawdzenie zdrowia zwraca `ok`.
 - Zakładając uruchomienie w terminalu z częścią wartości w zmiennych środowiskowych, gdy instalator dojdzie do K3 i K5, wtedy pyta tylko o wartości, których nie ma ani w `.env`, ani w zmiennych środowiskowych.
 
 ### S3: Ponowne uruchomienie i aktualizacja
@@ -122,6 +123,10 @@ Przypomnienie na końcu (K9) wymienia:
 - Zakładając zakończoną instalację, gdy instalator zostanie uruchomiony drugi raz w terminalu, wtedy nie zadaje żadnego pytania, także o wariant.
 - Zakładając zakończoną instalację z zapisanymi danymi w bazie, gdy instalator zostanie uruchomiony ponownie, wtedy dane są nadal dostępne (baza przyjmuje dotychczasowe hasło).
 - Zakładając, że właściciel ręcznie zmienił w `.env` wartość, np. `ALLOWED_EMAIL`, gdy uruchomi instalator ponownie, wtedy zmieniona wartość zostaje w `.env`, a uruchomiona aplikacja korzysta z nowej wartości.
+- Zakładając zakończoną instalację z danymi w bazie, gdy właściciel usunie `.env` albo wyczyści w nim `POSTGRES_PASSWORD` i uruchomi instalator, wtedy:
+  - instalator kończy się kodem różnym od zera z komunikatem, że baza ma już hasło, którego nie ma w `.env`;
+  - nie generuje nowego hasła i nie zapisuje `POSTGRES_PASSWORD` do `.env`;
+  - nie uruchamia aplikacji, a dane w bazie zostają nietknięte.
 
 ### S4: Dokończenie przerwanej instalacji
 
@@ -174,7 +179,7 @@ Przypomnienie na końcu (K9) wymienia:
 
 ### S7: Błędna wartość już zapisana w `.env`
 
-1. `.env` zawiera wartość niezgodną z „Zasadami poprawności”, np. `PUSH_MODE=webpush` ze starego `.env.example`, zdublowany klucz, klucz `age` bez `age1` albo pustą `APP_DOMAIN` w wariancie `caddy` bez `APP_BASE_URL`.
+1. `.env` zawiera wartość niezgodną z „Zasadami poprawności”, np. `PUSH_MODE=webpush` ze starego `.env.example`, zdublowany klucz, klucz `age` bez `age1` albo `APP_DOMAIN` i `APP_BASE_URL` wskazujące różne hosty w wariancie `caddy`.
 2. Instalator zatrzymuje się w K7, przed startem aplikacji, i niczego nie zmienia.
 3. Właściciel poprawia `.env` ręcznie i uruchamia instalator ponownie.
 
@@ -292,7 +297,7 @@ Brak nowych. Instalator korzysta tylko z Dockera i Compose na serwerze. Konfigur
 ## Przypadki brzegowe i błędy
 
 - **`.env` z ręcznymi zmianami albo komentarzami:** instalator zachowuje treść, kolejność i komentarze. Uzupełnia tylko puste klucze z K3–K6 albo dopisuje te, których brakuje.
-- **Puste `POSTGRES_PASSWORD`, ale baza tej instalacji już ma dane:** instalator zatrzymuje się z komunikatem, że baza ma już hasło, którego nie ma w `.env`, i niczego nie generuje. Nowe hasło odcięłoby dostęp do danych.
+- **Puste `POSTGRES_PASSWORD` (także po usunięciu `.env`), ale baza tej instalacji już ma dane:** instalator zatrzymuje się z komunikatem, że baza ma już hasło, którego nie ma w `.env`, i niczego nie generuje. Nowe hasło odcięłoby dostęp do danych.
 - **Uruchomienie spoza katalogu repozytorium** (np. `cd /tmp && /srv/app/scripts/install.sh`): instalator działa na katalogu repozytorium, w którym leży skrypt.
 - **Port aplikacji (`APP_PORT`) zajęty przez inny program:** błąd w K8 z nazwą `APP_PORT`. Instalator nie uznaje odpowiedzi obcego programu za działającą aplikację.
 - **Domena nie wskazuje na serwer albo porty 80/443 są zamknięte:** instalator tego nie sprawdza.

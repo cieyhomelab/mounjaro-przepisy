@@ -79,9 +79,22 @@ Reguły recenzji dla tego repozytorium. Uzupełniają ogólną listę kontrolną
 - Testy E2E nie zakładają kolejności ani danych z innych testów i przechodzą przy dwóch przebiegach równoległych.
 - Test pominięty (`skip`, `fixme`) ma w kodzie powód i numer issue.
 
+### Instalator (`scripts/install.sh`, od specyfikacji 2026-10-14)
+
+- Wartość sekretu (`POSTGRES_PASSWORD`, `GOOGLE_CLIENT_SECRET`, `VAPID_PRIVATE_KEY`) na wyjściu instalatora, w komunikacie błędu albo w pliku poza `.env` to blocker. Testy sprawdzają pełne wyjście, także przy błędach; `set -x` w instalatorze to blocker.
+- Nadpisanie niepustej wartości w `.env` w jakiejkolwiek ścieżce kodu to blocker. Zapis `.env` inaczej niż przez atomową zamianę pliku (`mktemp` w tym samym katalogu, `chmod 600`, `mv`), np. `echo >> .env` albo `sed -i`, to blocker (odporność na przerwanie).
+- `source .env`, `. .env` albo `eval` na treści `.env` to blocker.
+- Wywołanie `docker compose` z pominięciem funkcji, która czyści środowisko (`env -i`) i podaje `--env-file`, `--project-directory` i `-p`, to blocker: zmienna powłoki zmieniłaby hasło bazy albo projekt Compose.
+- Zmiana domyślnej nazwy projektu Compose (`mounjaro-przepisy`) albo nazwy wolumenu `db-data` to blocker (odcina dane istniejących instalacji).
+- Instalator korzysta na hoście tylko z basha, coreutils i Dockera. Nowe polecenie spoza tego zestawu (`curl`, `openssl`, `jq`, `python`, `sudo`) to major.
+- Każde kryterium specyfikacji instalatora ma test w `tests/installer/` z identyfikatorem scenariusza w nazwie. Kryteria danych w bazie, pierwszeństwa `.env` w działającej aplikacji, zatrzymania `caddy` i dwóch uruchomień bez interakcji mają scenariusz w `tests/installer/stack/`; pozostałe działają na atrapie `docker`.
+- Komunikaty po polsku; statusy kroków dosłownie „zrobione”, „pominięty, już zrobione”, „błąd”. Błędy wymieniają nazwy zmiennych.
+- `scripts/test-installer.sh` przechodzi w CI; nowy scenariusz nie publikuje stałych portów hosta i nie zostawia projektów `inst-*`.
+
 ### Infrastruktura
 
 - Skrypty w `scripts/` zachowują kontrakt z `AGENTS.md`: kod wyjścia różny od zera przy błędzie, sprzątanie w `trap`, brak stałych portów, nazwa projektu Compose z `E2E_RUN_ID`.
+- Skrypty basha przechodzą `shellcheck` (część `scripts/lint.sh`); wyłączenie reguły komentarzem `# shellcheck disable=` ma uzasadnienie obok.
 - CI wywołuje wyłącznie skrypty z `scripts/`; logika nie jest powielana w YAML.
 - Wersja obrazu Playwrighta w `Dockerfile` zgadza się z wersją `@playwright/test` w `package.json`.
 - Nowa usługa w `compose.yml`, nowa baza albo nowy język mają ADR.

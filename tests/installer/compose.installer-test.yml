@@ -1,0 +1,23 @@
+# Override used only by scripts/test-installer.sh (passed to the installer through
+# MP_INSTALL_COMPOSE_OVERRIDE). Keeps test installations off fixed host ports, so several runs and
+# the owner's own installation can share one host; see docs/adr/0003-instalator-na-serwer.md.
+services:
+  app:
+    # A random port on 127.0.0.1 instead of APP_PORT; tests read it with `docker compose port`.
+    ports: !override
+      - '127.0.0.1::3000'
+    restart: 'no'
+
+  db:
+    restart: 'no'
+
+  caddy:
+    ports: !reset []
+    # Local CA instead of ACME: test domains do not resolve and must not reach Let's Encrypt.
+    command: caddy reverse-proxy --from ${APP_DOMAIN:-} --to app:3000 --internal-certs
+    restart: 'no'
+
+  # Backups are covered by scripts/restore-drill.sh.
+  backup:
+    profiles:
+      - production-only

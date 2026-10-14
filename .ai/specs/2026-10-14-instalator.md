@@ -348,4 +348,231 @@ Odpowiedzi właściciela z wywiadu (14.10.2026):
 
 ## Sekcje techniczne
 
-> Uzupełnia architekt po zatwierdzeniu specyfikacji: architektura, model danych, kontrakty API, plan implementacji.
+Uzupełnione przez architekta. Decyzje z uzasadnieniem i alternatywami: [ADR 0003](../../docs/adr/0003-instalator-na-serwer.md). Stos aplikacji: [ADR 0001](../../docs/adr/0001-stos-technologiczny.md). Zasady pracy w repozytorium: [AGENTS.md](../../AGENTS.md), sekcja „Instalator”.
+
+### Architektura
+
+#### Komponenty
+
+| Plik | Odpowiedzialność |
+| --- | --- |
+| `scripts/install.sh` | Punkt wejścia. Ustala katalog repozytorium z własnego położenia (`scripts/lib.sh`, `ROOT_DIR`), wybiera tryb, wykonuje K1–K9 po kolei i wypisuje statusy. Każdy krok to funkcja `step_k1` … `step_k9` zwracająca „zrobione”, „pominięty, już zrobione” albo kończąca instalator błędem. |
+| `scripts/lib/env.sh` | Czyste funkcje basha dla `.env`, bez wywołań Dockera: odczyt pliku do tablicy asocjacyjnej (parser, nigdy `source`), wykrywanie duplikatów, reguły poprawności z sekcji „Zasady poprawności”, wyliczanie domeny, atomowy zapis jednej wartości. Ładowany przez `install.sh`; testowalny osobno. |
+| `scripts/lib.sh` | Bez zmian w zachowaniu; `install.sh` korzysta z `ROOT_DIR`. |
+| `compose.yml` | Bez zmian. Instalator uruchamia go w projekcie `mounjaro-przepisy`, z profilem `tls` w wariancie `caddy`. |
+| `.env.example` | Szablon `.env` (etap 1 porządkuje, etap 2 dodaje `HTTPS_MODE`). |
+| `tests/installer/` | Testy kryteriów: Vitest z atrapą `docker` (`*.test.ts`, `harness.ts`, `fake-docker/docker`) i scenariusze na prawdziwym stosie (`stack/*.sh`, `compose.installer-test.yml`), uruchamiane przez `scripts/test-unit.sh` i `scripts/test-installer.sh`. |
+
+#### Przepływ
+
+1. **Start.** `set -euo pipefail`, `umask 077`, `trap` na `EXIT` usuwa pliki tymczasowe, `trap` na `INT` kończy kodem 130, `trap` na `TERM` kodem 143. Tryb z pytaniami, gdy `[ -t 0 ]`; w przeciwnym razie tryb bez interakcji. Instalator nigdy nie włącza `set -x`.
+2. **K1** sprawdza `command -v docker`, `docker info` (dostęp), `docker compose version --short` (≥ 2.24). Do tego miejsca żaden plik nie jest tworzony ani zmieniany.
+3. **K2–K6** czytają `.env` na nowo przed każdym krokiem i zapisują każdą wartość osobno, od razu po jej ustaleniu (atomowa zamiana pliku), więc przerwanie w dowolnym miejscu zostawia poprawny plik z wartościami ustalonymi do tej chwili.
+4. **K7** waliduje cały plik i zatrzymuje instalator przed jakimkolwiek wywołaniem Compose, które coś uruchamia.
+5. **K8** uruchamia Compose wyłącznie przez funkcję `compose`, która czyści środowisko (patrz „Kontrakt uruchamiania Compose”).
+6. **K9** odpytuje zdrowie aplikacji wewnątrz kontenera `app` i wypisuje przypomnienie.
+
+#### Tryby
+
+| | Z pytaniami (`[ -t 0 ]`) | Bez interakcji |
+| --- | --- | --- |
+| Brakująca wartość | zmienna środowiskowa, potem pytanie | zmienna środowiskowa, potem błąd |
+| Błędna wartość ze zmiennej środowiskowej | komunikat z nazwą zmiennej i pytanie | błąd z nazwą zmiennej |
+| Błędna odpowiedź | komunikat i ponowne pytanie, bez zapisu | — |
+| K5 | pyta po kolei, zapisuje każdą poprawną odpowiedź od razu | zapisuje od razu każdą poprawną wartość ze zmiennych, a nazwy wszystkich brakujących i błędnych wypisuje razem i kończy błędem |
+
+Pierwszeństwo źródeł dla każdego klucza z K3–K6: niepusta wartość w `.env` → zmienna środowiskowa o tej samej nazwie → wartość wyliczona (domena, K4, K6) albo pytanie. Wartość z `.env` nigdy nie jest walidowana w K3–K6 ani zastępowana; jej błąd zgłasza dopiero K7.
+
+### Model danych
+
+Instalator nie dotyka bazy. Jedyny stan to `.env` w katalogu repozytorium (uprawnienia `600`) oraz wolumen `<projekt>_db-data`, który instalator tylko sprawdza.
+
+#### Klucze uzupełniane przez instalator
+
+| Klucz | Krok | Źródło, gdy pusty | Sekret | Reguła (K5 dla wpisywanych, K7 dla całego pliku) |
+| --- | --- | --- | --- | --- |
+| `HTTPS_MODE` | K3 | `.env` → zmienna → pytanie | nie | `caddy` albo `proxy` |
+| `POSTGRES_PASSWORD` | K4 | `.env` → zmienna → generowany (64 znaki szesnastkowe z 32 bajtów `/dev/urandom`) | tak | niepusty |
+| `APP_DOMAIN` | K5 | `.env` → zmienna → wyliczony z `APP_BASE_URL` → pytanie o domenę | nie | nazwa hosta: etykiety `[A-Za-z0-9-]` (1–63 znaki, bez `-` na początku i końcu), co najmniej dwie, oddzielone kropkami; wymagany w wariancie `caddy` |
+| `APP_BASE_URL` | K5 | `.env` → zmienna → `https://<APP_DOMAIN>` | nie | `https://<host>` bez ścieżki i ukośnika; `:<port>` (1–65535) tylko w wariancie `proxy`; w wariancie `caddy` host równy `APP_DOMAIN` |
+| `ALLOWED_EMAIL` | K5 | `.env` → zmienna → pytanie | nie (dane osobowe) | `lokalna@domena.tld`: dokładnie jedno `@`, domena z kropką |
+| `GOOGLE_CLIENT_ID` | K5 | `.env` → zmienna → pytanie | nie | niepusty |
+| `GOOGLE_CLIENT_SECRET` | K5 | `.env` → zmienna → pytanie bez echa | tak | niepusty |
+| `BACKUP_AGE_RECIPIENT` | K5 | `.env` → zmienna → pytanie | nie | zaczyna się od `age1` |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | K6 | `.env` → para ze zmiennych (obie naraz) → generowana para | prywatny tak | niepuste |
+
+Dodatkowe reguły K7 dla kluczy, których instalator nie uzupełnia: `PUSH_MODE` pusty albo `web-push`; `AUTH_MODE` pusty albo `google`; żaden klucz nie występuje dwa razy. Komunikat K7 przy `PUSH_MODE` i `AUTH_MODE` podaje dozwoloną wartość; przy pozostałych podaje regułę, nigdy wartość.
+
+Wszystkie wartości wpisywane przez instalator (z pytań i ze zmiennych) muszą składać się ze znaków `A–Z a–z 0–9 . _ @ + : / = -`. Inna wartość jest błędna („niedozwolone znaki”), bo zapis bez cudzysłowów musi być jednoznaczny dla Compose. Wartości ręcznie wpisane w `.env` mogą mieć cudzysłowy; parser zdejmuje parę otaczających `'…'` albo `"…"` przed sprawdzeniem.
+
+#### Format `.env` i zapis
+
+- Parser rozpoznaje: puste linie, komentarze (`#` po opcjonalnych spacjach), `KLUCZ=wartość` z opcjonalnym `export ` na początku. Inne linie zostawia bez zmian i ich nie interpretuje.
+- Klucz pusty: występuje z pustą wartością albo nie występuje. Klucz zdublowany: instalator go nie uzupełnia, K7 go zgłasza.
+- Uzupełnienie: gdy klucz występuje z pustą wartością, zmieniana jest tylko ta linia (`KLUCZ=` → `KLUCZ=wartość`); gdy nie występuje, linia jest dopisywana na końcu pliku (z dopisaniem brakującego znaku nowej linii przed nią). Reszta pliku, kolejność i komentarze zostają bajt w bajt.
+- Zapis: nowa treść do pliku z `mktemp "$ROOT_DIR/.env.XXXXXX"` (wzorzec pasuje do `.gitignore` `.env.*`), `chmod 600`, `mv -f` na `.env`. Plik tymczasowy usuwa `trap`.
+- K2: gdy `.env` nie ma, kopiuje `.env.example` tą samą metodą. Gdy jest, a ma uprawnienia szersze niż `600` (`stat -c %a`), robi `chmod 600` i zgłasza „pominięty, już zrobione”.
+
+#### Wykrycie istniejącej bazy (K4)
+
+Gdy `POSTGRES_PASSWORD` jest pusty w `.env` i w zmiennej środowiskowej, K4 wywołuje `docker volume inspect <projekt>_db-data`. Wolumen istnieje → błąd „Baza danych tej instalacji już istnieje i ma hasło, którego nie ma w .env. Wpisz dotychczasowe hasło do POSTGRES_PASSWORD w .env (albo podaj je w zmiennej POSTGRES_PASSWORD) i uruchom instalator ponownie.” Nic nie jest generowane ani zapisywane, Compose nie jest uruchamiany.
+
+#### K6: niekompletna para
+
+Gdy w `.env` dokładnie jeden z kluczy VAPID jest niepusty, K6 kończy się błędem z nazwą pustego klucza („uzupełnij ręcznie albo wyczyść oba”), bo nowa para nadpisałaby ustawioną wartość. To samo dla pary ze zmiennych środowiskowych, gdy podana jest tylko jedna.
+
+### Kontrakty
+
+#### Wywołanie
+
+```
+scripts/install.sh
+```
+
+Bez argumentów (argument powoduje błąd z opisem użycia). Działa z dowolnego katalogu bieżącego.
+
+| Kod wyjścia | Znaczenie |
+| --- | --- |
+| `0` | K9 potwierdził `ok` |
+| `1` | błąd w dowolnym kroku, także Ctrl+D przy pytaniu |
+| `130` | Ctrl+C (`SIGINT`) |
+| `143` | `SIGTERM` |
+
+#### Wyjście
+
+Każdy krok wypisuje jedną linię statusu na standardowe wyjście, dokładnie w formacie:
+
+```
+K<n> <nazwa kroku>: zrobione
+K<n> <nazwa kroku>: pominięty, już zrobione
+K<n> <nazwa kroku>: błąd
+```
+
+Nazwy kroków: `Wymagania`, `Plik .env`, `Wariant HTTPS`, `Hasło bazy`, `Wartości od właściciela`, `Klucze push`, `Kontrola .env`, `Start`, `Sprawdzenie`. Po linii „błąd” następują wiersze `  - <NAZWA_ZMIENNEJ>: <co jest nie tak>` albo `  - <opis>` i ewentualnie polecenie do wykonania. Komunikaty błędów idą na standardowe wyjście błędów. Wszystkie teksty po polsku. Kroki K1, K7, K8 i K9 nigdy nie zgłaszają „pominięty”; K8 i K9 po sukcesie zgłaszają „zrobione”, K1 i K7 też.
+
+Komunikaty K1 (każdy z wykrytą wartością tam, gdzie ją znamy):
+
+- brak `docker`: „Brakuje Dockera (polecenie docker nie istnieje). Zainstaluj Docker Engine z wtyczką Compose.”
+- `docker info` kończy się błędem z `permission denied`: „Brak dostępu do Dockera dla użytkownika <użytkownik>. Dodaj go do grupy docker i zaloguj się ponownie.”; inny błąd `docker info`: „Docker nie odpowiada. Sprawdź, czy usługa docker działa.”
+- Compose: „Wymagany Docker Compose w wersji co najmniej 2.24, wykryto: <wersja albo „brak”>.” Wersja z `docker compose version --short`, z obciętym prefiksem `v` i sufiksem po `-`; porównanie liczbowe major.minor.
+
+#### Pytania (tryb z pytaniami)
+
+Teksty pytań są stałe; testy na nie czekają.
+
+| Klucz | Tekst przed pytaniem | Pytanie |
+| --- | --- | --- |
+| `HTTPS_MODE` | „caddy – wbudowana usługa caddy wystawia aplikację po HTTPS i sama odnawia certyfikat (porty 80 i 443). proxy – serwer ma własne reverse proxy, aplikacja nasłuchuje na 127.0.0.1:<APP_PORT>.” | `Wariant HTTPS [caddy/proxy]: ` |
+| domena | — | `Domena aplikacji (np. przepisy.example.pl): ` |
+| `ALLOWED_EMAIL` | — | `Adres Google, który może się logować: ` |
+| `GOOGLE_CLIENT_ID` | „Dane klienta OAuth z Google Cloud Console (docs/operations.md, „Klient OAuth w Google”).” | `Google Client ID: ` |
+| `GOOGLE_CLIENT_SECRET` | — | `Google Client secret (nie będzie widoczny): ` (`read -rs`) |
+| `BACKUP_AGE_RECIPIENT` | „Na własnym komputerze wygeneruj parę kluczy: age-keygen -o klucz-kopii.txt. Klucz prywatny zostaje u Ciebie, poza serwerem. Wklej klucz publiczny (age1…).” | `Klucz publiczny age: ` |
+
+Błędna odpowiedź: wiersz `  ! <NAZWA_ZMIENNEJ>: <co jest nie tak>` i to samo pytanie ponownie. Pusta odpowiedź jest błędna („wartość jest wymagana”). Koniec wejścia (Ctrl+D, `read` zwraca kod różny od zera): „Przerwano wpisywanie, <NAZWA_ZMIENNEJ> nie została zapisana.” i kod 1.
+
+#### Zmienne środowiskowe instalatora
+
+| Zmienna | Znaczenie |
+| --- | --- |
+| `HTTPS_MODE`, `APP_DOMAIN`, `APP_BASE_URL`, `ALLOWED_EMAIL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BACKUP_AGE_RECIPIENT`, `POSTGRES_PASSWORD`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Wartość dla pustego klucza `.env` o tej samej nazwie |
+| `MP_INSTALL_PROJECT` | Tylko testy. Nazwa projektu Compose, domyślnie `mounjaro-przepisy` |
+| `MP_INSTALL_COMPOSE_OVERRIDE` | Tylko testy. Ścieżka dodatkowego pliku Compose (`-f`) |
+| `MP_INSTALL_HEALTH_TIMEOUT` | Tylko testy. Limit K9 w sekundach, domyślnie `180` |
+
+#### Kontrakt uruchamiania Compose
+
+Jedna funkcja `compose` w `install.sh`:
+
+```bash
+env -i PATH="$PATH" HOME="$HOME" … ${DOCKER_HOST:+DOCKER_HOST="$DOCKER_HOST"} … \
+  docker compose -p "$PROJECT" --project-directory "$ROOT_DIR" --env-file "$ROOT_DIR/.env" \
+  -f "$ROOT_DIR/compose.yml" ${MP_INSTALL_COMPOSE_OVERRIDE:+-f "$MP_INSTALL_COMPOSE_OVERRIDE"} "$@"
+```
+
+Przepuszczane zmienne (tylko gdy ustawione): `PATH`, `HOME`, `USER`, `LANG`, `TERM`, `XDG_RUNTIME_DIR`, `DOCKER_HOST`, `DOCKER_CONTEXT`, `DOCKER_CONFIG`, `DOCKER_CERT_PATH`, `DOCKER_TLS_VERIFY`, `DOCKER_BUILDKIT`. Żadne inne wywołanie `docker compose` w instalatorze nie istnieje.
+
+K8:
+
+| Wariant | Polecenia |
+| --- | --- |
+| `caddy` | `compose --profile tls up -d --build --remove-orphans` |
+| `proxy` | `compose --profile tls rm -sf caddy`, potem `compose up -d --build --remove-orphans` |
+
+Wyjście Compose jest przepuszczane na ekran i równocześnie zapisywane do pliku tymczasowego. Gdy `up` kończy się błędem, a zapis zawiera `port is already allocated` albo `address already in use`, K8 wypisuje „Port APP_PORT (<numer>) jest zajęty przez inny program. Zmień APP_PORT w .env albo zwolnij port.” (w wariancie `caddy` dodatkowo „albo porty 80/443”). Każdy inny błąd: „Uruchomienie nie powiodło się. Usuń przyczynę i uruchom instalator ponownie.”
+
+#### K9: sprawdzenie zdrowia
+
+Co 2 sekundy, do upływu `MP_INSTALL_HEALTH_TIMEOUT` (domyślnie 180 s, licznik `SECONDS` od startu K9):
+
+```bash
+compose exec -T app node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>r.json()).then(b=>process.exit(b.status==='ok'?0:1)).catch(()=>process.exit(1))"
+```
+
+Wyjście tego polecenia jest wyciszane. Sukces: „K9 Sprawdzenie: zrobione” i przypomnienie. Przekroczenie limitu: „K9 Sprawdzenie: błąd”, „Aplikacja nie odpowiada po 3 minutach.” i „Logi aplikacji: docker compose --project-directory <katalog> -p <projekt> logs --tail 100 app”. Instalator nie wypisuje logów sam.
+
+Przypomnienie (po sukcesie) wymienia, w tej kolejności: adres powrotu OAuth `<APP_BASE_URL>/api/auth/google/callback` do wpisania w Google Cloud Console; zaszyfrowany dysk serwera; klucz prywatny `age` trzymany poza serwerem; w wariancie `caddy` rekord DNS domeny i otwarte porty 80 i 443; listę kontrolną odbioru w `docs/operations.md`.
+
+#### Generowanie kluczy VAPID (K6)
+
+```bash
+docker run --rm --network none node:24-bookworm-slim node -e "<skrypt>"
+```
+
+Skrypt tworzy parę `crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' })`, eksportuje JWK i wypisuje dwie linie: klucz publiczny jako base64url z bajtu `0x04`, `x` i `y` (65 bajtów) oraz klucz prywatny `d` (32 bajty, base64url). Instalator czyta je do zmiennych, sprawdza długość (87 i 43 znaki) i zapisuje bez wypisywania. Obraz zgadza się z `ARG NODE_IMAGE` w `Dockerfile`.
+
+### Integracje
+
+Brak integracji zewnętrznych i nowych sekretów. Instalator korzysta z Dockera i Compose na serwerze oraz z obrazu `node:24-bookworm-slim` (ten sam, z którego budowana jest aplikacja). W testach Docker zastępuje atrapa `tests/installer/fake-docker/docker`, sterowana plikiem stanu, a scenariusze na prawdziwym stosie działają w projektach `inst-*` z nakładką `tests/installer/compose.installer-test.yml` (bez portów hosta, `caddy` z lokalnym urzędem certyfikacji zamiast ACME, bez usługi `backup`). Konfiguracja klienta OAuth w Google zostaje ręczna.
+
+### Plan implementacji
+
+Wspólne dla wszystkich kroków:
+
+- Testy kryteriów tej specyfikacji to Vitest w `tests/installer/*.test.ts` (atrapa `docker`, uruchamiane przez `scripts/test-unit.sh`) i scenariusze `tests/installer/stack/*.sh` (prawdziwy stos, `scripts/test-installer.sh`). Playwright nie bierze w nich udziału. Każdy test ma w nazwie identyfikator scenariusza (`S6: …`).
+- Na prawdziwym stosie sprawdzamy tylko: dane w bazie po ponownym uruchomieniu i przy wyczyszczonym haśle (S3), pierwszeństwo `.env` w działającej aplikacji (S2, S3), uruchomienie i zatrzymanie `caddy` oraz wiązanie portu `127.0.0.1` (S1, S9), instalację ręczną z danymi (S10) i dwa uruchomienia bez interakcji z sumą kontrolną `.env` (wymaganie CI). Wszystko inne na atrapie.
+- Limit 3 minut sprawdza test z `MP_INSTALL_HEALTH_TIMEOUT=3` i osobny test, że bez tej zmiennej komunikat i limit wynoszą 180 s.
+- Każdy test sprawdza, że pełne wyjście nie zawiera wartości sekretów, które dostał instalator.
+
+#### Etap 1: uporządkowany `.env.example` (S12)
+
+Zależy od: nic.
+
+1. Usunąć z `.env.example` blok „Powiadomienia push (od etapu 4.2)” z drugą kopią `VAPID_*` i `PUSH_MODE=webpush`. Zostaje blok z sekcji „Przypomnienie o zastrzyku” z `PUSH_MODE=web-push`.
+2. Test jednostkowy `src/server/envExample.test.ts` (projekt `unit-node`; `.env.example` jest w obrazie `dev`): żaden klucz nie występuje dwa razy; `PUSH_MODE` to `web-push`; `loadConfig` dla wartości z `.env.example` uzupełnionych o wymagane (`APP_ENV=production`, `DATABASE_URL`, `ALLOWED_EMAIL`, `APP_BASE_URL`, `GOOGLE_CLIENT_*`) nie rzuca błędu.
+
+#### Etap 2.1: szkielet instalatora, `.env` i kontrole (K1, K2, K7; S5, S7, część S4)
+
+Zależy od: etap 1.
+
+1. `scripts/lib/env.sh`: parser, wykrywanie duplikatów, reguły poprawności z tabeli „Klucze uzupełniane przez instalator”, atomowy zapis jednej wartości, wyliczanie `APP_DOMAIN` ↔ `APP_BASE_URL`.
+2. `scripts/install.sh`: start (tryb, `trap`, `umask`), funkcja `compose`, wypisywanie statusów, K1, K2, K7. Kroki K3–K6 i K8–K9 jeszcze nie istnieją; bez nich instalator kończy się po K7 kodem 1 z komunikatem „Instalator nie jest jeszcze kompletny” (usuwany w 2.3).
+3. `.env.example`: klucz `HTTPS_MODE=` z opisem w sekcji „Podstawy” (`caddy` | `proxy`, ustawia instalator) i zakomentowany opis `MP_INSTALL_*` w sekcji „Testy”.
+4. Atrapa `docker`: brak polecenia (osobny `PATH` bez atrapy), brak dostępu, wersja Compose.
+5. Testy: S5 (trzy kryteria, `.env` nie powstaje), K2 (tworzy z uprawnieniami `600`, zawęża szersze bez zmiany treści), S7 (cztery kryteria, `.env` bez zmian po K7), duplikaty, cudzysłowy w ręcznym `.env`, uruchomienie spoza katalogu repozytorium.
+
+#### Etap 2.2: wartości (K3–K6; S1 bez startu, S2, S4, S6, S10 bez startu)
+
+Zależy od: etap 2.1.
+
+1. K3 i K5 w obu trybach, z tekstami pytań z „Kontraktów”, ukrytym wpisywaniem sekretu i ponownym pytaniem po błędnej odpowiedzi; zbiorczy błąd w trybie bez interakcji.
+2. K4 z wykryciem wolumenu, K6 z generowaniem pary w kontenerze i obsługą niekompletnej pary.
+3. Atrapa `docker`: istniejący wolumen, wynik `docker run` dla kluczy VAPID.
+4. Testy: S1 (wartości w `.env`, Ctrl+C i Ctrl+D bez zapisu, brak sekretów w wyjściu), S2 (bez pytań, pierwszeństwo `.env` przed zmienną, pytania tylko o brakujące), S3 (K2–K6 pominięte, suma kontrolna, brak pytań w terminalu, wyczyszczone albo usunięte `.env` przy istniejącym wolumenie; K3 poprzedza K4, więc test bez terminala podaje `HTTPS_MODE` w zmiennej, a test w terminalu odpowiada na pytanie o wariant), S4 (hasło zostaje, pytania tylko o puste, brak urwanych linii po przerwaniu w każdym pytaniu), S6 (pięć kryteriów), S10 (pytanie tylko o wariant, wyliczenie `APP_DOMAIN`, dopisanie brakujących `VAPID_*` z resztą pliku bez zmian).
+
+#### Etap 2.3: start i sprawdzenie (K8, K9; S8, S9, scenariusze na prawdziwym stosie)
+
+Zależy od: etap 2.2.
+
+1. K8 w obu wariantach z czyszczeniem środowiska i rozpoznaniem zajętego portu; K9 z limitem, poleceniem do logów i przypomnieniem. Usunąć tymczasowe zakończenie z 2.1.
+2. Atrapa `docker`: błąd budowania, zajęty port, wynik sprawdzenia zdrowia; dziennik wywołań pozwala sprawdzić, że Compose nie dostaje zmiennych spoza listy.
+3. Testy na atrapie: S8 (trzy kryteria), S9 (polecenia dla obu kierunków, K3 pominięty, `.env` bez zmian), S4 (błąd budowania, potem start), zajęty `APP_PORT`, zmienne środowiskowe nie trafiają do Compose, przypomnienie z adresem powrotu OAuth i krokami zależnymi od wariantu.
+4. Scenariusze `tests/installer/stack/`: `10-noninteractive` (instalacja `caddy` bez interakcji, `caddy` działa, `.env` `600`; drugie uruchomienie: K2–K6 pominięte i ta sama suma kontrolna; zmienne `ALLOWED_EMAIL` i `POSTGRES_PASSWORD` inne niż w `.env`: aplikacja ma wartości z `.env` (`docker inspect`) i zdrowie `ok`; wiersz w bazie przetrwa ponowne uruchomienie; ręczna zmiana `ALLOWED_EMAIL` trafia do aplikacji; wyczyszczone hasło: błąd, kontener aplikacji ten sam, wiersz w bazie jest), `20-variant` (`proxy`: brak `caddy`, port tylko na `127.0.0.1`; zmiana na `caddy` i z powrotem), `30-manual` (instalacja ręczna przez `stack_compose` z danymi, potem instalator z `HTTPS_MODE`: wartości bez zmian, dane są, `VAPID_*` dopisane). `00-harness` zostaje.
+
+#### Etap 2.4: dokumentacja dwóch ścieżek (S11)
+
+Zależy od: etap 2.1 (kontrakt instalatora z tej sekcji jest stały, więc dokumentacja nie czeka na 2.2 i 2.3).
+
+1. `README.md` („Wdrożenie”): polecenie `scripts/install.sh` jako zalecana ścieżka i odnośnik do ręcznej.
+2. `docs/operations.md`: „Pierwsze uruchomienie” z instalatorem, listą zmiennych trybu bez interakcji (`HTTPS_MODE=caddy|proxy`), bezpiecznym podaniem sekretów (np. `read -rs GOOGLE_CLIENT_SECRET; export GOOGLE_CLIENT_SECRET` albo plik z uprawnieniami `600` wczytany przez `set -a; . plik; set +a` przed uruchomieniem, nigdy wartość w linii polecenia), zmianą wariantu (S9) i dotychczasową listą ręczną jako alternatywą; „Aktualizacja” z `git pull` i ponownym uruchomieniem instalatora; „Diagnostyka” z poleceniem logów z K9.
+3. Test: scenariusz `tests/installer/stack/90-docs.sh` (bez Dockera; `README.md` i `docs/` nie trafiają do obrazu `dev`) sprawdza obecność polecenia, `HTTPS_MODE`, obu wartości, odnośnika do ścieżki ręcznej i opisu aktualizacji.

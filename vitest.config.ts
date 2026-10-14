@@ -23,6 +23,15 @@ export default defineConfig({
       },
       {
         test: {
+          // Runs scripts/install.sh against a fake `docker` (docs/adr/0003-instalator-na-serwer.md).
+          name: 'installer',
+          environment: 'node',
+          include: ['tests/installer/**/*.test.ts'],
+          testTimeout: 30_000,
+        },
+      },
+      {
+        test: {
           name: 'integration',
           environment: 'node',
           include: ['tests/integration/**/*.test.ts'],

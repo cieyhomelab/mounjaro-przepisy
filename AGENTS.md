@@ -8,7 +8,7 @@ Instrukcja dla agentów pracujących w tym repozytorium. Przeczytaj ją w cało�
 2. **Każda zmiana w zachowaniu ma test.** Każdy scenariusz i każde kryterium akceptacji ze specyfikacji ma test E2E, nazwany identyfikatorem scenariusza (np. `S4: zapis bez tytułu wskazuje brakujące pole`).
 3. **Dane użytkownika to dane o zdrowiu.** Nie trafiają do logów, komunikatów błędów, zewnętrznych usług ani do repozytorium (także w danych testowych nie używaj prawdziwych danych osób).
 4. **Nie zgaduj API bibliotek.** Kilka z nich ma świeże wersje główne (Vite 8, Vitest 5, React Router 8, ESLint 10, Zod 4). Sprawdź wersję w `package.json` i typy w `node_modules`, zanim użyjesz czegoś z pamięci.
-5. **Specyfikacja jest źródłem prawdy o zachowaniu:** `.ai/specs/2026-10-08-mounjaro-przepisy.md`. Sekcja „Sekcje techniczne” opisuje architekturę, model danych, API i plan etapów.
+5. **Specyfikacja jest źródłem prawdy o zachowaniu:** `.ai/specs/2026-10-08-mounjaro-przepisy.md` (aplikacja) i `.ai/specs/2026-10-14-instalator.md` (instalator na serwer, `scripts/install.sh`). Sekcja „Sekcje techniczne” każdej z nich opisuje architekturę, model danych, kontrakty i plan etapów.
 
 ## Projekt
 
@@ -20,7 +20,9 @@ TypeScript 6 na Node.js 24. Klient: React 19, Vite 8, React Router 8, Tailwind C
 
 Wygląd (etap 5): tokeny jako zmienne CSS wystawione Tailwindowi, fonty z pakietów Fontsource, ikony `lucide-react`, kontrast sprawdzany przez `@axe-core/playwright`.
 
-Uzasadnienie i odrzucone alternatywy: [docs/adr/0001-stos-technologiczny.md](docs/adr/0001-stos-technologiczny.md) (stos) i [docs/adr/0002-wyglad-motyw-i-zaplecze-testow-etapu-5.md](docs/adr/0002-wyglad-motyw-i-zaplecze-testow-etapu-5.md) (wygląd, motyw, zrzuty). Zmiana stosu albo nowa usługa w Compose wymaga nowego ADR w `docs/adr/`.
+Instalator na serwer: bash (tylko Docker z Compose ≥ 2.24 i bash na hoście), testowany przez Vitest z atrapą polecenia `docker` i przez scenariusze na prawdziwym stosie; skrypty basha sprawdza `shellcheck`.
+
+Uzasadnienie i odrzucone alternatywy: [docs/adr/0001-stos-technologiczny.md](docs/adr/0001-stos-technologiczny.md) (stos), [docs/adr/0002-wyglad-motyw-i-zaplecze-testow-etapu-5.md](docs/adr/0002-wyglad-motyw-i-zaplecze-testow-etapu-5.md) (wygląd, motyw, zrzuty) i [docs/adr/0003-instalator-na-serwer.md](docs/adr/0003-instalator-na-serwer.md) (instalator i jego testy). Zmiana stosu albo nowa usługa w Compose wymaga nowego ADR w `docs/adr/`.
 
 ## Struktura katalogów
 
@@ -39,6 +41,8 @@ Uzasadnienie i odrzucone alternatywy: [docs/adr/0001-stos-technologiczny.md](doc
 | `tests/e2e/` | Testy Playwright | Testy scenariuszy; strony testowe w `tests/e2e/fixtures/`; katalog ekranów z danymi przykładowymi w `tests/e2e/screens.ts` |
 | `docs/screenshots/` | Zrzuty każdego ekranu w wariantach `mobile-light`, `mobile-dark`, `desktop-light` | Nic ręcznie; pliki zapisuje `scripts/screenshots.sh` |
 | `scripts/` | Jednolity punkt wejścia dla agentów i CI | Nowe skrypty tylko wtedy, gdy potrzebuje ich cały zespół |
+| `scripts/install.sh`, `scripts/lib/env.sh` | Instalator na serwer (kroki K1–K9) i funkcje czytające i zapisujące `.env` | Zmiany instalatora; patrz „Instalator” poniżej |
+| `tests/installer/` | Testy instalatora: `*.test.ts` (Vitest, atrapa `docker`), `harness.ts`, `fake-docker/docker`, `stack/*.sh` (prawdziwy stos), `compose.installer-test.yml` | Test każdego kryterium specyfikacji instalatora |
 | `docs/adr/` | Decyzje architektoniczne | Kolejne ADR z numerem |
 | `.ai/` | Specyfikacje i konfiguracja pipeline'u agentów | Nie zmieniaj ręcznie `agentic.config.json` bez potrzeby |
 
@@ -56,6 +60,7 @@ Granice są pilnowane przez ESLint: `src/shared` nie importuje niczego z `src/se
 | Integracji zewnętrznej | `.env.example`, sekcja „Integracje” specyfikacji | Interfejs, implementacja prawdziwa i atrapa; atrapa wybierana zmienną środowiskową |
 | Testów E2E | `tests/e2e/smoke.spec.ts`, `playwright.config.ts`, `scripts/test-e2e.sh`, `compose.e2e.yml` | Kontrakt poniżej |
 | CI | `.github/workflows/ci.yml` | CI wywołuje wyłącznie skrypty z `scripts/` |
+| Instalatora albo `.env.example` | `.ai/specs/2026-10-14-instalator.md` (z „Sekcjami technicznymi”), ADR 0003, `scripts/lib.sh`, `tests/installer/harness.ts` | Reguły z sekcji „Instalator” poniżej |
 | Procesu pracy | `SDLC.md`, `CODE_REVIEW.md`, `BACKWARD_COMPATIBILITY.md`, `.ai/agentic.config.json` | — |
 
 ## Komendy
@@ -64,15 +69,18 @@ Wymagania hosta: Docker z Compose v2.24 lub nowszym oraz bash.
 
 | Komenda | Co robi |
 | --- | --- |
-| `scripts/lint.sh` | ESLint, sprawdzenie formatowania Prettier, sprawdzenie typów |
-| `scripts/test-unit.sh` | Testy jednostkowe (Vitest); argumenty trafiają do Vitest |
+| `scripts/lint.sh` | ESLint, sprawdzenie formatowania Prettier, sprawdzenie typów, `shellcheck` skryptów basha |
+| `scripts/test-unit.sh` | Testy jednostkowe (Vitest), razem z testami instalatora na atrapie `docker` (projekt `installer`); argumenty trafiają do Vitest, np. `scripts/test-unit.sh --project installer` |
 | `scripts/test-integration.sh` | Testy integracyjne z tymczasowym PostgreSQL w projekcie Compose `it-<id>` |
 | `scripts/test-e2e.sh` | Testy E2E (Playwright) na tymczasowej instancji całej aplikacji |
 | `scripts/build.sh` | Build produkcyjny: klient, serwer i obraz uruchomieniowy |
 | `scripts/screenshots.sh` | Zrzuty wszystkich ekranów z katalogu do `docs/screenshots/`; argumenty trafiają do Playwrighta, np. `scripts/screenshots.sh -g "planer\|zakupy"` odświeża tylko te ekrany |
+| `scripts/test-installer.sh [scenariusz…]` | Scenariusze instalatora na prawdziwym stosie (`tests/installer/stack/*.sh`), każdy w kopii repozytorium i własnym projekcie Compose `inst-<id>-<nr>`; argumenty wybierają scenariusze po nazwie pliku, np. `scripts/test-installer.sh 10-noninteractive`. Nie należy do pełnej walidacji, CI uruchamia go zawsze |
 | `scripts/npm.sh <argumenty>` | npm w Node 24 z zamontowanym katalogiem roboczym. Używaj do wszystkiego, co zapisuje pliki: `scripts/npm.sh install <pakiet>`, `scripts/npm.sh run format`, `scripts/npm.sh run db:generate` |
 
 Pełna walidacja przed PR, w tej kolejności: lint, unit, integration, e2e, build. Każdy skrypt kończy się kodem różnym od zera przy błędzie. Skrypty testowe budują obraz z bieżącego stanu plików, więc nie wymagają commita.
+
+Przygotowanie świeżego worktree: nic nie trzeba instalować, skrypty budują obraz z bieżących plików. Tylko do pracy z edytorem (podpowiedzi typów) i do `scripts/npm.sh exec -- prettier --write <pliki>` uruchom raz `scripts/npm.sh ci`.
 
 Uruchomienie aplikacji lokalnie: `cp .env.example .env`, uzupełnij `POSTGRES_PASSWORD`, potem `docker compose up -d --build`; aplikacja jest pod `http://127.0.0.1:3000`.
 
@@ -100,6 +108,16 @@ Zasady pisania testów E2E:
 - Czas przesuwaj przez endpoint `/api/__test/clock` (serwer) i `page.clock` (przeglądarka), nigdy przez `waitForTimeout`.
 - Każdy test sam przygotowuje dane przez API albo interfejs i nie zależy od kolejności; stan bazy czyść przez `/api/__test/reset`.
 - Offline symuluj przez `context.setOffline(true)`.
+
+## Instalator
+
+Specyfikacja: `.ai/specs/2026-10-14-instalator.md`, decyzje: ADR 0003.
+
+- **Zachowanie testuj w `tests/installer/*.test.ts`.** Test uruchamia prawdziwy `scripts/install.sh` w kopii repozytorium (`createInstallation`) z atrapą `docker` na początku `PATH`. Zachowanie atrapy ustawiasz przez `setDockerState`, wywołania czytasz przez `dockerCalls`. Nową sytuację Dockera (błąd budowania, zajęty port, wynik sprawdzenia zdrowia, istniejący wolumen) dopisujesz do atrapy razem z opisem w jej nagłówku. Tryb z pytaniami: `runInstaller(i, { tty: true, steps: [{ waitFor: 'Domena', send: 'przepisy.example.test\n' }] })`; Ctrl+C to `'\x03'`, Ctrl+D to `'\x04'`. Test nazywasz identyfikatorem scenariusza (`S6: …`).
+- **Prawdziwy stos tylko tam, gdzie atrapa nie wystarczy:** dane w bazie po ponownym uruchomieniu, pierwszeństwo `.env` w działającej aplikacji, zatrzymanie `caddy`, dwa uruchomienia bez interakcji (wymaganie CI). Scenariusz to plik `tests/installer/stack/<nr>-<nazwa>.sh` korzystający z `stack/lib.sh` (`run_installer`, `stack_compose`, `env_value`, `env_checksum`, `TEST_VALUES`).
+- **Kiedy uruchamiasz `scripts/test-installer.sh` lokalnie:** gdy PR zmienia `scripts/install.sh`, `scripts/lib/env.sh`, `scripts/lib.sh`, `compose.yml`, `.env.example`, `Dockerfile` albo `tests/installer/stack/`. CI uruchamia go przy każdym PR. Pozostałości po przerwanym przebiegu mają prefiks `inst-`.
+- **Reguły instalatora:** `.env` czytasz parserem z `scripts/lib/env.sh`, nigdy przez `source`. Zapis tylko przez funkcję z atomową zamianą pliku (`mktemp` w katalogu repozytorium, `chmod 600`, `mv`). Każde `docker compose` idzie przez jedną funkcję z `env -i`, `--env-file`, `--project-directory` i `-p "$PROJECT"`. Wartości sekretów nie trafiają na wyjście ani do komunikatów, także w trybie diagnostycznym; nie używaj `set -x`. Komunikaty po polsku, statusy kroków dosłownie „zrobione”, „pominięty, już zrobione”, „błąd”.
+- **Zmienne tylko dla testów:** `MP_INSTALL_PROJECT` (projekt Compose, domyślnie `mounjaro-przepisy`), `MP_INSTALL_COMPOSE_OVERRIDE` (dodatkowy plik Compose), `MP_INSTALL_HEALTH_TIMEOUT` (sekundy, domyślnie 180). Nie zmieniaj domyślnej nazwy projektu: od niej zależy wolumen z danymi istniejących instalacji.
 
 ## Zrzuty ekranów w PR
 
@@ -171,5 +189,6 @@ Repozytorium jest publiczne: dane przykładowe w katalogu ekranów są zmyślone
 - Nie udostępniaj zdjęć ani danych pod adresem działającym bez sesji.
 - Nie włączaj atrap ani endpointów `/api/__test/*` przy `APP_ENV=production`.
 - Nie dodawaj nowej usługi, bazy ani języka bez ADR.
+- Nie wczytuj `.env` przez `source` ani `.` i nie wypisuj wartości sekretów w skryptach; nie zakładaj na hoście niczego poza Dockerem i bashem (bez `curl`, `openssl`, `jq`, `python`).
 - Nie wyłączaj testów, nie oznaczaj ich `skip` bez powodu w kodzie, nie używaj `--no-verify`.
 - Nie zmieniaj części funkcjonalnej specyfikacji; lukę albo sprzeczność zgłoś w issue z etykietą `spec-gap`.

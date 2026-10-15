@@ -385,6 +385,98 @@ step_k7() {
   step_status 7 'zrobione'
 }
 
+# --- K8-K9: start and health check --------------------------------------------------------
+
+HEALTH_SCRIPT="fetch('http://127.0.0.1:3000/api/health').then(r=>r.json()).then(b=>process.exit(b.status==='ok'?0:1)).catch(()=>process.exit(1))"
+
+# compose_logged <log file> <compose args>...: Compose output goes to the screen and to the file;
+# returns Compose's exit code.
+compose_logged() {
+  local log="$1" code=0
+  shift
+  set +e
+  compose "$@" 2>&1 | tee -a "$log"
+  code="${PIPESTATUS[0]}"
+  set -e
+  return "$code"
+}
+
+step_k8() {
+  local log mode port detail
+  reload
+  mode="$(env_value HTTPS_MODE)"
+  port="$(env_value APP_PORT)"
+  port="${port:-3000}"
+  log="$(mktemp)"
+  ENV_TMP_FILES+=("$log")
+  if [ "$mode" = proxy ]; then
+    if ! compose_logged "$log" --profile tls rm -sf caddy; then
+      step_fail 8 '  - Uruchomienie nie powiodło się. Usuń przyczynę i uruchom instalator ponownie.'
+    fi
+  fi
+  local -a up=(up -d --build --remove-orphans)
+  if [ "$mode" = caddy ]; then
+    up=(--profile tls "${up[@]}")
+  fi
+  if ! compose_logged "$log" "${up[@]}"; then
+    if grep -qiE 'port is already allocated|address already in use' "$log"; then
+      detail="  - Port APP_PORT (${port}) jest zajęty przez inny program. Zmień APP_PORT w .env albo zwolnij port."
+      if [ "$mode" = caddy ]; then
+        detail="  - Port APP_PORT (${port}) jest zajęty przez inny program. Zmień APP_PORT w .env, zwolnij port albo porty 80/443."
+      fi
+      step_fail 8 "$detail"
+    fi
+    step_fail 8 '  - Uruchomienie nie powiodło się. Usuń przyczynę i uruchom instalator ponownie.'
+  fi
+  rm -f "$log"
+  step_status 8 'zrobione'
+}
+
+# now: whole seconds; a function so the tests can move the clock together with `sleep`.
+now() {
+  date +%s
+}
+
+step_k9() {
+  local limit="${MP_INSTALL_HEALTH_TIMEOUT:-180}" started waited
+  [[ "$limit" =~ ^[0-9]+$ ]] || limit=180
+  started="$(now)"
+  while true; do
+    if compose exec -T app node -e "$HEALTH_SCRIPT" >/dev/null 2>&1; then
+      step_status 9 'zrobione'
+      return
+    fi
+    if [ $(($(now) - started)) -ge "$limit" ]; then
+      break
+    fi
+    sleep 2
+  done
+  if [ "$limit" -eq 180 ]; then
+    waited='3 minutach'
+  else
+    waited="${limit} s"
+  fi
+  step_fail 9 "  - Aplikacja nie odpowiada po ${waited}." \
+    "  - Logi aplikacji: docker compose --project-directory ${ROOT_DIR} -p ${PROJECT} logs --tail 100 app"
+}
+
+print_reminder() {
+  local base
+  reload
+  base="$(env_value APP_BASE_URL)"
+  echo
+  echo 'Aplikacja działa. Zostały kroki ręczne:'
+  echo "  1. W Google Cloud Console dodaj adres powrotu OAuth: ${base}/api/auth/google/callback"
+  echo '  2. Serwer powinien mieć zaszyfrowany dysk.'
+  echo '  3. Klucz prywatny age (do kopii zapasowych) trzymaj poza serwerem.'
+  if [ "$(env_value HTTPS_MODE)" = caddy ]; then
+    echo "  4. Ustaw rekord DNS domeny $(env_value APP_DOMAIN) na adres tego serwera i otwórz porty 80 i 443."
+    echo '  5. Przejdź listę kontrolną odbioru w docs/operations.md.'
+  else
+    echo '  4. Przejdź listę kontrolną odbioru w docs/operations.md.'
+  fi
+}
+
 main() {
   if [ "$#" -gt 0 ]; then
     echo 'Użycie: scripts/install.sh (bez argumentów)' >&2
@@ -397,9 +489,9 @@ main() {
   step_k5
   step_k6
   step_k7
-  # K8-K9 arrive in stage 2.3, which removes this message.
-  echo 'Instalator nie jest jeszcze kompletny.' >&2
-  exit 1
+  step_k8
+  step_k9
+  print_reminder
 }
 
 main "$@"

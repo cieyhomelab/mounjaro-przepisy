@@ -84,3 +84,42 @@ TEST_VALUES=(
   GOOGLE_CLIENT_SECRET=GOCSPX-test-only-secret
   BACKUP_AGE_RECIPIENT=age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
 )
+
+# service_running <service> [profile]: true when the service of the test project runs.
+service_running() {
+  [ -n "$(stack_compose --profile tls ps --status running -q "$1" 2>/dev/null)" ]
+}
+
+# app_container: id of the app container of the test project (empty when there is none).
+app_container() {
+  stack_compose ps -q app 2>/dev/null | head -n 1
+}
+
+# app_env <NAME>: value of the variable inside the running app container (never print secrets).
+app_env() {
+  docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$(app_container)" |
+    sed -n "s/^$1=//p" | head -n 1
+}
+
+# db_sql <statement>: runs SQL in the database of the test project and prints the bare result.
+db_sql() {
+  stack_compose exec -T db psql -U app -d app -tA -c "$1"
+}
+
+# assert_installer_ok <message> [VAR=value ...]: the installer ends with code 0 and prints neither
+# the test secrets nor the database password.
+assert_installer_ok() {
+  local message="$1" code=0
+  shift
+  run_installer "$@" || code=$?
+  [ "$code" -eq 0 ] || { cat "$INSTALL_OUT" >&2; fail "$message (exit code $code)"; }
+  assert_no_secrets
+}
+
+# assert_no_secrets: the last installer output holds no secret value.
+assert_no_secrets() {
+  local secret
+  for secret in GOCSPX-test-only-secret "$(env_value POSTGRES_PASSWORD)" "$(env_value VAPID_PRIVATE_KEY)"; do
+    [ -z "$secret" ] || assert_output_lacks "$secret" "installer output contains a secret value"
+  done
+}

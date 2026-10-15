@@ -295,6 +295,7 @@ describe('S3: ponowne uruchomienie (część na atrapie)', () => {
     'S3: istniejący wolumen bazy i .env %s: błąd, bez nowego hasła i bez uruchamiania aplikacji',
     async (kind) => {
       await install();
+      const callsBefore = dockerCalls(installation).length;
       if (kind === 'usunięty') {
         writeFileSync(installation.envPath, '');
         chmodSync(installation.envPath, 0o600);
@@ -314,7 +315,11 @@ describe('S3: ponowne uruchomienie (część na atrapie)', () => {
       expect(dockerCalls(installation).some((call) => call.startsWith('volume inspect'))).toBe(
         true,
       );
-      expect(dockerCalls(installation).some((call) => call.startsWith('compose -p'))).toBe(false);
+      expect(
+        dockerCalls(installation)
+          .slice(callsBefore)
+          .some((call) => call.startsWith('compose -p')),
+      ).toBe(false);
     },
   );
 

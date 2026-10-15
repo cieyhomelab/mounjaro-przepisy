@@ -599,6 +599,21 @@ describe('K6: klucze push', () => {
     expect(valueOf('VAPID_PUBLIC_KEY')).toBe('pub-only');
   });
 
+  it.each([
+    ['VAPID_PUBLIC_KEY', 'VAPID_PUBLIC_KEY=\nVAPID_PUBLIC_KEY=pub-manual\nVAPID_PRIVATE_KEY=\n'],
+    ['VAPID_PRIVATE_KEY', 'VAPID_PUBLIC_KEY=\nVAPID_PRIVATE_KEY=\nVAPID_PRIVATE_KEY=priv-manual\n'],
+  ])('K6: zdublowany %s nie jest uzupełniany, a K7 zgłasza duplikat', async (key, content) => {
+    writeEnv(content);
+
+    const result = await runInstaller(installation, { env: VALUES });
+
+    expect(result.code).not.toBe(0);
+    expect(result.output).toContain('K6 Klucze push: pominięty, już zrobione');
+    expect(result.output).toContain(`  - ${key}: klucz występuje w .env więcej niż raz`);
+    expect(envText().startsWith(content)).toBe(true);
+    expect(dockerCalls(installation).some((call) => call.startsWith('run '))).toBe(false);
+  });
+
   it('K6: tylko jedna zmienna VAPID kończy się błędem i niczego nie zapisuje', async () => {
     const result = await runInstaller(installation, {
       env: { ...VALUES, VAPID_PRIVATE_KEY: 'priv-only-from-env' },

@@ -327,7 +327,9 @@ node_image() {
 step_k6() {
   local pub priv out problem
   reload
-  if { settled VAPID_PUBLIC_KEY && settled VAPID_PRIVATE_KEY; }; then
+  # A duplicated key is left for K7 to report: filling its pair would mix two key pairs.
+  if { settled VAPID_PUBLIC_KEY && settled VAPID_PRIVATE_KEY; } \
+    || [ "${ENV_COUNTS[VAPID_PUBLIC_KEY]:-0}" -gt 1 ] || [ "${ENV_COUNTS[VAPID_PRIVATE_KEY]:-0}" -gt 1 ]; then
     step_status 6 'pominięty, już zrobione'
     return
   fi

@@ -8,6 +8,8 @@
 # - Loads secrets from ${SH_SECRETS_DIR:-$HOME/.sh-secrets}/mounjaro-przepisy.env when present;
 #   works without them, external integrations run in mock mode.
 # - On failure, traces and screenshots are copied to test-results/e2e-<id>/.
+# - The JSON report (written in CI, see playwright.config.ts) is copied to
+#   test-results/e2e-<id>/report.json after every run, also a green one.
 # - With E2E_SCREENSHOTS=1 the runner saves screen screenshots (tests/e2e/screens.spec.ts); they are
 #   copied to docs/screenshots/ after the run, also when tests failed. Existing files are
 #   overwritten, others are kept. scripts/screenshots.sh wraps this.
@@ -43,6 +45,11 @@ fi
 
 status=0
 compose --profile runner run --name "$RUNNER" e2e "$@" || status=$?
+
+if docker cp "${RUNNER}:/e2e/test-results/report.json" - >/dev/null 2>&1; then
+  mkdir -p "test-results/${PROJECT}"
+  docker cp "${RUNNER}:/e2e/test-results/report.json" "test-results/${PROJECT}/report.json" >/dev/null || true
+fi
 
 if [ "$status" -ne 0 ]; then
   mkdir -p "test-results/${PROJECT}"

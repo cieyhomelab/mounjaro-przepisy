@@ -92,8 +92,9 @@ Uruchomienie aplikacji lokalnie: `cp .env.example .env`, uzupełnij `POSTGRES_PA
 - nie publikuje portów na hoście. Kontener Playwrighta dzieli sieć z kontenerem aplikacji, więc testy otwierają `http://localhost:3000` (bezpieczny kontekst wymagany przez service worker i push). Używaj ścieżek względnych (`page.goto('/')`);
 - zawsze sprząta kontenery, sieci, wolumeny i obrazy, także po błędzie i przerwaniu;
 - wczytuje sekrety z `${SH_SECRETS_DIR:-$HOME/.sh-secrets}/mounjaro-przepisy.env`, jeśli plik istnieje, i działa bez niego;
-- przy niepowodzeniu kopiuje ślady i zrzuty ekranu do `test-results/e2e-<id>/`;
+- przy niepowodzeniu kopiuje ślady i zrzuty ekranu do `test-results/e2e-<id>/`; w CI po każdym przebiegu kopiuje tam też `report.json` z czasami testów;
 - przekazuje argumenty do Playwrighta: ścieżki plików, projekt przeglądarki i filtr nazw, np. `scripts/test-e2e.sh tests/e2e/s19-planner.spec.ts --project mobile-webkit` albo `scripts/test-e2e.sh --project mobile-chromium -g "S4"`;
+- w CI działa w 4 shardach (`--shard=N/4`), każdy na własnym stosie; check „E2E” jest zielony, gdy przeszły wszystkie. PR zmieniający tylko dokumentację, `.ai/`, testy instalatora i integracyjne albo pliki instalatora pomija E2E (filtr w `.github/workflows/ci.yml`); push do `main` uruchamia je zawsze;
 - z `E2E_SCREENSHOTS=1` dodatkowo kopiuje zrzuty zapisane przez `tests/e2e/screens.spec.ts` do `docs/screenshots/` (tak działa `scripts/screenshots.sh`); bez tej zmiennej niczego tam nie zapisuje.
 
 Zasady pisania testów E2E:

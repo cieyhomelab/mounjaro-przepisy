@@ -35,7 +35,7 @@ Ponowne uruchomienie pomija kroki już wykonane, nigdy nie zmienia ustawionej wa
 
 ### Tryb bez interakcji
 
-Gdy instalator nie ma terminala (potok, CI), nie zadaje pytań. Wartości bierze z `.env`, a brakujące z zmiennych środowiskowych o tych samych nazwach; wartość z `.env` ma pierwszeństwo. Gdy czegoś brakuje albo coś jest niepoprawne, instalator wymienia wszystkie takie zmienne i kończy się błędem.
+Gdy instalator nie ma terminala (potok, CI), nie zadaje pytań. Wartości bierze z `.env`, a brakujące ze zmiennych środowiskowych o tych samych nazwach; wartość z `.env` ma pierwszeństwo. Gdy czegoś brakuje albo coś jest niepoprawne, instalator wymienia wszystkie takie zmienne i kończy się błędem.
 
 | Zmienna | Wartość |
 | --- | --- |

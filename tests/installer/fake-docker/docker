@@ -9,6 +9,9 @@
 # Supported state keys (extend together with the installer):
 #   ACCESS=denied              `docker info` fails like a socket without permission
 #   COMPOSE_VERSION=2.29.1     printed by `docker compose version --short`; `none` = no plugin
+#   VOLUME=exists             `docker volume inspect` succeeds (the database volume exists)
+#   VAPID_PUBLIC=<text>        first line printed by `docker run` (default: 87 characters)
+#   VAPID_PRIVATE=<text>       second line printed by `docker run` (default: 43 characters)
 #   EXIT_<word>=<code>         exit code for a call whose arguments contain <word> (e.g. EXIT_build=1)
 set -u
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -42,6 +45,18 @@ case "${1:-}" in
       echo 'permission denied while trying to connect to the Docker daemon socket' >&2
       exit 1
     fi
+    ;;
+  volume)
+    if [ "${2:-}" = inspect ] && [ "$(get VOLUME none)" != exists ]; then
+      echo "Error: No such volume: ${3:-}" >&2
+      exit 1
+    fi
+    ;;
+  run)
+    get VAPID_PUBLIC "FAKEPUBLICKEY$(printf 'p%.0s' $(seq 1 74))"
+    printf '\n'
+    get VAPID_PRIVATE "FAKEPRIVATEKEY$(printf 'q%.0s' $(seq 1 29))"
+    printf '\n'
     ;;
   compose)
     if [ "${2:-}" = version ]; then

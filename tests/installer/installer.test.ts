@@ -1,4 +1,5 @@
 // Stage 2.1 of the installer: K1 (requirements), K2 (.env file) and K7 (.env check).
+// A complete .env makes K3-K6 skip, so these tests reach K7 as before.
 // Scenario ids come from .ai/specs/2026-10-14-instalator.md.
 import {
   chmodSync,
@@ -48,6 +49,7 @@ function validEnv(extra = '') {
     'GOOGLE_CLIENT_ID=client-id',
     `GOOGLE_CLIENT_SECRET=${SECRETS[1]}`,
     'PUSH_MODE=web-push',
+    'VAPID_PUBLIC_KEY=vapid-public-key',
     `VAPID_PRIVATE_KEY=${SECRETS[2]}`,
     'BACKUP_AGE_RECIPIENT=age1abcdef',
     extra,

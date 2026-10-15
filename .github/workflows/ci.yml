@@ -35,22 +35,88 @@ jobs:
           APP_DOMAIN: przepisy.example.test
         run: docker compose --profile tls config --quiet
 
-  e2e:
-    name: E2E
+  # Pull requests that cannot change the running app skip E2E. The filter lists exclusions,
+  # not inclusions: the Dockerfile build stage copies the whole repository, so any new path
+  # runs E2E by default. Workflows, scripts/test-e2e.sh and scripts/lib.sh are never excluded.
+  changes:
+    name: Detect app changes
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          predicate-quantifier: some-with-excludes
+          filters: |
+            app:
+              - '**'
+              - '!**/*.md'
+              - '!docs/**'
+              - '!tests/installer/**'
+              - '!tests/integration/**'
+              - '!.ai/**'
+              - '!scripts/install.sh'
+              - '!scripts/lib/env.sh'
+              - '!.env.example'
+
+  # Each shard starts its own Compose stack, so "one server, one worker" still holds inside a job.
+  # On push to main E2E always runs.
+  e2e:
+    name: E2E shard ${{ matrix.shard }}/4
+    needs: changes
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || needs.changes.outputs.app == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7
       - name: E2E tests
-        run: scripts/test-e2e.sh
+        run: scripts/test-e2e.sh --shard=${{ matrix.shard }}/4
       - name: Upload E2E artifacts
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: e2e-results
+          name: e2e-results-${{ matrix.shard }}
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  # Keeps the single "E2E" check name. Green only when every shard passed, or when the
+  # change detection succeeded, found no app changes and the shards were skipped.
+  e2e-result:
+    name: E2E
+    if: always()
+    needs: [changes, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check shard results
+        env:
+          EVENT: ${{ github.event_name }}
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          APP_CHANGED: ${{ needs.changes.outputs.app }}
+          E2E_RESULT: ${{ needs.e2e.result }}
+        run: |
+          echo "event=$EVENT changes=$CHANGES_RESULT app=$APP_CHANGED e2e=$E2E_RESULT"
+          if [ "$E2E_RESULT" = success ]; then
+            exit 0
+          fi
+          if [ "$EVENT" = pull_request ] && [ "$CHANGES_RESULT" = success ] \
+            && [ "$APP_CHANGED" = false ] && [ "$E2E_RESULT" = skipped ]; then
+            echo "No app changes; E2E skipped."
+            exit 0
+          fi
+          echo "E2E did not pass."
+          exit 1
 
   installer:
     name: Installer on a real stack

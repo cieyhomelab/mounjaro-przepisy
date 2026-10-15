@@ -9,7 +9,10 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: 1,
   workers: 1,
-  reporter: [['list']],
+  // In CI also annotations and a JSON report with per-test durations (copied out by scripts/test-e2e.sh).
+  reporter: process.env.CI
+    ? [['list'], ['github'], ['json', { outputFile: 'test-results/report.json' }]]
+    : [['list']],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
     locale: 'pl-PL',

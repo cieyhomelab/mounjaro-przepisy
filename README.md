@@ -112,30 +112,30 @@ nową wersję wgrywa się ręcznie. Pełna instrukcja, razem z listą kontrolną
 odbioru, jest w `docs/operations.md`.
 
 Pierwsze uruchomienie wymaga domeny skierowanej na serwer, klienta OAuth w
-Google Cloud Console i tych zmiennych w `.env`:
+Google Cloud Console i konta Google, którym będziesz się logować.
 
-| Zmienna | Wartość |
-| --- | --- |
-| `POSTGRES_PASSWORD` | Długie, losowe hasło bazy |
-| `APP_BASE_URL` | `https://<domena>`, bez końcowego ukośnika |
-| `APP_DOMAIN` | `<domena>` bez `https://`; potrzebna tylko usłudze `caddy` |
-| `ALLOWED_EMAIL` | Jedyny adres Google, który może się zalogować |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Dane klienta OAuth; adres powrotu to `${APP_BASE_URL}/api/auth/google/callback` |
-| `BACKUP_AGE_RECIPIENT` | Klucz publiczny `age` do szyfrowania kopii zapasowych |
-| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Para kluczy do przypomnień push; bez nich aplikacja działa, ale przypomnienia nie przychodzą |
-
-Są dwa warianty uruchomienia:
+**Zalecana ścieżka: instalator.** W katalogu sklonowanego repozytorium:
 
 ```bash
-docker compose --profile tls up -d --build   # usługa caddy kończy HTTPS i sama odnawia certyfikat
-docker compose up -d --build                 # serwer ma już własne reverse proxy
+scripts/install.sh
 ```
 
-W drugim wariancie aplikacja nasłuchuje tylko na `127.0.0.1:${APP_PORT:-3000}`,
-a HTTPS kończy to proxy.
+Instalator sprawdza wymagania, przygotowuje `.env` z sekretami, pyta tylko o
+wartości, których nie da się wygenerować, uruchamia aplikację i czeka, aż
+odpowie, że działa. Ponowne uruchomienie pomija kroki już wykonane i nie zmienia
+ustawionych wartości. Tryb bez interakcji (zmienne środowiskowe, bez terminala)
+i szczegóły opisuje `docs/operations.md` („Pierwsze uruchomienie”).
 
-Aktualizacja to `git pull` i ponowienie tego samego polecenia `docker compose`.
-Dane w wolumenie `db-data` zostają. Sprawdzenie po wdrożeniu:
+**Alternatywa: kroki ręczne.** Pełna lista (kopiowanie `.env.example`, wartości,
+wybór wariantu HTTPS i polecenia `docker compose`) jest w
+[docs/operations.md](docs/operations.md#instalacja-ręczna-alternatywa).
+
+Są dwa warianty HTTPS: `caddy` (wbudowana usługa `caddy` kończy HTTPS i sama
+odnawia certyfikat) oraz `proxy` (serwer ma już własne reverse proxy, a aplikacja
+nasłuchuje tylko na `127.0.0.1:${APP_PORT:-3000}`).
+
+Aktualizacja to `git pull` i ponowne uruchomienie `scripts/install.sh`. Dane w
+wolumenie `db-data` zostają. Sprawdzenie po wdrożeniu:
 
 ```bash
 curl -fsS https://<domena>/api/health

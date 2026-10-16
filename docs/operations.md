@@ -19,6 +19,62 @@ Instrukcja dla właściciela: jak uruchomić Mounjaro Przepisy na własnym serwe
 
 ## Pierwsze uruchomienie
 
+Zalecana ścieżka to instalator. Ręczna lista kroków jest niżej jako alternatywa.
+
+### Instalator (zalecany)
+
+W katalogu sklonowanego repozytorium:
+
+```bash
+scripts/install.sh
+```
+
+Instalator wykonuje kroki K1–K9: sprawdza Dockera i Compose, tworzy `.env`, pyta o wariant HTTPS, generuje hasło bazy i klucze VAPID, pyta o wartości od Ciebie (domena, adres Google, dane klienta OAuth, klucz publiczny `age`), uruchamia aplikację i czeka do 3 minut na `ok` z `/api/health`. Każdy krok wypisuje „zrobione”, „pominięty, już zrobione” albo „błąd”. Wartości sekretów nigdy nie trafiają na wyjście. Przed uruchomieniem przygotuj klienta OAuth (poprzednia sekcja) i klucz `age` (sekcja „Kopie zapasowe”).
+
+Ponowne uruchomienie pomija kroki już wykonane, nigdy nie zmienia ustawionej wartości w `.env` (zwłaszcza `POSTGRES_PASSWORD`) i przebudowuje aplikację z bieżącego kodu.
+
+### Tryb bez interakcji
+
+Gdy instalator nie ma terminala (potok, CI), nie zadaje pytań. Wartości bierze z `.env`, a brakujące ze zmiennych środowiskowych o tych samych nazwach; wartość z `.env` ma pierwszeństwo. Gdy czegoś brakuje albo coś jest niepoprawne, instalator wymienia wszystkie takie zmienne i kończy się błędem.
+
+| Zmienna | Wartość |
+| --- | --- |
+| `HTTPS_MODE` | `caddy` (usługa `caddy` kończy HTTPS, porty 80 i 443) albo `proxy` (własne reverse proxy, aplikacja na `127.0.0.1:${APP_PORT:-3000}`) |
+| `APP_DOMAIN` | nazwa hosta bez `https://`; wymagana w wariancie `caddy` |
+| `APP_BASE_URL` | `https://<domena>`; wystarczy podać jedną z `APP_DOMAIN` i `APP_BASE_URL`, drugą instalator wylicza |
+| `ALLOWED_EMAIL` | jedyny adres Google, który może się zalogować |
+| `GOOGLE_CLIENT_ID` | z klienta OAuth |
+| `GOOGLE_CLIENT_SECRET` | z klienta OAuth (sekret) |
+| `BACKUP_AGE_RECIPIENT` | klucz publiczny `age`, zaczyna się od `age1` |
+| `POSTGRES_PASSWORD`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | opcjonalne; bez nich instalator wygeneruje wartości (klucze VAPID podaje się parą) |
+
+Sekretów (`GOOGLE_CLIENT_SECRET`, `POSTGRES_PASSWORD`, `VAPID_PRIVATE_KEY`) nie wpisuj w linii polecenia, bo trafią do historii powłoki i listy procesów. Dwa bezpieczne sposoby:
+
+```bash
+# 1. Wpisanie bez echa i bez zapisu w historii
+read -rs GOOGLE_CLIENT_SECRET; export GOOGLE_CLIENT_SECRET
+
+# 2. Plik z uprawnieniami 600, wczytany do środowiska
+install -m 600 /dev/null ~/mp-instalacja.env
+${EDITOR:-nano} ~/mp-instalacja.env      # linie KLUCZ=wartość
+set -a; . ~/mp-instalacja.env; set +a
+```
+
+Potem uruchom (reszta wartości, które nie są sekretami, może iść w linii polecenia):
+
+```bash
+HTTPS_MODE=caddy APP_DOMAIN=przepisy.example.com ALLOWED_EMAIL=ty@example.com \
+  GOOGLE_CLIENT_ID=... BACKUP_AGE_RECIPIENT=age1... scripts/install.sh < /dev/null
+```
+
+Po instalacji usuń plik z sekretami (`shred -u ~/mp-instalacja.env`) i wyczyść zmienne (`unset GOOGLE_CLIENT_SECRET`).
+
+### Zmiana wariantu HTTPS
+
+Wariant jest zapisany w `.env` jako `HTTPS_MODE`. Żeby go zmienić, ustaw w `.env` `HTTPS_MODE=proxy` albo `HTTPS_MODE=caddy` (dla `caddy` musi być ustawiona `APP_DOMAIN`) i uruchom `scripts/install.sh` ponownie. Instalator nie pyta o wariant ani nie zmienia `.env`; przy zmianie na `proxy` zatrzymuje usługę `caddy` i wystawia aplikację na `127.0.0.1:${APP_PORT:-3000}`, przy zmianie na `caddy` uruchamia usługę `caddy`. Dane w bazie zostają.
+
+### Instalacja ręczna (alternatywa)
+
 1. Skopiuj repozytorium na serwer i wejdź do jego katalogu.
 2. `cp .env.example .env` i uzupełnij:
    - `POSTGRES_PASSWORD` — długie, losowe hasło;
@@ -31,7 +87,7 @@ Instrukcja dla właściciela: jak uruchomić Mounjaro Przepisy na własnym serwe
 4. Jeśli serwer ma już własne reverse proxy, uruchom bez profilu (`docker compose up -d --build`); aplikacja nasłuchuje wtedy na `127.0.0.1:${APP_PORT:-3000}` i to proxy ma kończyć HTTPS i przekazywać ruch na ten port.
 5. Sprawdź: `curl -fsS https://<twoja-domena>/api/health` zwraca status `ok`, a strona otwiera ekran logowania.
 
-Plik `.env` zawiera sekrety: nie commituj go i ogranicz dostęp (`chmod 600 .env`).
+Plik `.env` zawiera sekrety: nie commituj go i ogranicz dostęp (`chmod 600 .env`). Instalację ręczną można później objąć instalatorem: `scripts/install.sh` zapyta tylko o wariant i brakujące wartości, a istniejących nie zmieni.
 
 ## Zaszyfrowany dysk
 
@@ -90,12 +146,17 @@ Użytkownik robi to sam w aplikacji: Ustawienia → „Moje dane”. Eksport to 
 
 ## Aktualizacja
 
+Zalecana ścieżka:
+
 1. `git pull` w katalogu aplikacji.
-2. `docker compose --profile tls up -d --build` (bez `--profile tls`, jeśli używasz własnego proxy). Migracje stosują się przy starcie; dane w wolumenie `db-data` zostają.
-3. Sprawdź `/api/health` i zaloguj się.
+2. `scripts/install.sh` — pomija zrobione kroki, nie zmienia `.env`, przebudowuje i uruchamia aplikację w zapisanym wariancie i czeka na `ok`. Migracje stosują się przy starcie; dane w wolumenie `db-data` zostają.
+3. Zaloguj się i sprawdź działanie.
+
+Alternatywa (ręcznie): po `git pull` uruchom `docker compose --profile tls up -d --build` (bez `--profile tls`, jeśli używasz własnego proxy) i sprawdź `/api/health`.
 
 ## Diagnostyka
 
 - Logi: `docker compose logs --tail 100 app` (logi nie zawierają danych użytkownika).
 - Certyfikat się nie wystawia: sprawdź rekord DNS domeny i otwarte porty 80/443 (`docker compose logs caddy`).
-- Po zmianie `.env` uruchom polecenie z kroku „Aktualizacja” ponownie.
+- Instalator zgłasza „Aplikacja nie odpowiada po 3 minutach”: sprawdź logi poleceniem `docker compose --project-directory <katalog> -p mounjaro-przepisy logs --tail 100 app` (`<katalog>` to katalog repozytorium; logi nie zawierają danych użytkownika).
+- Po zmianie `.env` uruchom ponownie `scripts/install.sh` (albo ręcznie polecenie z „Aktualizacji”).

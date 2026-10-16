@@ -1,170 +1,80 @@
-# Mounjaro Przepisy (PWA)
+# Mounjaro Przepisy
 
-Prywatna aplikacja webowa, instalowalna na telefonie, dla jednej osoby na diecie
-wspieranej lekiem Mounjaro. Odpowiada na jedno pytanie: **co dziś ugotować, żeby
-było smaczne, białkowe i żebym to dobrze zniósł?**
+Prywatna aplikacja na telefon dla osoby na diecie wspieranej lekiem Mounjaro.
+Odpowiada na jedno pytanie: **co dziś ugotować, żeby było smaczne, białkowe i
+żebym to dobrze zniósł?**
 
-Aplikacja gromadzi sprawdzone przepisy (z serwisów kulinarnych i własne),
-filtruje je pod tę dietę i prowadzi przez gotowanie także bez internetu. Nie
-generuje przepisów i nie wylicza dawek leku. To nie jest uproszczenie na
-później, tylko granica zakresu: przepisom z AI nie da się ufać co do smaku, a
-dawkę ustala lekarz.
+Zbierasz w niej sprawdzone przepisy, filtrujesz je pod swoją dietę i gotujesz
+krok po kroku, także bez internetu. Aplikacja nie wymyśla przepisów i nie
+wylicza dawek leku: smak przepisów z AI jest nie do sprawdzenia, a dawkę ustala
+lekarz.
 
-Obsługuje dokładnie jedno konto. Zalogować się może tylko adres Google ustawiony
-przy instalacji; nie ma rejestracji, udostępniania ani widoków publicznych.
-Interfejs jest wyłącznie po polsku.
+Jest przeznaczona dla jednej osoby. Zalogować się może tylko konto Google
+podane przy instalacji; nie ma rejestracji ani udostępniania. Interfejs jest po
+polsku.
 
-- `.ai/specs/2026-10-08-mounjaro-przepisy.md` — specyfikacja: scenariusze S1–S25 z kryteriami akceptacji, etapy, sekcje techniczne
-- `AGENTS.md` — twarde reguły pracy w repozytorium; przeczytaj przed pierwszą zmianą
-- `docs/operations.md` — wdrożenie na własnym serwerze, kopie zapasowe, aktualizacja
-- `docs/adr/0001-stos-technologiczny.md` — wybór stosu i odrzucone alternatywy
-- `SDLC.md`, `CODE_REVIEW.md`, `BACKWARD_COMPATIBILITY.md` — proces pracy
+<img src="docs/screenshots/mobile-light/kolekcja.png" alt="Kolekcja przepisów w aplikacji" width="300">
 
-## Status
+## Co umie
 
-**Etapy 1–3 oraz wycinki 4.1 i 4.2 są dostarczone.** Trwa 4.3, a 4.4 czeka w
-kolejce.
+- **Kolekcja przepisów:** własne przepisy i dodawane z linku do serwisu kulinarnego, z oceną i historią ugotowań.
+- **Filtry pod Mounjaro:** wartości odżywcze i wybór dań, które dobrze się znosi.
+- **Wyszukiwanie** przepisów w zaufanych serwisach.
+- **Tryb gotowania:** składniki i kroki na jednym ekranie, działa bez internetu.
+- **Planer tygodnia i lista zakupów.**
+- **Dziennik dawek** z podpowiedzią, w które miejsce zrobić kolejny zastrzyk.
+- **Przypomnienie o zastrzyku** jako powiadomienie na telefonie.
+- **Twoje dane:** eksport wszystkiego do pliku ZIP i usunięcie konta jednym ruchem.
 
-| Etap | Co daje | Scenariusze | Stan |
-| --- | --- | --- | --- |
-| 1 | Kolekcja przepisów: logowanie, przepis ręczny i z linku, wartości odżywcze, filtry pod Mounjaro, ugotowania i oceny, tryb gotowania, praca offline, eksport i usunięcie danych | S1–S16 | gotowe |
-| 2 | Wyszukiwanie w zaufanych serwisach | S17, S18 | gotowe |
-| 3 | Planer tygodnia i lista zakupów | S19, S20 | gotowe |
-| 4.1 | Dziennik dawek i rotacja miejsc wkłucia | S21, S22 | gotowe |
-| 4.2 | Przypomnienie o zastrzyku (Web Push) | S23 | gotowe |
-| 4.3 | Dziennik wagi i samopoczucia | S24 | w toku (#20) |
-| 4.4 | Liczniki białka i wody | S25 | zaplanowane (#21) |
+## Czego potrzebujesz
 
-## Układ
-
-```
-src/shared/         # kontrakty Zod i logika domenowa wspólna dla klienta i serwera
-src/server/         # serwer Fastify: routes, services, integrations, db
-src/client/         # aplikacja React: screens, components, data (IndexedDB), sw.ts
-drizzle/            # migracje SQL generowane przez drizzle-kit
-tests/integration/  # Vitest z prawdziwym PostgreSQL
-tests/e2e/          # Playwright, jeden plik na scenariusz ze specyfikacji
-scripts/            # jedyny punkt wejścia do narzędzi, dla ludzi, agentów i CI
-backup/             # obraz usługi kopii zapasowych i próba odtworzenia
-docs/               # wdrożenie i decyzje architektoniczne
-.ai/                # specyfikacje i konfiguracja pipeline'u agentów
-```
-
-Filtry, sortowanie i wyliczenia żyją w `src/shared` i działają w przeglądarce,
-więc ten sam kod obsługuje pracę online i offline. Ekrany czytają dane z
-IndexedDB, a zapis idzie przez API.
-
-Stos: TypeScript 6 na Node.js 24, React 19, Vite 8, Tailwind CSS 4, Fastify 5,
-Zod 4, Drizzle ORM, PostgreSQL 18, Vitest 5, Playwright. Całość w Docker Compose.
-
-## Komendy
-
-Wymagania hosta: Docker z Compose v2.24 lub nowszym oraz bash. Node na hoście
-nie jest potrzebny i nie jest używany: skrypty uruchamiają wszystko w Dockerze z
-Node 24.
-
-```bash
-scripts/lint.sh              # ESLint, format Prettier, sprawdzenie typów
-scripts/test-unit.sh         # Vitest; argumenty trafiają do Vitest
-scripts/test-integration.sh  # Vitest z tymczasowym PostgreSQL
-scripts/test-e2e.sh          # Playwright na tymczasowej instancji całej aplikacji
-scripts/build.sh             # build produkcyjny: klient, serwer, obraz
-scripts/restore-drill.sh     # próba kopii zapasowej, szyfrowania i odtworzenia
-scripts/npm.sh <argumenty>   # npm w Node 24, np. install <pakiet>, run format
-```
-
-Pełna walidacja przed PR, w tej kolejności: lint, unit, integration, e2e, build.
-Skrypty testowe budują obraz z bieżącego stanu plików, więc nie wymagają commita.
-
-`scripts/test-e2e.sh` stawia własną instancję w osobnym projekcie Compose, nie
-publikuje portów na hoście i zawsze po sobie sprząta, dlatego kilka przebiegów
-może działać równolegle. Argumenty trafiają do Playwrighta:
-
-```bash
-scripts/test-e2e.sh --project mobile-chromium -g "S4"
-```
-
-Testy działają na trzech projektach: `mobile-chromium` (Pixel 7),
-`mobile-webkit` (iPhone 15) i `desktop-firefox`.
-
-## Uruchomienie lokalne
-
-```bash
-cp .env.example .env    # uzupełnij co najmniej POSTGRES_PASSWORD
-docker compose up -d --build
-```
-
-Aplikacja jest pod `http://127.0.0.1:3000`. Migracje bazy stosują się same przy
-starcie.
-
-`.env` jest w `.gitignore` i nigdy nie trafia do repozytorium. Pełną listę
-zmiennych, z opisem i informacją, czy są wymagane, zawiera `.env.example`.
-
-Logowanie Google i powiadomienia push mają atrapy (`AUTH_MODE=mock`,
-`PUSH_MODE=mock`), których używają testy E2E. Atrapy i endpointy `/api/__test/*`
-działają wyłącznie poza `APP_ENV=production`.
+- [ ] serwer z Linuksem z zainstalowanym Dockerem (Compose 2.24 lub nowszy),
+- [ ] własna domena skierowana na adres serwera,
+- [ ] konto Google, którym będziesz się logować,
+- [ ] klient OAuth w Google: instrukcja krok po kroku w [docs/operations.md](docs/operations.md#klient-oauth-w-google),
+- [ ] zaszyfrowany dysk serwera, bo aplikacja przechowuje dane o zdrowiu.
 
 ## Wdrożenie
 
-Aplikacja działa na własnym serwerze właściciela. Nie ma automatycznego
-wdrożenia: merge do `main` uruchamia tylko CI (`.github/workflows/ci.yml`), a
-nową wersję wgrywa się ręcznie. Pełna instrukcja, razem z listą kontrolną
-odbioru, jest w `docs/operations.md`.
-
-Pierwsze uruchomienie wymaga domeny skierowanej na serwer, klienta OAuth w
-Google Cloud Console i konta Google, którym będziesz się logować.
-
-**Zalecana ścieżka: instalator.** W katalogu sklonowanego repozytorium:
+Zalecana ścieżka to instalator. Na serwerze, w katalogu pobranego repozytorium:
 
 ```bash
 scripts/install.sh
 ```
 
-Instalator sprawdza wymagania, przygotowuje `.env` z sekretami, pyta tylko o
-wartości, których nie da się wygenerować, uruchamia aplikację i czeka, aż
-odpowie, że działa. Ponowne uruchomienie pomija kroki już wykonane i nie zmienia
-ustawionych wartości. Tryb bez interakcji (zmienne środowiskowe, bez terminala)
-i szczegóły opisuje `docs/operations.md` („Pierwsze uruchomienie”).
+Instalator sprawdza wymagania, przygotowuje ustawienia i hasła, pyta tylko o to,
+czego nie da się wygenerować (domena, konto Google, dane klienta OAuth),
+uruchamia aplikację i czeka, aż zacznie działać. Można go uruchomić ponownie:
+pomija to, co już zrobione.
 
-**Alternatywa: kroki ręczne.** Pełna lista (kopiowanie `.env.example`, wartości,
-wybór wariantu HTTPS i polecenia `docker compose`) jest w
-[docs/operations.md](docs/operations.md#instalacja-ręczna-alternatywa).
+Do wyboru są dwa sposoby obsługi HTTPS: wbudowany **caddy** sam załatwia
+certyfikat, a **proxy** wybierasz, gdy serwer ma już własny serwer pośredniczący.
 
-Są dwa warianty HTTPS: `caddy` (wbudowana usługa `caddy` kończy HTTPS i sama
-odnawia certyfikat) oraz `proxy` (serwer ma już własne reverse proxy, a aplikacja
-nasłuchuje tylko na `127.0.0.1:${APP_PORT:-3000}`).
+Wolisz zrobić to ręcznie albo potrzebujesz trybu bez pytań? Zobacz
+[instalację ręczną](docs/operations.md#instalacja-ręczna-alternatywa).
 
-Aktualizacja to `git pull` i ponowne uruchomienie `scripts/install.sh`. Dane w
-wolumenie `db-data` zostają. Sprawdzenie po wdrożeniu:
+## Pierwsze kroki
 
-```bash
-curl -fsS https://<domena>/api/health
-```
+1. Otwórz w przeglądarce telefonu adres swojej domeny.
+2. Zaloguj się kontem Google podanym przy instalacji.
+3. Dodaj aplikację do ekranu głównego: w Chrome menu → „Zainstaluj aplikację”, w Safari przycisk udostępniania → „Dodaj do ekranu początkowego”.
+4. Dodaj pierwszy przepis, wklejając link albo wpisując go ręcznie.
+
+## Aktualizacja
+
+Na serwerze pobierz nową wersję (`git pull`) i uruchom ponownie
+`scripts/install.sh`. Twoje dane zostają.
 
 ## Dane i prywatność
 
-Dane użytkownika to dane o zdrowiu. Nie trafiają do logów, komunikatów błędów,
-zewnętrznych usług ani do repozytorium, także jako dane testowe. Aplikacja nie
-ładuje zewnętrznych skryptów, czcionek z CDN ani analityki.
+Twoje dane to dane o zdrowiu i są traktowane odpowiednio: nie trafiają do logów
+ani zewnętrznych usług, a aplikacja nie ładuje analityki ani zewnętrznych
+skryptów.
 
-- Dysk serwera musi być zaszyfrowany: baza i zdjęcia leżą w wolumenie `db-data`.
-- Usługa `backup` co 6 godzin robi zaszyfrowaną kopię bazy. Klucz prywatny `age`
-  właściciel trzyma poza serwerem; serwer go nigdy nie potrzebuje.
-- Kopie starsze niż 29 dni są usuwane, żeby dane usuniętego konta zniknęły przed
-  upływem 30 dni obiecanych w aplikacji. Kopia trzymana poza serwerem musi
-  wygasać tak samo.
-- Eksport wszystkich danych (ZIP) i usunięcie konta użytkownik robi sam:
-  Ustawienia → „Moje dane”.
+- Wszystko jest na Twoim serwerze.
+- Co 6 godzin powstaje zaszyfrowana kopia bazy; klucz do jej odczytania trzymasz Ty, poza serwerem (szczegóły: [kopie zapasowe](docs/operations.md#kopie-zapasowe)).
+- Eksport danych i usunięcie konta zrobisz sam: Ustawienia → „Moje dane”. Po usunięciu konta dane znikają także z kopii w ciągu 30 dni.
 
-## Jak powstaje kod
+## Dla programistów
 
-Repozytorium prowadzi pipeline agentów: analityk pisze specyfikację, architekt
-stawia szkielet, kierownik tnie specyfikację na issues, a każde issue przechodzi
-przez inżyniera, testera i reviewera, zanim właściciel zmerguje PR. Stanem są
-etykiety GitHuba (`ready`, `in-progress`, `merge-queue`, `changes-requested`,
-`blocked`, `spec-gap`).
-
-Specyfikacja jest źródłem prawdy o zachowaniu. Każdy scenariusz i każde
-kryterium akceptacji ma test E2E nazwany identyfikatorem scenariusza. Lukę albo
-sprzeczność w specyfikacji zgłasza się w issue z etykietą `spec-gap`, a nie
-rozstrzyga w kodzie.
+Układ kodu, komendy, uruchomienie lokalne i proces pracy: [docs/development.md](docs/development.md).

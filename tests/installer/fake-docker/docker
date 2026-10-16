@@ -12,6 +12,10 @@
 #   VOLUME=exists             `docker volume inspect` succeeds (the database volume exists)
 #   VAPID_PUBLIC=<text>        first line printed by `docker run` (default: 87 characters)
 #   VAPID_PRIVATE=<text>       second line printed by `docker run` (default: 43 characters)
+#   UP=build-error             `docker compose ... up` fails with a build error
+#   UP=port-busy               `docker compose ... up` fails: "port is already allocated"
+#   HEALTH=fail                the health check (`compose exec`) never succeeds
+#   HEALTH_AFTER=<n>           the health check fails for the first <n> calls, then succeeds
 #   EXIT_<word>=<code>         exit code for a call whose arguments contain <word> (e.g. EXIT_build=1)
 set -u
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -59,6 +63,27 @@ case "${1:-}" in
     printf '\n'
     ;;
   compose)
+    for word in "$@"; do
+      if [ "$word" = up ]; then
+        case "$(get UP ok)" in
+          build-error)
+            echo 'failed to solve: process "npm run build" did not complete successfully: exit code: 1' >&2
+            exit 1
+            ;;
+          port-busy)
+            echo 'Error response from daemon: driver failed programming external connectivity: Bind for 127.0.0.1:3000 failed: port is already allocated' >&2
+            exit 1
+            ;;
+        esac
+      fi
+      if [ "$word" = exec ]; then
+        if [ "$(get HEALTH ok)" = fail ]; then exit 1; fi
+        after="$(get HEALTH_AFTER 0)"
+        count="$(cat "$dir/health-count" 2>/dev/null || echo 0)"
+        echo $((count + 1)) >"$dir/health-count"
+        if [ "$count" -lt "$after" ]; then exit 1; fi
+      fi
+    done
     if [ "${2:-}" = version ]; then
       version="$(get COMPOSE_VERSION 2.29.1)"
       if [ "$version" = none ]; then

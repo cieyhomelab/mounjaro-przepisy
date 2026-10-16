@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Fake `sleep` for the installer tests: with CLOCK=virtual in `state` it only moves the clock of
+# the fake `date` (file `clock`) and returns at once; otherwise it sleeps for real.
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if grep -qx 'CLOCK=virtual' "$dir/state" 2>/dev/null; then
+  echo $(( $(cat "$dir/clock" 2>/dev/null || echo 0) + ${1%%.*} )) >"$dir/clock"
+  exit 0
+fi
+exec "$(PATH=/usr/bin:/bin command -v sleep)" "$@"

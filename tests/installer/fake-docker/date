@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Fake `date` for the installer tests: `date +%s` is shifted by the virtual clock of the fake
+# `sleep` (CLOCK=virtual in `state`); every other call goes to the real date.
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+real="$(PATH=/usr/bin:/bin command -v date)"
+if [ "${1:-}" = '+%s' ] && grep -qx 'CLOCK=virtual' "$dir/state" 2>/dev/null; then
+  echo $(( $("$real" +%s) + $(cat "$dir/clock" 2>/dev/null || echo 0) ))
+  exit 0
+fi
+exec "$real" "$@"

@@ -145,29 +145,123 @@ env_problems() {
   fi
 }
 
-# env_write_value <file> <key> <value>: sets one value atomically. An empty `KEY=` line is
-# filled in place; a missing key is appended. The rest of the file stays byte for byte.
-# The new file is built next to the old one with mode 600 and moved over it.
-env_write_value() {
-  local file="$1" key="$2" value="$3" tmp line done=0
-  local re="^[[:space:]]*(export[[:space:]]+)?${key}=[[:space:]]*$"
+# env_write_values <file> <key> <value> [<key> <value>...]: sets values atomically, all in one
+# file replacement. An empty `KEY=` line (also `KEY=""` or `KEY= # comment`) is filled in place;
+# a missing key is appended at the end. The rest of the file stays byte for byte. The new file is
+# built next to the old one with mode 600 and moved over it.
+env_write_values() {
+  local file="$1" tmp line key rest unterminated=0 pending=0 i
+  shift
+  local -A wanted=() placed=()
+  local re='^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)=(.*)$'
+  local -a order=()
+  while [ "$#" -ge 2 ]; do
+    wanted[$1]="$2"
+    order+=("$1")
+    shift 2
+  done
   tmp="$(mktemp "$(dirname "$file")/.env.XXXXXX")"
   ENV_TMP_FILES+=("$tmp")
   chmod 600 "$tmp"
   {
-    while IFS= read -r line || [ -n "$line" ]; do
-      if [ "$done" -eq 0 ] && [[ "$line" =~ $re ]]; then
-        printf '%s%s=%s\n' "${BASH_REMATCH[1]}" "$key" "$value"
-        done=1
-      else
-        printf '%s\n' "$line"
+    while true; do
+      if ! IFS= read -r line; then
+        [ -n "$line" ] || break
+        unterminated=1
       fi
+      if [[ "$line" =~ $re ]]; then
+        key="${BASH_REMATCH[2]}"
+        rest="${BASH_REMATCH[3]}"
+        if [ -n "${wanted[$key]+x}" ] && [ -z "${placed[$key]:-}" ] && [ -z "$(env_unquote "$rest")" ]; then
+          line="${BASH_REMATCH[1]}${key}=${wanted[$key]}"
+          placed[$key]=1
+        fi
+      fi
+      if [ "$unterminated" -eq 1 ]; then
+        printf '%s' "$line"
+        break
+      fi
+      printf '%s\n' "$line"
     done <"$file"
-    if [ "$done" -eq 0 ]; then
-      printf '%s=%s\n' "$key" "$value"
+    for i in "${order[@]}"; do
+      [ -n "${placed[$i]:-}" ] || pending=1
+    done
+    if [ "$pending" -eq 1 ]; then
+      [ "$unterminated" -eq 0 ] || printf '\n'
+      for i in "${order[@]}"; do
+        [ -n "${placed[$i]:-}" ] || printf '%s=%s\n' "$i" "${wanted[$i]}"
+      done
     fi
   } >"$tmp"
   mv -f "$tmp" "$file"
+}
+
+# env_write_value <file> <key> <value>: one value, see env_write_values.
+env_write_value() {
+  env_write_values "$1" "$2" "$3"
+}
+
+# env_value_problem <KEY> <value>: for a value typed by the owner or taken from the environment
+# (not for values already in .env). Prints what is wrong and returns 0, or prints nothing and
+# returns 1. Uses the HTTPS_MODE and APP_DOMAIN of the last env_parse. Never prints the value.
+env_value_problem() {
+  local key="$1" value="$2" mode domain host port
+  if [ -z "$value" ]; then
+    printf 'wartość jest wymagana'
+    return 0
+  fi
+  if ! [[ "$value" =~ ^[A-Za-z0-9._@+:/=-]+$ ]]; then
+    printf 'niedozwolone znaki (dozwolone: litery, cyfry i . _ @ + : / = -)'
+    return 0
+  fi
+  mode="$(env_value HTTPS_MODE)"
+  domain="$(env_value APP_DOMAIN)"
+  case "$key" in
+    HTTPS_MODE)
+      if [ "$value" != caddy ] && [ "$value" != proxy ]; then
+        printf 'dozwolone wartości: caddy, proxy'
+        return 0
+      fi
+      ;;
+    APP_DOMAIN)
+      if ! env_valid_host "$value"; then
+        printf 'powinna być nazwą hosta (np. przepisy.example.pl), bez https:// i ścieżki'
+        return 0
+      fi
+      ;;
+    APP_BASE_URL)
+      host='' port=''
+      if [[ "$value" =~ ^https://([^/:]+)(:([0-9]+))?$ ]]; then
+        host="${BASH_REMATCH[1]}"
+        port="${BASH_REMATCH[3]:-}"
+      fi
+      if [ -z "$host" ] || ! env_valid_host "$host"; then
+        printf 'powinien mieć postać https://host, bez ścieżki i końcowego ukośnika'
+        return 0
+      fi
+      if [ -n "$port" ] && { [ "$mode" != proxy ] || [ "$port" -lt 1 ] || [ "$port" -gt 65535 ]; }; then
+        printf 'numer portu jest dozwolony tylko w wariancie proxy i w zakresie 1–65535'
+        return 0
+      fi
+      if [ "$mode" = caddy ] && [ -n "$domain" ] && [ "$host" != "$domain" ]; then
+        printf 'host musi być taki sam jak w APP_DOMAIN (wariant caddy)'
+        return 0
+      fi
+      ;;
+    ALLOWED_EMAIL)
+      if ! [[ "$value" =~ ^[^@[:space:]]+@[^@[:space:].]+(\.[^@[:space:].]+)+$ ]]; then
+        printf 'powinien mieć postać adres@domena.tld'
+        return 0
+      fi
+      ;;
+    BACKUP_AGE_RECIPIENT)
+      if [[ "$value" != age1* ]]; then
+        printf 'klucz publiczny age powinien zaczynać się od age1'
+        return 0
+      fi
+      ;;
+  esac
+  return 1
 }
 
 # env_copy_file <source> <target>: copies a file atomically with mode 600 (K2).

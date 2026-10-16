@@ -1,4 +1,5 @@
 // Stage 2.1 of the installer: K1 (requirements), K2 (.env file) and K7 (.env check).
+// A complete .env makes K3-K6 skip, so these tests reach K7 as before.
 // Scenario ids come from .ai/specs/2026-10-14-instalator.md.
 import {
   chmodSync,
@@ -21,7 +22,6 @@ import {
 } from './harness';
 
 const SECRETS = ['pg-secret-9f3a', 'gcs-secret-77b1', 'vapid-private-4c2d'];
-const INCOMPLETE = 'Instalator nie jest jeszcze kompletny';
 
 let installation: Installation;
 
@@ -48,6 +48,7 @@ function validEnv(extra = '') {
     'GOOGLE_CLIENT_ID=client-id',
     `GOOGLE_CLIENT_SECRET=${SECRETS[1]}`,
     'PUSH_MODE=web-push',
+    'VAPID_PUBLIC_KEY=vapid-public-key',
     `VAPID_PRIVATE_KEY=${SECRETS[2]}`,
     'BACKUP_AGE_RECIPIENT=age1abcdef',
     extra,
@@ -197,7 +198,6 @@ describe('S7: błędna wartość już zapisana w .env', () => {
     expect(result.output).toContain('K7 Kontrola .env: błąd');
     expect(result.output).toContain('PUSH_MODE');
     expect(result.output).toContain('web-push');
-    expect(result.output).not.toContain(INCOMPLETE);
     expect(readEnvFile(installation)).toBe(content);
     expect(dockerCalls(installation).some((call) => call.startsWith('compose -p'))).toBe(false);
     expectNoSecrets(result.output);
@@ -229,7 +229,7 @@ describe('S7: błędna wartość już zapisana w .env', () => {
     expect(readEnvFile(installation)).toBe(content);
   });
 
-  it('S7: po poprawieniu .env instalator przechodzi K7 i kończy tymczasowym komunikatem', async () => {
+  it('S7: po poprawieniu .env instalator przechodzi K7 i startuje aplikację', async () => {
     writeEnv(validEnv().replace('PUSH_MODE=web-push', 'PUSH_MODE=webpush'));
     const first = await runInstaller(installation);
     expect(first.output).toContain('K7 Kontrola .env: błąd');
@@ -238,8 +238,8 @@ describe('S7: błędna wartość już zapisana w .env', () => {
     const second = await runInstaller(installation);
 
     expect(second.output).toContain('K7 Kontrola .env: zrobione');
-    expect(second.output).toContain(INCOMPLETE);
-    expect(second.code).toBe(1);
+    expect(second.output).toContain('K9 Sprawdzenie: zrobione');
+    expect(second.code).toBe(0);
     expectNoSecrets(second.output + first.output);
   });
 
@@ -305,7 +305,7 @@ describe('S4: poprawność pliku .env', () => {
     const result = await runInstaller(installation);
 
     expect(result.output).toContain('K7 Kontrola .env: zrobione');
-    expect(result.output).toContain(INCOMPLETE);
+    expect(result.output).toContain('K9 Sprawdzenie: zrobione');
   });
 });
 

@@ -38,6 +38,7 @@ services:
           - nieprzeszukiwalny.test
           - skala10.test
           - niedostepny.test
+          - blokujacy.test
     restart: 'no'
 
   e2e:

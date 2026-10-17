@@ -1075,7 +1075,7 @@ Obiekt `recipe` w odpowiedziach i migawce zawiera pola tabeli `recipes` w `camel
 
 | Metoda i ścieżka | Żądanie | Odpowiedź | Uwagi i walidacja |
 | --- | --- | --- | --- |
-| `GET /search?q=` | — | `{ results: [{ title, url, imageToken, siteName, rating, ratingCount, recipeId }], failedSites: [{ name }] }` | `q` od 2 do 100 znaków. Najwyżej 10 wyników z serwisu; `rating` w skali 0–5 albo `null`; `recipeId` wypełnione, gdy adres jest już w kolekcji. Sortowanie z S17 wykonuje serwer |
+| `GET /search?q=` | — | `{ results: [{ title, url, imageToken, siteName, rating, ratingCount, recipeId }], failedSites: [{ name, reason }] }` | `q` od 2 do 100 znaków. `reason`: `blocked`, gdy serwis odmówił aplikacji (HTTP 401, 403, 429, np. ochrona przed botami), `unavailable` przy każdym innym błędzie albo braku odpowiedzi w czasie; ekran wymienia serwisy blokujące w osobnym komunikacie z odesłaniem do ustawień zaufanych serwisów. Najwyżej 10 wyników z serwisu; `rating` w skali 0–5 albo `null`; `recipeId` wypełnione, gdy adres jest już w kolekcji. Sortowanie z S17 wykonuje serwer |
 | `GET /search/images/:token` | — | Obraz | Pośredniczy tylko dla obrazów zwróconych w wynikach z ostatnich 15 minut, żeby przeglądarka nie łączyła się z cudzymi serwerami |
 | `POST /search/save` | `{ url }` | 201 `{ recipe, dataVersion }` albo 200 `{ status: "partial", draft, missing[] }` | Zapis bez podglądu, gdy odczyt jest kompletny; w przeciwnym razie dane do formularza ręcznego |
 | `POST /trusted-sites` | `{ url }` | 201 `{ site, dataVersion }` | 409 `duplicate_site`; 422 `not_searchable`; 502 `source_unavailable` |

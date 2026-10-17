@@ -117,6 +117,12 @@ const server = createServer((request, response) => {
     request.on('close', () => response.destroy());
     return;
   }
+  if (host === 'blokujacy.test') {
+    // "blokujący": refuses the app the way Cloudflare's bot protection does.
+    response.writeHead(403, { 'content-type': 'text/html', 'cf-mitigated': 'challenge' });
+    response.end('<html><head><title>Just a moment...</title></head></html>');
+    return;
+  }
   const searchAnswer = searchSiteAnswer(host, url);
   if (searchAnswer !== null) return send(response, 200, 'text/html; charset=utf-8', searchAnswer);
   const page = /^\/przepisy\/([a-z-]+)\/?$/.exec(pathname)?.[1];

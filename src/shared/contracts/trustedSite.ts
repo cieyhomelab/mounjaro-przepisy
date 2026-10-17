@@ -46,10 +46,17 @@ export const searchResultSchema = z.object({
 });
 export type SearchResult = z.infer<typeof searchResultSchema>;
 
+/**
+ * Why a site was not searched: `blocked` when it refused the app (401, 403 or 429, as bot
+ * protection such as Cloudflare answers), `unavailable` for any other failure or no answer in time.
+ */
+export const searchFailureReasonSchema = z.enum(['blocked', 'unavailable']);
+export type SearchFailureReason = z.infer<typeof searchFailureReasonSchema>;
+
 /** Response of GET /api/search: one list, already in the order of S17. */
 export const searchResponseSchema = z.object({
   results: z.array(searchResultSchema),
-  failedSites: z.array(z.object({ name: z.string() })),
+  failedSites: z.array(z.object({ name: z.string(), reason: searchFailureReasonSchema })),
 });
 export type SearchResponse = z.infer<typeof searchResponseSchema>;
 

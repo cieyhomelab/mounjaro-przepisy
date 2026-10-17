@@ -118,6 +118,7 @@ export const FIXTURE_SITES = {
   searchable: { name: 'Przeszukiwalny', host: 'przeszukiwalny.test' },
   scaleTen: { name: 'Skala dziesięć', host: 'skala10.test' },
   unavailable: { name: 'Niedostępny', host: 'niedostepny.test' },
+  blocked: { name: 'Blokujący', host: 'blokujacy.test' },
 } satisfies Record<string, TestSite>;
 
 /** Replaces the trusted sites of the (logged in) account with test sites from the fixtures service. */

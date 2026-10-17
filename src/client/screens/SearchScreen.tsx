@@ -34,6 +34,32 @@ function opinionsLabel(count: number) {
 
 const PARTIAL_NOTICE = 'Nie udało się odczytać całego przepisu';
 
+/** Sites that did not answer, and sites that refuse the app, each named in its own message. */
+function FailedSites({ sites }: { sites: SearchResponse['failedSites'] }) {
+  const names = (reason: SearchResponse['failedSites'][number]['reason']) =>
+    sites.filter((site) => site.reason === reason).map((site) => site.name);
+  const unavailable = names('unavailable');
+  const blocked = names('blocked');
+  const one = blocked.length === 1;
+  return (
+    <>
+      {unavailable.length > 0 ? (
+        <Notice>Nie udało się przeszukać: {unavailable.join(', ')}.</Notice>
+      ) : null}
+      {blocked.length > 0 ? (
+        <Notice>
+          {one ? 'Ten serwis blokuje' : 'Te serwisy blokują'} wyszukiwanie z aplikacji:{' '}
+          {blocked.join(', ')}. Możesz {one ? 'go' : 'je'} wyłączyć w{' '}
+          <Link to="/ustawienia/zaufane-serwisy" className="font-medium underline">
+            ustawieniach zaufanych serwisów
+          </Link>
+          .
+        </Notice>
+      ) : null}
+    </>
+  );
+}
+
 function ResultItem({
   result,
   busy,
@@ -205,12 +231,7 @@ export function SearchScreen() {
         ) : null}
         {response ? (
           <div className="flex flex-col gap-3" aria-label={`Wyniki wyszukiwania: ${searched}`}>
-            {response.failedSites.length > 0 ? (
-              <Notice>
-                Nie udało się przeszukać: {response.failedSites.map((site) => site.name).join(', ')}
-                .
-              </Notice>
-            ) : null}
+            <FailedSites sites={response.failedSites} />
             {response.results.length === 0 ? (
               <p role="status">Brak wyników</p>
             ) : (

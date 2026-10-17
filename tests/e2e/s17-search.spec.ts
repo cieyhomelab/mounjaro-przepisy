@@ -164,6 +164,28 @@ test.describe('S17: wyszukiwanie przepisów w zaufanych serwisach', () => {
     await expect(page.getByRole('alert')).toHaveText('Nie udało się przeszukać: Niedostępny.');
   });
 
+  test('S17: serwis blokujący wyszukiwanie jest wskazany osobno, z odesłaniem do ustawień', async ({
+    page,
+    request,
+  }) => {
+    await logIn(page);
+    await useTestSites(request, [
+      FIXTURE_SITES.searchable,
+      FIXTURE_SITES.unavailable,
+      FIXTURE_SITES.blocked,
+    ]);
+    await openSearch(page);
+    await search(page, 'kurczak');
+    await expect(resultItems(page)).toHaveCount(10);
+    const alerts = page.getByRole('alert');
+    await expect(alerts).toHaveText([
+      'Nie udało się przeszukać: Niedostępny.',
+      'Ten serwis blokuje wyszukiwanie z aplikacji: Blokujący. Możesz go wyłączyć w ustawieniach zaufanych serwisów.',
+    ]);
+    await alerts.getByRole('link', { name: 'ustawieniach zaufanych serwisów' }).click();
+    await expect(page).toHaveURL(/\/ustawienia\/zaufane-serwisy$/);
+  });
+
   test('S17: fraza bez wyników pokazuje „Brak wyników”', async ({ page, request }) => {
     await logIn(page);
     await useTestSites(request, [FIXTURE_SITES.searchable]);

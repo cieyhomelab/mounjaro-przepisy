@@ -25,9 +25,15 @@ export type FetchFailure =
   | 'too_many_redirects'
   | 'network';
 
-/** Why a page could not be fetched. Carries no address or page content: it may reach the logs. */
+/**
+ * Why a page could not be fetched, with the HTTP status for `http_status`. Carries no address or
+ * page content: it may reach the logs.
+ */
 export class FetchError extends Error {
-  constructor(readonly reason: FetchFailure) {
+  constructor(
+    readonly reason: FetchFailure,
+    readonly status?: number,
+  ) {
     super(reason);
     this.name = 'FetchError';
   }
@@ -183,7 +189,7 @@ export function createPageFetcher(options: PageFetcherOptions): PageFetcher {
       }
       if (status < 200 || status >= 300) {
         response.resume();
-        throw new FetchError('http_status');
+        throw new FetchError('http_status', status);
       }
       const contentType =
         (response.headers['content-type'] ?? '').split(';')[0]?.trim().toLowerCase() ?? '';

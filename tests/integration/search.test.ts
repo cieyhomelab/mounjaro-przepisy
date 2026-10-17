@@ -1,9 +1,11 @@
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { searchResponseSchema } from '../../src/shared/contracts/trustedSite';
 import { snapshotSchema } from '../../src/shared/contracts/snapshot';
+import { accounts } from '../../src/server/db/schema';
 import { createPageFetcher } from '../../src/server/integrations/pageFetcher';
+import { ImageGrants, searchTrustedSites } from '../../src/server/services/search';
 import {
   CookieJar,
   OWNER_EMAIL,
@@ -43,6 +45,15 @@ beforeAll(async () => {
       response.end(body);
     };
     if (host === 'wolny.test') return; // never answers
+    if (host === 'blokujacy.test') {
+      // What Cloudflare answers a client that does not run its challenge script.
+      response.writeHead(403, { 'content-type': 'text/html', 'cf-mitigated': 'challenge' });
+      return response.end('<html><head><title>Just a moment...</title></head></html>');
+    }
+    if (host === 'zepsuty.test') {
+      response.writeHead(500);
+      return response.end();
+    }
     if (url.pathname === '/img/a.png') {
       response.writeHead(200, { 'content-type': 'image/png' });
       return response.end(PNG);
@@ -74,13 +85,14 @@ afterAll(async () => {
 });
 
 describe('trusted sites and search', () => {
+  const fetcher = createPageFetcher({
+    timeoutMs: 1000,
+    allowPrivateNetwork: true,
+    resolve: () => Promise.resolve([{ address: '127.0.0.1', family: 4 }]),
+  });
   const harness = useApp(() => ({
     config: testConfig({ FETCH_ALLOW_PRIVATE_NETWORK: 'true', FETCH_TIMEOUT_MS: '1000' }),
-    pageFetcher: createPageFetcher({
-      timeoutMs: 1000,
-      allowPrivateNetwork: true,
-      resolve: () => Promise.resolve([{ address: '127.0.0.1', family: 4 }]),
-    }),
+    pageFetcher: fetcher,
   }));
 
   const site = (host: string, name: string, active = true) => ({
@@ -170,7 +182,46 @@ describe('trusted sites and search', () => {
     await useSites([site('a', 'Serwis A'), site('wolny', 'Wolny serwis')]);
     const { results, failedSites } = await search(jar, 'jajko');
     expect(results).toHaveLength(10);
-    expect(failedSites).toEqual([{ name: 'Wolny serwis' }]);
+    expect(failedSites).toEqual([{ name: 'Wolny serwis', reason: 'unavailable' }]);
+  });
+
+  it('tells a site that refuses the app from a site that fails', async () => {
+    const jar = await login();
+    await useSites([
+      site('a', 'Serwis A'),
+      site('blokujacy', 'Blokujący'),
+      site('zepsuty', 'Zepsuty'),
+    ]);
+    const { results, failedSites } = await search(jar, 'jajko');
+    expect(results).toHaveLength(10);
+    expect(failedSites).toEqual([
+      { name: 'Blokujący', reason: 'blocked' },
+      { name: 'Zepsuty', reason: 'unavailable' },
+    ]);
+  });
+
+  it('logs the host and the failure of a site that was not searched, never the phrase', async () => {
+    await login();
+    await useSites([site('a', 'Serwis A'), site('blokujacy', 'Blokujący')]);
+    const [account] = await harness.database.db.select({ id: accounts.id }).from(accounts);
+    const warn = vi.fn();
+    await searchTrustedSites(
+      harness.database,
+      fetcher,
+      new ImageGrants(),
+      account?.id ?? '',
+      'tajna fraza',
+      1000,
+      { warn },
+    );
+    expect(warn).toHaveBeenCalledExactlyOnceWith({
+      event: 'search_site_failed',
+      host: 'blokujacy.test',
+      reason: 'blocked',
+      fetchFailure: 'http_status',
+      status: 403,
+    });
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('tajna');
   });
 
   it('returns an empty list for a phrase without results', async () => {

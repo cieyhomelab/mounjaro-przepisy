@@ -1,11 +1,16 @@
 import { randomBytes } from 'node:crypto';
 import { and, eq, inArray } from 'drizzle-orm';
-import type { SearchResponse, SearchResult } from '../../shared/contracts/trustedSite';
+import type { FastifyBaseLogger } from 'fastify';
+import type {
+  SearchFailureReason,
+  SearchResponse,
+  SearchResult,
+} from '../../shared/contracts/trustedSite';
 import { sortSearchResults } from '../../shared/domain/searchResults';
 import { parseSourceUrl } from '../../shared/domain/sourceUrl';
 import type { Database } from '../db/client';
 import { recipes } from '../db/schema';
-import type { PageFetcher } from '../integrations/pageFetcher';
+import { FetchError, type PageFetcher } from '../integrations/pageFetcher';
 import { searchSite, type SiteResult } from '../integrations/siteSearch';
 import { listActiveSearchSites } from './trustedSites';
 
@@ -63,10 +68,19 @@ const withDeadline = <T>(work: Promise<T>, ms: number): Promise<T> =>
     );
   });
 
+/** Statuses with which a site refuses the app itself; bot protection answers this way. */
+const REFUSAL_STATUSES = new Set([401, 403, 429]);
+
+function failureOf(error: unknown): { reason: SearchFailureReason; fetchFailure: string } {
+  if (!(error instanceof FetchError)) return { reason: 'unavailable', fetchFailure: 'deadline' };
+  const refused = error.reason === 'http_status' && REFUSAL_STATUSES.has(error.status ?? 0);
+  return { reason: refused ? 'blocked' : 'unavailable', fetchFailure: error.reason };
+}
+
 /**
  * Searches every active trusted site of the account in parallel (S17) and merges the results
- * into one list in the order of S17. A site that fails or does not answer in time is only named.
- * `noSites` when the account has no active site.
+ * into one list in the order of S17. A site that fails or does not answer in time is only named,
+ * with the reason, and logged by host. `noSites` when the account has no active site.
  */
 export async function searchTrustedSites(
   database: Database,
@@ -75,6 +89,7 @@ export async function searchTrustedSites(
   accountId: string,
   query: string,
   fetchTimeoutMs: number,
+  log: Pick<FastifyBaseLogger, 'warn'>,
 ): Promise<SearchResponse | 'no_sites'> {
   const sites = await listActiveSearchSites(database.db, accountId);
   if (sites.length === 0) return 'no_sites';
@@ -86,9 +101,18 @@ export async function searchTrustedSites(
           searchSite(fetcher, site.searchConfig, query, { timeoutMs: fetchTimeoutMs }),
           TOTAL_BUDGET_MS,
         );
-        return { site, found };
-      } catch {
-        return { site, found: null };
+        return { site, found, reason: null };
+      } catch (error) {
+        const { reason, fetchFailure } = failureOf(error);
+        // The host and the failure only: never the phrase or the address of the results page.
+        log.warn({
+          event: 'search_site_failed',
+          host: site.host,
+          reason,
+          fetchFailure,
+          status: error instanceof FetchError ? error.status : undefined,
+        });
+        return { site, found: null, reason };
       }
     }),
   );
@@ -122,8 +146,8 @@ export async function searchTrustedSites(
 
   return {
     results: sortSearchResults(results),
-    failedSites: settled
-      .filter(({ found }) => found === null)
-      .map(({ site }) => ({ name: site.name })),
+    failedSites: settled.flatMap(({ site, reason }) =>
+      reason === null ? [] : [{ name: site.name, reason }],
+    ),
   };
 }

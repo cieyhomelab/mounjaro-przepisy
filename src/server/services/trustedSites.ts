@@ -96,6 +96,7 @@ export async function listActiveSearchSites(db: Executor, accountId: string) {
   return db
     .select({
       id: trustedSites.id,
+      host: trustedSites.host,
       name: trustedSites.name,
       searchConfig: trustedSites.searchConfig,
     })

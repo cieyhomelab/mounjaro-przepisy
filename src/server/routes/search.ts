@@ -26,6 +26,7 @@ export function registerSearchRoutes(
       request.session?.accountId ?? '',
       query.data.q,
       deps.fetchTimeoutMs,
+      request.log,
     );
     if (outcome === 'no_sites') return sendError(reply, 409, 'no_trusted_sites');
     return reply.header('Cache-Control', 'private, no-store').send(outcome);
